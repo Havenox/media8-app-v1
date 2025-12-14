@@ -2,6 +2,7 @@ using Media8.Application.Interfaces;
 using Media8.Domain.Entities;
 using Media8.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace Media8.Infrastructure.Data;
 
@@ -9,11 +10,13 @@ public class DbSeeder
 {
     private readonly ApplicationDbContext _context;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;
 
-    public DbSeeder(ApplicationDbContext context, IPasswordHasher passwordHasher)
+    public DbSeeder(ApplicationDbContext context, IPasswordHasher passwordHasher, Microsoft.Extensions.Configuration.IConfiguration configuration)
     {
         _context = context;
         _passwordHasher = passwordHasher;
+        _configuration = configuration;
     }
 
     public async Task SeedAsync()
@@ -59,6 +62,90 @@ public class DbSeeder
                  // Do not throw, so we can see the error
                  return;
              }
+        }
+
+
+
+        // ==========================================
+        // 1.1 JSON FILE USER SEEDING (BULK)
+        // ==========================================
+        if (bool.TryParse(_configuration["SEED_USERS_FROM_JSON"], out bool seedEnabled) && seedEnabled)
+        {
+            Console.WriteLine("[DIAGNOSTIC] JSON Seeding Enabled. Looking for 'users_seed.json'...");
+            var filePath = Path.Combine(AppContext.BaseDirectory, "users_seed.json");
+            
+            // Try to find in project root if not in bin
+            if (!File.Exists(filePath))
+            {
+                 filePath = Path.Combine(Directory.GetCurrentDirectory(), "users_seed.json");
+            }
+
+            if (File.Exists(filePath))
+            {
+                try 
+                {
+                    var jsonContent = await File.ReadAllTextAsync(filePath);
+                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    options.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+                    var jsonUsers = System.Text.Json.JsonSerializer.Deserialize<List<Media8.Application.DTOs.Seeding.UserSeedDto>>(jsonContent, options);
+
+                    if (jsonUsers != null && jsonUsers.Any())
+                    {
+                        Console.WriteLine($"[DIAGNOSTIC] Found {jsonUsers.Count} users in JSON. Processing...");
+                        var jsonUsersToAdd = new List<User>();
+                        int processedCount = 0;
+
+                        // Optimization: Fetch all existing emails into a HashSet for O(1) lookup
+                        var existingEmails = await _context.Users.Select(u => u.Email).ToListAsync();
+                        var existingEmailSet = new HashSet<string>(existingEmails, StringComparer.OrdinalIgnoreCase);
+
+                        foreach (var dto in jsonUsers)
+                        {
+                            if (existingEmailSet.Contains(dto.Email)) continue;
+
+                            var passwordHashJson = _passwordHasher.Hash(dto.Password);
+                            var user = CreateUser(Guid.NewGuid(), dto.Name, dto.Email, dto.Role, passwordHashJson);
+                            
+                            if (!string.IsNullOrEmpty(dto.Phone))
+                            {
+                                user.Profile.Phone = dto.Phone;
+                            }
+
+                            jsonUsersToAdd.Add(user);
+                            // Add to local set to suppress duplicates within the JSON
+                            existingEmailSet.Add(dto.Email);
+                            processedCount++;
+
+                            // Batch Save
+                            if (processedCount % 1000 == 0)
+                            {
+                                await _context.Users.AddRangeAsync(jsonUsersToAdd);
+                                await _context.SaveChangesAsync();
+                                jsonUsersToAdd.Clear();
+                                // Clear change tracker to free up memory
+                                _context.ChangeTracker.Clear();
+                                Console.WriteLine($"[DIAGNOSTIC] Saved batch of 1000 users...");
+                            }
+                        }
+
+                        // Save remaining
+                        if (jsonUsersToAdd.Any())
+                        {
+                            await _context.Users.AddRangeAsync(jsonUsersToAdd);
+                            await _context.SaveChangesAsync();
+                            Console.WriteLine($"[DIAGNOSTIC] Saved final batch of {jsonUsersToAdd.Count} users.");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[DIAGNOSTIC] Error processing JSON seed: {ex.Message}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("[DIAGNOSTIC] 'users_seed.json' not found at " + filePath);
+            }
         }
 
         // Re-fetch seeds to ensure we have the correct IDs for relationships
