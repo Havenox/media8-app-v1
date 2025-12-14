@@ -57,9 +57,10 @@ import { useAuth } from '@/contexts/AuthContext';
 
 // Hooks
 import { usePackages, useCreatePackage, useUpdatePackage, useTogglePackageStatus, useDeletePackage } from '@/hooks/usePackages';
-import { useClients } from '@/hooks/useUsers';
+// useClients removed
 import { useAssignPackage } from '@/hooks/usePackageAssignments';
 import { DeletePackageDialog } from '@/components/packages/DeletePackageDialog';
+import { UserSelect } from '@/components/users/UserSelect';
 
 interface NewPackageState {
   name: string;
@@ -110,7 +111,7 @@ const PackagesPage: React.FC = () => {
 
   // Hooks
   const { data: packages = [], isLoading: isLoadingPackages } = usePackages();
-  const { data: clients = [] } = useClients();
+  // useClients removed - UserSelect manages its own data
   const createPackageMutation = useCreatePackage();
   const updatePackageMutation = useUpdatePackage();
   const toggleVisibilityMutation = useTogglePackageStatus();
@@ -787,18 +788,11 @@ const PackagesPage: React.FC = () => {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Cliente</Label>
-              <Select value={selectedClientId} onValueChange={setSelectedClientId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name} ({client.email})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <UserSelect 
+                role="Client" 
+                value={selectedClientId} 
+                onChange={setSelectedClientId} 
+              />
             </div>
             {selectedPackage && (
               <div className="rounded-lg bg-muted/50 p-4 space-y-2">
