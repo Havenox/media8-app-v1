@@ -119,7 +119,7 @@ const PackagesPage: React.FC = () => {
   const filteredPackages = useMemo(() => {
     return packages.filter((pkg) => {
       const matchesSearch = pkg.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = categoryFilter === 'all' || pkg.category === categoryFilter;
+      const matchesCategory = categoryFilter === 'all' || pkg.category.toLowerCase() === categoryFilter.toLowerCase();
       // Removed status filter since IsActive is gone. We could filter by Public/Private if requested, but for now just removing the broken logic.
       return matchesSearch && matchesCategory;
     });
