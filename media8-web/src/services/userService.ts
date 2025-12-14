@@ -5,8 +5,21 @@ import { api } from '@/lib/api';
 // API FUNCTIONS
 // ==========================================
 
-const getAllAPI = async (): Promise<User[]> => {
-  const response = await api.get('/users');
+// ==========================================
+// API FUNCTIONS
+// ==========================================
+
+const getAllAPI = async (page = 1, pageSize = 20, role?: UserRole): Promise<User[]> => {
+  const query = new URLSearchParams({
+    page: page.toString(),
+    pageSize: pageSize.toString(),
+  });
+
+  if (role) {
+    query.append('role', role);
+  }
+
+  const response = await api.get(`/users?${query.toString()}`);
   return response.data;
 };
 
@@ -16,28 +29,30 @@ const getByIdAPI = async (id: string): Promise<User | null> => {
 };
 
 const getByRoleAPI = async (role: UserRole): Promise<User[]> => {
-  const response = await api.get(`/users?role=${role}`);
-  return response.data;
+  return getAllAPI(1, 1000, role); // Backwards compatibility for role helpers
 };
 
 const createAPI = async (data: { name: string; email: string; role: UserRole; password?: string; phone?: string }): Promise<User> => {
-  // Use the auth registration endpoint which handles password hashing etc.
-  const response = await api.post('/auth/register', {
+  // Use the admin create endpoint
+  const response = await api.post('/users', {
     ...data,
-    password: data.password || 'DefaultPassword123!' // Fallback only if not provided
+    password: data.password || 'MudaSenha123!' // Default password if empty (should check frontend validation)
   });
-  return response.data.user;
+  return response.data;
 };
 
 const updateAPI = async (id: string, data: Partial<User>): Promise<User> => {
-  const response = await api.patch(`/users/${id}`, data);
+  // Use PUT for Admin Update
+  const response = await api.put(`/users/${id}`, data);
   return response.data;
 };
 
 const deleteAPI = async (id: string): Promise<void> => {
-  await api.delete(`/users/${id}`);
+  // Deletion is disabled in this version
+  throw new Error("Funcionalidade temporariamente desabilitada");
 };
 
+// ... existing auth methods ...
 const loginAPI = async (email: string, password: string): Promise<UserLoginResponse> => {
   const response = await api.post('/auth/login', { email, password });
   return response.data;
@@ -49,7 +64,7 @@ const updateProfileAPI = async (id: string, data: any): Promise<User> => {
 };
 
 const changePasswordAPI = async (data: any): Promise<void> => {
-  await api.post('/auth/change-password', data);
+  const response = await api.post('/auth/change-password', data);
 };
 
 // ==========================================
@@ -57,8 +72,8 @@ const changePasswordAPI = async (data: any): Promise<void> => {
 // ==========================================
 
 export const userService = {
-  async getAll(): Promise<User[]> {
-    return getAllAPI();
+  async getAll(page?: number, pageSize?: number, role?: UserRole): Promise<User[]> {
+    return getAllAPI(page, pageSize, role);
   },
 
   async getById(id: string): Promise<User | null> {
@@ -67,8 +82,8 @@ export const userService = {
 
   async getByEmail(email: string): Promise<User | null> {
     // API would need a specific endpoint or filter
-    const users = await getAllAPI();
-    return users.find(u => u.email.toLowerCase() === email.toLowerCase()) || null;
+    // For now we can't reliably filter by email on paged list without backend support
+    return null;
   },
 
   async getByRole(role: UserRole): Promise<User[]> {

@@ -16,6 +16,8 @@ public class UserRepository : Repository<User>, IUserRepository
         return await _dbSet
             .Include(u => u.Profile)
             .Include(u => u.Roles)
+            .Include(u => u.Assignments)
+                .ThenInclude(a => a.Package)
             .ToListAsync();
     }
 

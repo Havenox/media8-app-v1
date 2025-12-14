@@ -29,6 +29,12 @@ export interface User {
   bio?: string;
   phone?: string;
   preferences?: string; // JSON string
+  activePackage?: {
+    name: string;
+    videoQuantity: number;
+    additionalPackagesCount: number;
+    expiresAt?: string;
+  };
 }
 
 export interface UserLoginRequest {

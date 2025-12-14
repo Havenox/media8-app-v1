@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { User, UserRole } from '@/types/api';
 import { userService } from '@/services/userService';
 import { toast } from 'sonner';
@@ -10,6 +10,7 @@ export const userKeys = {
   all: ['users'] as const,
   lists: () => [...userKeys.all, 'list'] as const,
   list: (filters: Record<string, string>) => [...userKeys.lists(), filters] as const,
+  infinite: (filters: Record<string, any>) => [...userKeys.lists(), 'infinite', filters] as const,
   details: () => [...userKeys.all, 'detail'] as const,
   detail: (id: string) => [...userKeys.details(), id] as const,
   byRole: (role: UserRole) => [...userKeys.all, 'role', role] as const,
@@ -20,12 +21,31 @@ export const userKeys = {
 // ==========================================
 
 /**
- * Fetch all users
+ * Fetch users with infinite scroll
+ */
+export const useInfiniteUsers = (role?: UserRole, pageSize = 20) => {
+  return useInfiniteQuery({
+    queryKey: userKeys.infinite({ role, pageSize }),
+    queryFn: ({ pageParam = 1 }) => userService.getAll(pageParam, pageSize, role),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      // If the last page has fewer items than pageSize, we've reached the end
+      if (lastPage.length < pageSize) {
+        return undefined;
+      }
+      return allPages.length + 1;
+    },
+  });
+};
+
+/**
+ * Fetch all users (Legacy/Simple)
+ * @deprecated Use useInfiniteUsers for large lists
  */
 export const useUsers = () => {
   return useQuery({
     queryKey: userKeys.lists(),
-    queryFn: () => userService.getAll(),
+    queryFn: () => userService.getAll(1, 100), // Default to first 100
   });
 };
 
@@ -81,7 +101,7 @@ export const useCreateUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: { name: string; email: string; role: UserRole }) => 
+    mutationFn: (data: { name: string; email: string; role: UserRole; password?: string; phone?: string }) =>
       userService.create(data),
     onSuccess: (newUser) => {
       // Invalidate all user queries
@@ -101,7 +121,7 @@ export const useUpdateUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<User> }) => 
+    mutationFn: ({ id, data }: { id: string; data: Partial<User> }) =>
       userService.update(id, data),
     onSuccess: (updatedUser) => {
       // Invalidate queries
