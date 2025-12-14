@@ -86,6 +86,17 @@ const UserDetailsSheet: React.FC<UserDetailsSheetProps> = ({
     return !!expiresAt;
   };
 
+  const safeFormatDate = (dateString: string | undefined | null, pattern: string) => {
+    if (!dateString) return '-';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return '-';
+      return format(date, pattern, { locale: ptBR });
+    } catch (error) {
+      return '-';
+    }
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-md flex flex-col">
@@ -123,7 +134,7 @@ const UserDetailsSheet: React.FC<UserDetailsSheetProps> = ({
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Membro desde</span>
                   <span className="text-sm font-medium text-foreground">
-                    {format(new Date(user.createdAt), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                    {safeFormatDate(user.createdAt, "dd 'de' MMMM 'de' yyyy")}
                   </span>
                 </div>
               </div>
@@ -199,7 +210,7 @@ const UserDetailsSheet: React.FC<UserDetailsSheetProps> = ({
                                 Ativado em
                               </span>
                               <span className="text-foreground">
-                                {format(new Date(assignment.assignedAt), 'dd/MM/yyyy', { locale: ptBR })}
+                                {safeFormatDate(assignment.assignedAt, 'dd/MM/yyyy')}
                               </span>
                             </div>
                             {hasExpiry(assignment.expiresAt) ? (
@@ -215,7 +226,7 @@ const UserDetailsSheet: React.FC<UserDetailsSheetProps> = ({
                                       ? 'text-warning' 
                                       : 'text-foreground'
                                 }`}>
-                                  {format(new Date(assignment.expiresAt), 'dd/MM/yyyy', { locale: ptBR })}
+                                  {safeFormatDate(assignment.expiresAt, 'dd/MM/yyyy')}
                                   {expiringSoon && !isExpired && (
                                     <span className="ml-1 text-xs">
                                       ({daysLeft} {daysLeft === 1 ? 'dia' : 'dias'})
