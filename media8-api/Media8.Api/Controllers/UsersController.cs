@@ -40,35 +40,18 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<AdminUserDto>>> GetAll(
+        [FromQuery] string? search,
         [FromQuery] string? role,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
     {
-        // Note: For true scalability, pagination should be at Repository level (IQueryable).
-        // For now, we fetch all (with Eager Loading) and paginate in memory as per constraints.
-        var users = await _userRepository.GetAllWithProfilesAsync();
-
-        if (!string.IsNullOrEmpty(role))
-        {
-            users = users.Where(u => u.Roles.Any(r => r.Role.ToString().Equals(role, StringComparison.OrdinalIgnoreCase)));
-        }
-        
-        // Sorting by Name
-        users = users.OrderBy(u => u.Profile?.Name ?? u.Email);
-
-    
-
-
-    // Pagination
-        var total = users.Count();
-        var pagedUsers = users
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(MapToAdminDto);
+        var (users, total) = await _userRepository.GetPagedAsync(search, role, page, pageSize);
+        var userDtos = users.Select(MapToAdminDto);
 
         Response.Headers.Append("X-Total-Count", total.ToString());
-        return Ok(pagedUsers);
+        return Ok(userDtos);
     }
 
     [HttpGet("stats")]

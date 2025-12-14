@@ -34,10 +34,10 @@ export const useUserStats = () => {
 /**
  * Fetch users with infinite scroll
  */
-export const useInfiniteUsers = (role?: UserRole, pageSize = 20) => {
+export const useInfiniteUsers = (role?: UserRole, pageSize = 20, search?: string) => {
   return useInfiniteQuery({
-    queryKey: userKeys.infinite({ role, pageSize }),
-    queryFn: ({ pageParam = 1 }) => userService.getAll(pageParam, pageSize, role),
+    queryKey: userKeys.infinite({ role, pageSize, search }),
+    queryFn: ({ pageParam = 1 }) => userService.getAll(pageParam, pageSize, role, search),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
       // If the last page has fewer items than pageSize, we've reached the end

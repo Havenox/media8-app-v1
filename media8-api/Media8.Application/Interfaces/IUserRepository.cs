@@ -8,4 +8,5 @@ public interface IUserRepository : IRepository<User>
     Task<IEnumerable<User>> GetAllWithProfilesAsync();
     Task<User?> GetByIdWithProfileAsync(Guid id);
     Task<User?> GetByEmailAsync(string email);
+    Task<(IEnumerable<User> Users, int TotalCount)> GetPagedAsync(string? search, string? role, int page, int pageSize);
 }

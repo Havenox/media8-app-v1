@@ -9,7 +9,7 @@ import { api } from '@/lib/api';
 // API FUNCTIONS
 // ==========================================
 
-const getAllAPI = async (page = 1, pageSize = 20, role?: UserRole): Promise<User[]> => {
+const getAllAPI = async (page = 1, pageSize = 20, role?: UserRole, search?: string): Promise<User[]> => {
   const query = new URLSearchParams({
     page: page.toString(),
     pageSize: pageSize.toString(),
@@ -17,6 +17,10 @@ const getAllAPI = async (page = 1, pageSize = 20, role?: UserRole): Promise<User
 
   if (role) {
     query.append('role', role);
+  }
+
+  if (search) {
+    query.append('search', search);
   }
 
   const response = await api.get(`/users?${query.toString()}`);
@@ -72,8 +76,8 @@ const changePasswordAPI = async (data: any): Promise<void> => {
 // ==========================================
 
 export const userService = {
-  async getAll(page?: number, pageSize?: number, role?: UserRole): Promise<User[]> {
-    return getAllAPI(page, pageSize, role);
+  async getAll(page?: number, pageSize?: number, role?: UserRole, search?: string): Promise<User[]> {
+    return getAllAPI(page, pageSize, role, search);
   },
 
   async getById(id: string): Promise<User | null> {

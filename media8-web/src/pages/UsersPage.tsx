@@ -44,6 +44,7 @@ import UserDetailsSheet from '@/components/users/UserDetailsSheet';
 // Hooks
 import { useInfiniteUsers, useCreateUser, useDeleteUser, useUpdateUser, useUserStats } from '@/hooks/useUsers';
 import { InfiniteScroll } from '@/components/ui/infinite-scroll';
+import { useDebounce } from '@/hooks/useDebounce';
 import { usePackages } from '@/hooks/usePackages';
 import { useAssignPackage } from '@/hooks/usePackageAssignments';
 import { toast } from 'sonner';
@@ -51,6 +52,7 @@ import { toast } from 'sonner';
 const UsersPage: React.FC = () => {
   const { user: currentUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 500);
   const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
   
   // Modals state
@@ -75,7 +77,7 @@ const UsersPage: React.FC = () => {
     hasNextPage, 
     isFetchingNextPage, 
     isLoading: isLoadingUsers 
-  } = useInfiniteUsers(roleFilter === 'all' ? undefined : roleFilter);
+  } = useInfiniteUsers(roleFilter === 'all' ? undefined : roleFilter, 20, debouncedSearch);
 
   // Flatten users from pages
   const users = useMemo(() => {
@@ -90,15 +92,8 @@ const UsersPage: React.FC = () => {
 
 
   // Filter users in memory (Search only) - Ideally this should be backend search
-  const filteredUsers = useMemo(() => {
-    return users.filter((user) => {
-      const lowerQuery = searchQuery.toLowerCase();
-      return (
-        user.name.toLowerCase().includes(lowerQuery) ||
-        user.email.toLowerCase().includes(lowerQuery)
-      );
-    });
-  }, [users, searchQuery]);
+  // Filter users - Now handled by backend via useInfiniteUsers and debouncedSearch
+  const filteredUsers = users;
 
   // Fetch stats from backend
   const { data: statsData, isLoading: isLoadingStats } = useUserStats();
