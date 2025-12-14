@@ -90,7 +90,7 @@ public class PackagesController : ControllerBase
             Category = request.Category,
             Price = request.Price,
             VideoQuantity = request.VideoQuantity,
-            MaxDurationMinutes = request.MaxDurationMinutes,
+            MaxDurationSeconds = request.MaxDurationSeconds,
             ValidityDays = request.ValidityDays,
             LoyaltyMonths = request.LoyaltyMonths,
             DeliveryDays = request.DeliveryDays,
@@ -119,7 +119,7 @@ public class PackagesController : ControllerBase
         if (request.Category.HasValue) package.Category = request.Category.Value;
         if (request.Price.HasValue) package.Price = request.Price.Value;
         if (request.VideoQuantity.HasValue) package.VideoQuantity = request.VideoQuantity.Value;
-        if (request.MaxDurationMinutes.HasValue) package.MaxDurationMinutes = request.MaxDurationMinutes.Value;
+        if (request.MaxDurationSeconds.HasValue) package.MaxDurationSeconds = request.MaxDurationSeconds.Value;
         if (request.ValidityDays.HasValue) package.ValidityDays = request.ValidityDays;
         if (request.LoyaltyMonths.HasValue) package.LoyaltyMonths = request.LoyaltyMonths.Value;
         if (request.DeliveryDays.HasValue) package.DeliveryDays = request.DeliveryDays.Value;

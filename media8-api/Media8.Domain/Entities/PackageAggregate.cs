@@ -10,7 +10,7 @@ public class Package
     public PackageCategory Category { get; set; }
     public decimal Price { get; set; }
     public int VideoQuantity { get; set; }
-    public int MaxDurationMinutes { get; set; }
+    public int MaxDurationSeconds { get; set; }
     public int? ValidityDays { get; set; }
     public int LoyaltyMonths { get; set; }
     public int DeliveryDays { get; set; }

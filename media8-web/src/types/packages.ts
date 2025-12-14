@@ -8,7 +8,7 @@ export interface Package {
   category: PackageCategory;
   price: number;
   videoQuantity: number;
-  maxDurationMinutes: number; // Max duration per video in minutes
+  maxDurationSeconds: number; // Max duration per video in seconds
   validityDays: number | null; // null = no expiration (subscription renews)
   loyaltyMonths: number; // 0 = no loyalty
   deliveryDays: number; // 0 = to be agreed upon
@@ -40,7 +40,7 @@ export interface CreatePackageRequest {
   category: PackageCategory;
   price: number;
   videoQuantity: number;
-  maxDurationMinutes: number;
+  maxDurationSeconds: number;
   validityDays: number | null;
   loyaltyMonths: number;
   deliveryDays: number;

@@ -183,7 +183,7 @@ namespace Media8.Infrastructure.Migrations
                     b.Property<int>("LoyaltyMonths")
                         .HasColumnType("integer");
 
-                    b.Property<int>("MaxDurationMinutes")
+                    b.Property<int>("MaxDurationSeconds")
                         .HasColumnType("integer");
 
                     b.Property<string>("Name")

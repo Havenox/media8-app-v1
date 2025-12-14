@@ -231,7 +231,7 @@ public class DbSeeder
             Category = category,
             Price = price,
             VideoQuantity = qty,
-            MaxDurationMinutes = duration,
+            MaxDurationSeconds = duration * 60,
             ValidityDays = validity,
             LoyaltyMonths = loyalty,
             DeliveryDays = delivery,

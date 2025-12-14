@@ -66,7 +66,8 @@ interface NewPackageState {
   category: PackageCategory;
   price: number;
   videoQuantity: number;
-  maxDurationMinutes: number;
+  maxDurationSeconds: number;
+  uiDurationUnit: 'min' | 'sec';
   validityDays: number;
   loyaltyMonths: number;
   deliveryDays: number;
@@ -82,7 +83,8 @@ const initialPackageState: NewPackageState = {
   category: 'pacote',
   price: 0,
   videoQuantity: 1,
-  maxDurationMinutes: 2,
+  maxDurationSeconds: 60,
+  uiDurationUnit: 'sec',
   validityDays: 30,
   loyaltyMonths: 0,
   deliveryDays: 7,
@@ -150,7 +152,8 @@ const PackagesPage: React.FC = () => {
       category: pkg.category as PackageCategory, // Ensure type safety if needed
       price: pkg.price,
       videoQuantity: pkg.videoQuantity,
-      maxDurationMinutes: pkg.maxDurationMinutes,
+      maxDurationSeconds: pkg.maxDurationSeconds,
+      uiDurationUnit: pkg.maxDurationSeconds % 60 === 0 ? 'min' : 'sec',
       validityDays: pkg.validityDays || 0,
       loyaltyMonths: pkg.loyaltyMonths,
       deliveryDays: pkg.deliveryDays,
@@ -178,8 +181,8 @@ const PackagesPage: React.FC = () => {
       toast.error('A quantidade de vídeos deve ser pelo menos 1');
       return;
     }
-    if (newPackage.maxDurationMinutes < 1) {
-      toast.error('A duração máxima deve ser pelo menos 1 minuto');
+    if (newPackage.maxDurationSeconds < 15) {
+      toast.error('A duração máxima deve ser pelo menos 15 segundos');
       return;
     }
     if (newPackage.deliveryDays < 0) {
@@ -192,7 +195,7 @@ const PackagesPage: React.FC = () => {
       category: newPackage.category,
       price: newPackage.price,
       videoQuantity: newPackage.videoQuantity,
-      maxDurationMinutes: newPackage.maxDurationMinutes,
+      maxDurationSeconds: newPackage.maxDurationSeconds,
       validityDays: newPackage.validityDays > 0 ? newPackage.validityDays : null,
       loyaltyMonths: newPackage.loyaltyMonths,
       deliveryDays: newPackage.deliveryDays,
@@ -281,6 +284,14 @@ const PackagesPage: React.FC = () => {
       avulso: 'Avulso',
     };
     return labels[normalized] || category;
+  };
+
+  const formatDuration = (seconds: number) => {
+    if (seconds < 60) return `${seconds} seg`;
+    if (seconds % 60 === 0) return `${seconds / 60} min`;
+    const mins = Math.floor(seconds / 60);
+    const segs = seconds % 60;
+    return `${mins} min ${segs} seg`;
   };
 
   const containerVariants = {
@@ -425,14 +436,35 @@ const PackagesPage: React.FC = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="maxDuration">Duração Máx. (min) *</Label>
-                    <Input
-                      id="maxDuration"
-                      type="number"
-                      min={1}
-                      value={newPackage.maxDurationMinutes}
-                      onChange={(e) => setNewPackage({ ...newPackage, maxDurationMinutes: Number(e.target.value) })}
-                    />
+                    <Label htmlFor="maxDuration">Duração Máx. *</Label>
+                    <div className="flex gap-2">
+                        <Input
+                          id="maxDuration"
+                          type="number"
+                          min={1}
+                          className="flex-1"
+                          value={newPackage.uiDurationUnit === 'min' ? newPackage.maxDurationSeconds / 60 : newPackage.maxDurationSeconds}
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            setNewPackage({ 
+                              ...newPackage, 
+                              maxDurationSeconds: newPackage.uiDurationUnit === 'min' ? Math.round(val * 60) : val 
+                            });
+                          }}
+                        />
+                        <Select
+                          value={newPackage.uiDurationUnit}
+                          onValueChange={(v: 'min' | 'sec') => setNewPackage({ ...newPackage, uiDurationUnit: v })}
+                        >
+                          <SelectTrigger className="w-[100px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="min">Min</SelectItem>
+                            <SelectItem value="sec">Seg</SelectItem>
+                          </SelectContent>
+                        </Select>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -673,7 +705,7 @@ const PackagesPage: React.FC = () => {
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
                         <span className="font-semibold text-foreground">{formatPrice(pkg.price)}</span>
                         <span>{pkg.videoQuantity} vídeos</span>
-                        <span>até {pkg.maxDurationMinutes}min</span>
+                        <span>até {formatDuration(pkg.maxDurationSeconds)}</span>
                         {pkg.validityDays && <span>{pkg.validityDays} dias</span>}
                         {pkg.loyaltyMonths > 0 && <span>Fidelidade: {pkg.loyaltyMonths} meses</span>}
                         <span className="flex items-center gap-1">
@@ -772,7 +804,7 @@ const PackagesPage: React.FC = () => {
               <div className="rounded-lg bg-muted/50 p-4 space-y-2">
                 <h4 className="font-medium">{selectedPackage.name}</h4>
                 <div className="text-sm text-muted-foreground space-y-1">
-                  <p>{selectedPackage.videoQuantity} vídeos • até {selectedPackage.maxDurationMinutes}min cada</p>
+                  <p>{selectedPackage.videoQuantity} vídeos • até {formatDuration(selectedPackage.maxDurationSeconds)} cada</p>
                   <p>{formatPrice(selectedPackage.price)}</p>
                   {selectedPackage.validityDays && <p>Validade: {selectedPackage.validityDays} dias</p>}
                   {selectedPackage.deliveryDays > 0 ? (
