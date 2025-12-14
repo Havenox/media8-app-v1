@@ -1,0 +1,66 @@
+# .NET / ASP.NET Core
+# Ignore build and output directories
+bin/
+obj/
+
+# User-specific files
+.vs/
+.vscode/
+.idea/
+
+# User secrets (local development)
+secrets.json
+
+# .NET / Visual Studio Code-specific files
+.vscode/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# npm / yarn
+# Dependency directories
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+
+# React specific
+# Build output folder
+build/
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# OS-specific files
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Environment variable files
+.env
+.env.local
+.env.*.local
+
+# AI Folder (context for IA and prompts)
+ai/
+
+# Docker files
+# Ignore docker images and temporary files
+.docker/
+
+# .NET Core specific files
+project.lock.json
+project.fragment.lock.json
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# JetBrains Rider or ReSharper files
+.idea/

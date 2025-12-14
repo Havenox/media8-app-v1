@@ -1,0 +1,3 @@
+@echo off
+echo Starting Media 8 API...
+dotnet run --project Media8.Api/Media8.Api.csproj

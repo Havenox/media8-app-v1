@@ -1,0 +1,377 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========================================
+   MEDIA 8 - DESIGN SYSTEM
+   "Luxo Funcional" - Premium Video Editing SaaS
+   ======================================== */
+
+/* Font Imports - Garet for body text */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    /* ===== BRAND COLORS (HSL) ===== */
+    /* Primary: Deep Wine #400404 */
+    --wine: 0 94% 14%;
+    --wine-light: 0 70% 22%;
+    --wine-warm: 0 78% 21%;
+    --wine-vibrant: 0 85% 26%;
+    
+    /* Secondary: Cream #FFFBED */
+    --cream: 48 100% 96%;
+    --cream-dark: 40 30% 90%;
+    
+    /* Accent gradients */
+    --gradient-wine: linear-gradient(135deg, hsl(0 78% 21%) 0%, hsl(0 85% 26%) 100%);
+    --gradient-dark: linear-gradient(135deg, hsl(0 78% 21%) 0%, hsl(0 0% 0%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(0 94% 14%) 0%, hsl(0 78% 21%) 50%, hsl(0 85% 26%) 100%);
+    
+    /* ===== SEMANTIC TOKENS ===== */
+    --background: var(--cream);
+    --foreground: var(--wine);
+
+    --card: 0 0% 100%;
+    --card-foreground: var(--wine);
+
+    --popover: 0 0% 100%;
+    --popover-foreground: var(--wine);
+
+    --primary: var(--wine);
+    --primary-foreground: var(--cream);
+
+    --secondary: var(--cream-dark);
+    --secondary-foreground: var(--wine);
+
+    --muted: 40 20% 94%;
+    --muted-foreground: 0 30% 35%;
+
+    --accent: var(--wine-light);
+    --accent-foreground: var(--cream);
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 0%;
+
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 0 30% 85%;
+    --input: 0 20% 90%;
+    --ring: var(--wine);
+
+    --radius: 0.75rem;
+
+    /* Sidebar - Wine theme */
+    --sidebar-background: var(--wine);
+    --sidebar-foreground: var(--cream);
+    --sidebar-primary: var(--cream);
+    --sidebar-primary-foreground: var(--wine);
+    --sidebar-accent: var(--wine-light);
+    --sidebar-accent-foreground: var(--cream);
+    --sidebar-border: 0 50% 20%;
+    --sidebar-ring: var(--cream);
+
+    /* ===== SHADOWS ===== */
+    --shadow-sm: 0 1px 2px 0 hsl(var(--wine) / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(var(--wine) / 0.1), 0 2px 4px -2px hsl(var(--wine) / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(var(--wine) / 0.1), 0 4px 6px -4px hsl(var(--wine) / 0.1);
+    --shadow-xl: 0 20px 25px -5px hsl(var(--wine) / 0.1), 0 8px 10px -6px hsl(var(--wine) / 0.1);
+    --shadow-glow: 0 0 20px hsl(var(--wine-vibrant) / 0.3);
+
+    /* ===== TYPOGRAPHY ===== */
+    --font-body: 'Inter', system-ui, sans-serif;
+    --font-heading: 'Inter', system-ui, sans-serif;
+    
+    /* ===== TRANSITIONS ===== */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
+    --background: 0 0% 5%;
+    --foreground: var(--cream);
+
+    --card: 0 0% 8%;
+    --card-foreground: var(--cream);
+
+    --popover: 0 0% 8%;
+    --popover-foreground: var(--cream);
+
+    --primary: var(--cream);
+    --primary-foreground: var(--wine);
+
+    --secondary: 0 20% 15%;
+    --secondary-foreground: var(--cream);
+
+    --muted: 0 15% 15%;
+    --muted-foreground: 0 10% 60%;
+
+    --accent: var(--wine-vibrant);
+    --accent-foreground: var(--cream);
+
+    --border: 0 20% 18%;
+    --input: 0 15% 18%;
+
+    --sidebar-background: 0 0% 3%;
+    --sidebar-foreground: var(--cream);
+    --sidebar-border: 0 20% 15%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    @apply font-semibold tracking-tight;
+  }
+
+  /* Custom scrollbar - Glassmorphism Wine com Fade-in */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--cream) / 0.2);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+      180deg, 
+      hsl(var(--wine) / 0.6),
+      hsl(var(--wine-vibrant) / 0.4)
+    );
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 9999px;
+    border: 1px solid hsl(var(--cream) / 0.1);
+    transition: all 0.3s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+      180deg, 
+      hsl(var(--wine) / 0.95),
+      hsl(var(--wine-vibrant) / 0.75)
+    );
+  }
+
+  /* Fade-in effect - scrollbar mais visível ao interagir */
+  *:hover::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+      180deg, 
+      hsl(var(--wine) / 0.85),
+      hsl(var(--wine-vibrant) / 0.65)
+    );
+  }
+}
+
+/* Firefox scrollbar support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--wine) / 0.5) hsl(var(--cream) / 0.2);
+}
+
+@layer components {
+  /* ===== CUSTOM COMPONENT STYLES ===== */
+  
+  .gradient-wine {
+    background: var(--gradient-wine);
+  }
+
+  .gradient-dark {
+    background: var(--gradient-dark);
+  }
+
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-sm border border-border/50;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background: var(--gradient-wine);
+  }
+
+  /* Skeleton loader with brand colors */
+  .skeleton-wine {
+    @apply animate-pulse rounded-md;
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--wine) / 0.08) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  }
+
+  @keyframes skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Focus ring with brand color */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
+  /* Status badges */
+  .status-pending {
+    @apply bg-warning/10 text-warning border-warning/20;
+  }
+
+  .status-in-progress {
+    @apply bg-info/10 text-info border-info/20;
+  }
+
+  .status-in-review {
+    @apply bg-accent/10 text-accent border-accent/20;
+  }
+
+  .status-changes-requested {
+    @apply bg-destructive/10 text-destructive border-destructive/20;
+  }
+
+  .status-approved {
+    @apply bg-success/10 text-success border-success/20;
+  }
+
+  /* ===== Phone Input Custom Styles ===== */
+  .phone-input-custom {
+    @apply flex h-11 w-full rounded-lg border-2 border-input bg-background text-base text-foreground transition-all duration-200;
+  }
+
+  .phone-input-custom:focus-within {
+    @apply border-primary ring-2 ring-primary/20;
+  }
+
+  .phone-input-custom .PhoneInputInput {
+    @apply flex-1 bg-transparent px-4 py-2 text-base text-foreground outline-none;
+    @apply placeholder:text-muted-foreground;
+  }
+
+  .phone-input-custom .PhoneInputCountry {
+    @apply flex items-center gap-2 pl-4 pr-2 border-r border-input;
+  }
+
+  .phone-input-custom .PhoneInputCountryIcon {
+    @apply w-6 h-4 rounded-sm overflow-hidden shadow-sm;
+  }
+
+  .phone-input-custom .PhoneInputCountryIcon--border {
+    @apply shadow-none bg-transparent;
+  }
+
+  .phone-input-custom .PhoneInputCountrySelectArrow {
+    @apply ml-1 text-muted-foreground;
+    border-color: hsl(var(--muted-foreground));
+  }
+
+  .phone-input-custom .PhoneInputCountrySelect {
+    @apply absolute inset-0 opacity-0 cursor-pointer;
+  }
+
+  .phone-input-custom .PhoneInputCountrySelect:focus + .PhoneInputCountryIcon {
+    @apply ring-2 ring-primary/20;
+  }
+}
+
+@layer utilities {
+  /* Animation utilities */
+  .animate-fade-in {
+    animation: fade-in var(--transition-smooth) ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slide-up var(--transition-smooth) ease-out;
+  }
+
+  .animate-slide-in-right {
+    animation: slide-in-right var(--transition-smooth) ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scale-in var(--transition-base) ease-out;
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slide-up {
+    from { 
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slide-in-right {
+    from { 
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes scale-in {
+    from { 
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to { 
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Hover utilities */
+  .hover-lift {
+    @apply transition-transform duration-200;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+
+  .hover-glow:hover {
+    box-shadow: var(--shadow-glow);
+  }
+}

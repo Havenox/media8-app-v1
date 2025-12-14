@@ -1,0 +1,39 @@
+# Ignora binários compilados
+bin/
+obj/
+
+# Ignora arquivos de configuração gerados
+appsettings.Development.json
+appsettings.Local.json
+
+# Ignora pastas de publicação
+publish/
+out/
+
+# Ignora configuração de usuário
+*.user
+*.suo
+
+# Ignora arquivos temporários
+*.tmp
+*.log
+
+# Ignora build do Rider e VSCode
+.idea/
+.vscode/
+
+# Ignora pacotes
+*.nupkg
+packages/
+
+# Ignora diretórios do .NET
+.project/
+*.deps.json
+*.runtimeconfig.json
+
+# Ignora o cache do .NET
+.nuget/
+.dotnet/
+
+# Ignora arquivos de ambiente
+.env

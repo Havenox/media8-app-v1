@@ -1,0 +1,115 @@
+using DotNetEnv;
+using Media8.Application;
+using Media8.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+
+// Load .env file from solution root (one level up from Api project, or in root)
+// TraversePath() searches up directories for .env
+Env.TraversePath().Load();
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
+builder.Services.AddEndpointsApiExplorer();
+
+// Add CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
+        });
+});
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Media 8 API", Version = "v1" });
+    
+    // JWT Security Definition
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
+
+// Add JWT Authentication
+var jwtSecret = builder.Configuration["JWT_SECRET"] ?? throw new ArgumentNullException("JWT_SECRET");
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = "media8-api",
+        ValidAudience = "media8-client",
+        IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtSecret))
+    };
+});
+
+// Add Infrastructure (Db, Repositories)
+// Configuration values will be read from Environment Variables loaded by DotNetEnv
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddApplication();
+
+var app = builder.Build();
+
+// Run Seeder
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<Media8.Infrastructure.Data.ApplicationDbContext>();
+    await context.Database.MigrateAsync();
+
+    var seeder = scope.ServiceProvider.GetRequiredService<Media8.Infrastructure.Data.DbSeeder>();
+    await seeder.SeedAsync();
+}
+
+// Configure the HTTP request pipeline.
+// Enable Swagger globally
+app.UseSwagger();
+app.UseSwaggerUI();
+
+app.UseHttpsRedirection();
+
+app.UseCors("AllowAll");
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();

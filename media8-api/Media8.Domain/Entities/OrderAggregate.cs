@@ -1,0 +1,38 @@
+using Media8.Domain.Enums;
+
+namespace Media8.Domain.Entities;
+
+public class Order
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid ClientId { get; set; }
+    public Guid? EditorId { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Briefing { get; set; } = string.Empty;
+    public string SourceFilesUrl { get; set; } = string.Empty;
+    public string? FinalVideoUrl { get; set; }
+    public OrderStatus Status { get; set; }
+    public ServiceType ServiceType { get; set; }
+    public DateOnly Deadline { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    public User? Client { get; set; }
+    public User? Editor { get; set; }
+    public ICollection<OrderTimeline> Timeline { get; set; } = new List<OrderTimeline>();
+}
+
+public class OrderTimeline
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid OrderId { get; set; }
+    public Guid UserId { get; set; }
+    public TimelineActionType ActionType { get; set; }
+    public string Content { get; set; } = string.Empty;
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    public Order? Order { get; set; }
+    public User? User { get; set; }
+}
