@@ -32,7 +32,7 @@ API robusta e segura construída sobre a plataforma .NET.
 ### 🏗️ Infraestrutura (`media8-infra`)
 Ambiente de desenvolvimento e produção containerizado.
 *   **Containerização**: Docker & Docker Compose.
-*   **Reverse Proxy**: Nginx (para servia da aplicação Web).
+*   **Reverse Proxy**: Nginx (para servir a aplicação Web).
 *   **Database**: PostgreSQL (Alpine).
 
 ---
