@@ -1,4 +1,4 @@
-# Media 8 Platform
+# Media 8 App
 
 ![Media 8 Banner](./docs/assets/Banner-1200x400.webp)
 
@@ -113,4 +113,4 @@ Desenvolvido por **Havenox**.
 
 ---
 
-> *"Gambiarra só é aceitável se for pra manter o sistema respirando até o fix."* - Havenox
+> *"Gambiarra só é aceitável se \for pra manter o sistema respirando até o fix."* - Havenox
