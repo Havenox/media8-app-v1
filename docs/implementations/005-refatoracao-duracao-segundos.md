@@ -20,6 +20,7 @@ Anteriormente, a duração máxima dos vídeos nos pacotes era armazenada em **M
 *   **Input Composto**:
     *   Adicionado seletor de unidade (**Minutos** ou **Segundos**) ao criar/editar pacotes.
     *   Permite entrada intuitiva (ex: "90 Segundos" ou "1.5 Minutos" -> Salva 90s).
+    *   *Update*: Default para novos pacotes alterado para "Segundos".
 *   **Exibição Formatada**:
     *   Lista de pacotes agora exibe a duração de forma inteligente:
         *   `< 60s`: Ex: "45 seg"

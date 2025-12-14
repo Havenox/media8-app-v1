@@ -2,7 +2,7 @@
 
 **Data:** 13/12/2025
 **Responsável:** Havenox
-**Status:** Planejado
+**Status:** Implementado
 
 ## Problema
 Atualmente, a opção **"Atribuir a Cliente"** no menu de ações de um pacote fica desabilitada (cinza) quando o pacote está marcado como **Privado** (`!isPublic`).
