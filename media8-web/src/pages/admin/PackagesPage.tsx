@@ -723,7 +723,7 @@ const PackagesPage: React.FC = () => {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem onClick={() => openAssignDialog(pkg)} disabled={!pkg.isPublic}>
+                      <DropdownMenuItem onClick={() => openAssignDialog(pkg)}>
                         <UserPlus className="h-4 w-4 mr-2" />
                         Atribuir a Cliente
                       </DropdownMenuItem>

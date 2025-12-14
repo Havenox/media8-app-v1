@@ -2,7 +2,7 @@
 
 **Data:** 13/12/2025
 **Responsável:** Havenox
-**Status:** Planejado
+**Status:** Implementado
 
 ## Problema
 O filtro de categorias na página de Gestão de Pacotes não está funcionando corretamente. Selecionar uma categoria (ex: "Assinatura") não retorna resultados, mesmo existindo pacotes dessa categoria.
