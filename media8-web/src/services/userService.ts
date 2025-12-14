@@ -102,6 +102,11 @@ export const userService = {
     return this.getByRole('Admin');
   },
 
+  async getStats(): Promise<import('@/types/api').UserStats> {
+    const response = await api.get('/users/stats');
+    return response.data;
+  },
+
   async create(data: { name: string; email: string; role: UserRole; password?: string; phone?: string }): Promise<User> {
     return createAPI(data);
   },

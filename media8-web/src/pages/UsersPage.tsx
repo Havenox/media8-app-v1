@@ -42,7 +42,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import UserDetailsSheet from '@/components/users/UserDetailsSheet';
 
 // Hooks
-import { useInfiniteUsers, useCreateUser, useDeleteUser, useUpdateUser } from '@/hooks/useUsers';
+import { useInfiniteUsers, useCreateUser, useDeleteUser, useUpdateUser, useUserStats } from '@/hooks/useUsers';
 import { usePackages } from '@/hooks/usePackages';
 import { useAssignPackage } from '@/hooks/usePackageAssignments';
 import { toast } from 'sonner';
@@ -122,13 +122,15 @@ const UsersPage: React.FC = () => {
     });
   }, [users, searchQuery]);
 
-  // Client-side stats (Calculated from loaded users - Approximate)
+  // Fetch stats from backend
+  const { data: statsData, isLoading: isLoadingStats } = useUserStats();
+
   const stats = useMemo(() => ({
-    total: users.length, // Should come from API header ideally
-    admins: users.filter((u) => u.role === 'Admin').length,
-    clients: users.filter((u) => u.role === 'Client').length,
-    editors: users.filter((u) => u.role === 'Editor').length,
-  }), [users]);
+    total: statsData?.totalUsers ?? '-',
+    admins: statsData?.totalAdmins ?? '-',
+    clients: statsData?.totalClients ?? '-',
+    editors: statsData?.totalEditors ?? '-',
+  }), [statsData]);
 
   // Get active packages (for assignment dropdown) - Admin can assign any package
   const activePackages = useMemo(() => {

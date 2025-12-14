@@ -57,7 +57,10 @@ public class UsersController : ControllerBase
         // Sorting by Name
         users = users.OrderBy(u => u.Profile?.Name ?? u.Email);
 
-        // Pagination
+    
+
+
+    // Pagination
         var total = users.Count();
         var pagedUsers = users
             .Skip((page - 1) * pageSize)
@@ -66,6 +69,24 @@ public class UsersController : ControllerBase
 
         Response.Headers.Append("X-Total-Count", total.ToString());
         return Ok(pagedUsers);
+    }
+
+    [HttpGet("stats")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<UserStatsDto>> GetStats()
+    {
+        var total = await _userRepository.CountAsync();
+        var admins = await _userRepository.CountAsync(u => u.Roles.Any(r => r.Role == AppRole.Admin));
+        var clients = await _userRepository.CountAsync(u => u.Roles.Any(r => r.Role == AppRole.Client));
+        var editors = await _userRepository.CountAsync(u => u.Roles.Any(r => r.Role == AppRole.Editor));
+
+        return Ok(new UserStatsDto
+        {
+            TotalUsers = total,
+            TotalAdmins = admins,
+            TotalClients = clients,
+            TotalEditors = editors
+        });
     }
 
     [HttpGet("{id}")]

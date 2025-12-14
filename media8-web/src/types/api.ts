@@ -127,3 +127,10 @@ export interface DashboardStats {
   inProgressOrders: number;
   completedOrders: number;
 }
+
+export interface UserStats {
+  totalUsers: number;
+  totalAdmins: number;
+  totalClients: number;
+  totalEditors: number;
+}

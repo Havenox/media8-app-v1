@@ -14,11 +14,22 @@ export const userKeys = {
   details: () => [...userKeys.all, 'detail'] as const,
   detail: (id: string) => [...userKeys.details(), id] as const,
   byRole: (role: UserRole) => [...userKeys.all, 'role', role] as const,
+  stats: () => [...userKeys.all, 'stats'] as const,
 };
 
 // ==========================================
 // QUERIES
 // ==========================================
+
+/**
+ * Fetch user statistics (counts)
+ */
+export const useUserStats = () => {
+  return useQuery({
+    queryKey: userKeys.stats(),
+    queryFn: () => userService.getStats(),
+  });
+};
 
 /**
  * Fetch users with infinite scroll
