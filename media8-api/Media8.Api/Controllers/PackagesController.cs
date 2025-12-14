@@ -13,10 +13,14 @@ namespace Media8.Api.Controllers;
 public class PackagesController : ControllerBase
 {
     private readonly IPackageRepository _packageRepository;
+    private readonly IRepository<PackageAssignment> _assignmentRepository;
 
-    public PackagesController(IPackageRepository packageRepository)
+    public PackagesController(
+        IPackageRepository packageRepository,
+        IRepository<PackageAssignment> assignmentRepository)
     {
         _packageRepository = packageRepository;
+        _assignmentRepository = assignmentRepository;
     }
 
     [HttpGet]
@@ -139,7 +143,13 @@ public class PackagesController : ControllerBase
         var package = await _packageRepository.GetByIdAsync(id);
         if (package == null) return NotFound();
 
-        // Hard delete since IsActive column is removed
+        // Check for assignments to prevent history loss
+        var assignments = await _assignmentRepository.FindAsync(a => a.PackageId == id);
+        if (assignments.Any())
+        {
+            return Conflict(new { message = "Este pacote possui vendas associadas e não pode ser excluído. Tente desativar a visibilidade (Tornar Privado)." });
+        }
+
         await _packageRepository.DeleteAsync(id);
 
         return NoContent();

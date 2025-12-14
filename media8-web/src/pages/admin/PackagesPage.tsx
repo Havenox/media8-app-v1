@@ -59,6 +59,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePackages, useCreatePackage, useUpdatePackage, useTogglePackageStatus, useDeletePackage } from '@/hooks/usePackages';
 import { useClients } from '@/hooks/useUsers';
 import { useAssignPackage } from '@/hooks/usePackageAssignments';
+import { DeletePackageDialog } from '@/components/packages/DeletePackageDialog';
 
 interface NewPackageState {
   name: string;
@@ -99,6 +100,8 @@ const PackagesPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [packageToDelete, setPackageToDelete] = useState<PackageType | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<PackageType | null>(null);
   const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [newPackage, setNewPackage] = useState<NewPackageState>(initialPackageState);
@@ -227,12 +230,14 @@ const PackagesPage: React.FC = () => {
     }
   };
 
-  const handleDeletePackage = async (pkgId: string) => {
-    try {
-      await deletePackageMutation.mutateAsync(pkgId);
-    } catch (error) {
-      // Error handled in hook
-    }
+  const handleDeleteClick = (pkg: PackageType) => {
+    setPackageToDelete(pkg);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!packageToDelete) return;
+    await deletePackageMutation.mutateAsync(packageToDelete.id);
   };
 
   const handleAssignPackage = async () => {
@@ -713,7 +718,7 @@ const PackagesPage: React.FC = () => {
                       <DropdownMenuSeparator />
                       <DropdownMenuItem 
                         className="text-destructive"
-                        onClick={() => handleDeletePackage(pkg.id)}
+                        onClick={() => handleDeleteClick(pkg)}
                         disabled={deletePackageMutation.isPending}
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
@@ -794,6 +799,12 @@ const PackagesPage: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <DeletePackageDialog
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        packageToDelete={packageToDelete}
+        onConfirm={handleConfirmDelete}
+      />
     </motion.div>
   );
 };
