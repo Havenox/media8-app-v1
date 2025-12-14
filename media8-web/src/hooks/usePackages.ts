@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { Package, CreatePackageRequest, PackageCategory } from '@/types/packages';
 import { packageService } from '@/services/packageService';
 import { toast } from 'sonner';
@@ -10,6 +10,7 @@ import { getErrorMessage } from '@/lib/api';
 export const packageKeys = {
   all: ['packages'] as const,
   lists: () => [...packageKeys.all, 'list'] as const,
+  infinite: (filters: Record<string, any>) => [...packageKeys.lists(), 'infinite', filters] as const,
   active: () => [...packageKeys.all, 'active'] as const,
   details: () => [...packageKeys.all, 'detail'] as const,
   detail: (id: string) => [...packageKeys.details(), id] as const,
@@ -21,12 +22,28 @@ export const packageKeys = {
 // ==========================================
 
 /**
- * Fetch all packages
+ * Fetch packages with infinite scroll
+ */
+export const useInfinitePackages = (pageSize = 20, search?: string) => {
+  return useInfiniteQuery({
+    queryKey: packageKeys.infinite({ pageSize, search }),
+    queryFn: ({ pageParam = 1 }) => packageService.getAll(pageParam, pageSize, search),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.length < pageSize) return undefined;
+      return allPages.length + 1;
+    },
+  });
+};
+
+/**
+ * Fetch all packages (Legacy/Simple)
+ * Retrieves up to 100 items to preserve existing behavior
  */
 export const usePackages = () => {
   return useQuery({
     queryKey: packageKeys.lists(),
-    queryFn: () => packageService.getAll(),
+    queryFn: () => packageService.getAll(1, 100),
   });
 };
 

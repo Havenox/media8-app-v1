@@ -7,5 +7,6 @@ public interface IPackageRepository : IRepository<Package>
 {
     Task<Package?> GetBySlugAsync(string slug);
     Task<IEnumerable<Package>> GetByCategoryAsync(PackageCategory category);
+    Task<(IEnumerable<Package> Packages, int TotalCount)> GetPagedAsync(string? search, int page, int pageSize, bool? isPublic = null);
 
 }

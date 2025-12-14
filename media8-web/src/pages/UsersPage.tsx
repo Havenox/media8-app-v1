@@ -45,8 +45,10 @@ import UserDetailsSheet from '@/components/users/UserDetailsSheet';
 import { useInfiniteUsers, useCreateUser, useDeleteUser, useUpdateUser, useUserStats } from '@/hooks/useUsers';
 import { InfiniteScroll } from '@/components/ui/infinite-scroll';
 import { useDebounce } from '@/hooks/useDebounce';
-import { usePackages } from '@/hooks/usePackages';
+
+// usePackages removed
 import { useAssignPackage } from '@/hooks/usePackageAssignments';
+import { PackageSelect } from '@/components/packages/PackageSelect';
 import { toast } from 'sonner';
 
 const UsersPage: React.FC = () => {
@@ -84,7 +86,7 @@ const UsersPage: React.FC = () => {
     return data?.pages.flatMap(page => page) ?? [];
   }, [data]);
 
-  const { data: packages = [] } = usePackages();
+  // Packages hook removed (lazy loaded in Component)
   const createUserMutation = useCreateUser();
   const deleteUserMutation = useDeleteUser();
   const updateUserMutation = useUpdateUser();
@@ -104,11 +106,6 @@ const UsersPage: React.FC = () => {
     clients: statsData?.totalClients ?? '-',
     editors: statsData?.totalEditors ?? '-',
   }), [statsData]);
-
-  // Get active packages (for assignment dropdown) - Admin can assign any package
-  const activePackages = useMemo(() => {
-    return packages; 
-  }, [packages]);
 
   // Handlers
   const handleCreateUser = async () => {
@@ -446,16 +443,12 @@ const UsersPage: React.FC = () => {
         <DialogContent>
           <DialogHeader><DialogTitle>Atribuir Pacote</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">
-            <Select value={selectedPackageId} onValueChange={setSelectedPackageId}>
-              <SelectTrigger><SelectValue placeholder="Selecione um pacote..." /></SelectTrigger>
-              <SelectContent>
-                {activePackages.map((pkg) => (
-                  <SelectItem key={pkg.id} value={pkg.id}>
-                    {pkg.name} ({pkg.videoQuantity} vídeos)
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+             <Label>Pacote</Label>
+             <PackageSelect 
+                value={selectedPackageId} 
+                onChange={setSelectedPackageId}
+                placeholder="Busque um pacote por nome..." 
+             />
           </div>
           <DialogFooter>
              <Button variant="outline" onClick={() => setIsAssignDialogOpen(false)}>Cancelar</Button>

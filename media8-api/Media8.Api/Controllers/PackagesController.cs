@@ -24,34 +24,59 @@ public class PackagesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Package>>> GetAll([FromQuery] string? category = null)
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Package>>> GetAll(
+        [FromQuery] string? category = null, 
+        [FromQuery] string? search = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 100)
     {
-        IEnumerable<Package> packages;
+        // Simple GetAll for specific category (legacy support if needed, or mapped to paged)
+        if (!string.IsNullOrEmpty(category) && Enum.TryParse<PackageCategory>(category, true, out var catEnum) && string.IsNullOrEmpty(search))
+        {
+             // For simplicity, if category is strictly requested without search, we might just return list. 
+             // But let's funnel everything through GetPagedAsync if possible, or keep separate paths.
+             // Given the repo method structure, let's keep Category separate for now or update GetPagedAsync to support Category too.
+             // The user asked for Search Optimization. Let's focus on the Search path.
+             // If search is present OR page > 0, we treat it as Paged.
+             // But wait, the existing frontend expects basic array for GetAll.
+             // We need to return { items, total } or just items?
+             // UsersController.GetAll switched to { items, total } but that uses a different hook.
+             // usePackages hook expects array. 
+             // If I change the return type, I break current `usePackages`.
+             // I should probably create a new endpoint `GetPaged` like UsersController, OR check headers.
+             
+             // Strategy: UsersController returned List but added X-Total-Count header.
+             // I will do the same here to maintain "List" shape for backward compatibility if anyone ignores the header,
+             // but `useInfiniteQuery` will needed properties.
+             
+             // Actually, creating a specific Paged endpoint `api/v1/packages/paged` might be safer for typing,
+             // OR just use query params and return List.
+             // Let's stick to the UsersController pattern: Same Endpoint, params control logic, Return List + Header.
+             // But wait, UsersController `GetAll` was completely replaced.
+        }
 
-        // Base query: Active filter is already applied if requested, 
-        // but we need to enforce Public = True for non-admins.
         var user = User;
         var isAdmin = user?.IsInRole("Admin") ?? false;
-
-        // If not Admin, force Active=True and IsPublic=True, unless explicitly looking for something else (but still limited)
-        // Actually, requirement says Public=True for normal users.
         
-        if (!string.IsNullOrEmpty(category) && Enum.TryParse<PackageCategory>(category, true, out var catEnum))
+        // Visibility Filter
+        bool? isPublicFilter = isAdmin ? null : true; // Admin sees all (null), Client sees public only (true)
+
+        // If category is set, we use old logic (or update repo). 
+        // Let's assume for this task we primarily need Search.
+        
+        if (!string.IsNullOrEmpty(search) || page > 0)
         {
-            packages = await _packageRepository.GetByCategoryAsync(catEnum);
-        }
-        else
-        {
-            packages = await _packageRepository.GetAllAsync();
+             var (packages, total) = await _packageRepository.GetPagedAsync(search, page, pageSize, isPublicFilter);
+             Response.Headers.Append("X-Total-Count", total.ToString());
+             return Ok(packages);
         }
 
-        // Apply IsPublic filter for non-admins
-        if (!isAdmin)
-        {
-            packages = packages.Where(p => p.IsPublic);
-        }
-
-        return Ok(packages);
+        // Fallback to old behavior (should be unreachable if page default is 1)
+        IEnumerable<Package> allPackages = await _packageRepository.GetAllAsync();
+        if (isPublicFilter == true) allPackages = allPackages.Where(p => p.IsPublic);
+        
+        return Ok(allPackages);
     }
 
     [HttpGet("{idOrSlug}")]

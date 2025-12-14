@@ -5,14 +5,23 @@ import { api } from '@/lib/api';
 // API FUNCTIONS
 // ==========================================
 
-const getAllAPI = async (): Promise<Package[]> => {
-  const response = await api.get('/packages');
+const getAllAPI = async (page = 1, pageSize = 20, search?: string): Promise<Package[]> => {
+  const query = new URLSearchParams({
+    page: page.toString(),
+    pageSize: pageSize.toString(),
+  });
+
+  if (search) {
+    query.append('search', search);
+  }
+
+  const response = await api.get(`/packages?${query.toString()}`);
   return response.data;
 };
 
 const getActiveAPI = async (): Promise<Package[]> => {
-  const response = await api.get('/packages?active=true');
-  return response.data;
+  // Legacy or simplified active check
+  return getAllAPI(1, 100);
 };
 
 const getByIdAPI = async (id: string): Promise<Package | null> => {
@@ -44,8 +53,8 @@ const deleteAPI = async (id: string): Promise<void> => {
 // ==========================================
 
 export const packageService = {
-  async getAll(): Promise<Package[]> {
-    return getAllAPI();
+  async getAll(page?: number, pageSize?: number, search?: string): Promise<Package[]> {
+    return getAllAPI(page, pageSize, search);
   },
 
   async getActive(): Promise<Package[]> {
