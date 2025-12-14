@@ -43,6 +43,7 @@ import UserDetailsSheet from '@/components/users/UserDetailsSheet';
 
 // Hooks
 import { useInfiniteUsers, useCreateUser, useDeleteUser, useUpdateUser, useUserStats } from '@/hooks/useUsers';
+import { InfiniteScroll } from '@/components/ui/infinite-scroll';
 import { usePackages } from '@/hooks/usePackages';
 import { useAssignPackage } from '@/hooks/usePackageAssignments';
 import { toast } from 'sonner';
@@ -87,29 +88,6 @@ const UsersPage: React.FC = () => {
   const updateUserMutation = useUpdateUser();
   const assignPackageMutation = useAssignPackage();
 
-  // Intersection Observer for Infinite Scroll
-  const observerTarget = useRef(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 1.0 }
-    );
-
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
-    }
-
-    return () => {
-      if (observerTarget.current) {
-        observer.unobserve(observerTarget.current);
-      }
-    };
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // Filter users in memory (Search only) - Ideally this should be backend search
   const filteredUsers = useMemo(() => {
@@ -355,64 +333,73 @@ const UsersPage: React.FC = () => {
           <CardDescription>Gerencie os usuários. Role para carregar mais.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {filteredUsers.map((user) => (
-              <motion.div
-                key={user.id}
-                whileHover={{ x: 4 }}
-                onClick={() => setSelectedUserForDetails(user)}
-                className="flex items-center justify-between p-4 rounded-lg border border-border hover:border-primary/20 hover:bg-muted/50 transition-all cursor-pointer"
-              >
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                      {user.name.split(' ').map((n) => n[0]).join('').toUpperCase().substring(0, 2)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-medium text-foreground">{user.name}</h4>
-                      <RoleBadge role={user.role} />
-                    </div>
-                    <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Mail className="h-3 w-3" />
-                        <span>{user.email}</span>
-                      </div>
-                      
-                      {/* Optimized Active Package Display */}
-                      {user.role === 'Client' && (
-                        <div className="flex items-center gap-1">
-                          <Package className="h-3 w-3" />
-                          {user.activePackage ? (
-                            <span className="text-success">
-                              {user.activePackage.name} • {user.activePackage.videoQuantity} vídeos
-                              {user.activePackage.additionalPackagesCount > 0 && (
-                                <span className="ml-1 text-xs bg-primary/10 px-1 rounded">
-                                  +{user.activePackage.additionalPackagesCount}
+            {/* Users List */}
+            <InfiniteScroll
+              next={fetchNextPage}
+              hasMore={!!hasNextPage}
+              isLoading={isFetchingNextPage}
+              endMessage={
+                filteredUsers.length > 0 && (
+                  <div className="text-center py-4 text-xs text-muted-foreground w-full">
+                    Todos os usuários carregados.
+                  </div>
+                )
+              }
+            >
+              <div className="space-y-4">
+                {filteredUsers.map((user) => (
+                  <motion.div
+                    key={user.id}
+                    whileHover={{ x: 4 }}
+                    onClick={() => setSelectedUserForDetails(user)}
+                    className="flex items-center justify-between p-4 rounded-lg border border-border hover:border-primary/20 hover:bg-muted/50 transition-all cursor-pointer"
+                  >
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-12 w-12">
+                        <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                          {user.name.split(' ').map((n) => n[0]).join('').toUpperCase().substring(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium text-foreground">{user.name}</h4>
+                          <RoleBadge role={user.role} />
+                        </div>
+                        <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Mail className="h-3 w-3" />
+                            <span>{user.email}</span>
+                          </div>
+                          
+                          {/* Optimized Active Package Display */}
+                          {user.role === 'Client' && (
+                            <div className="flex items-center gap-1">
+                              <Package className="h-3 w-3" />
+                              {user.activePackage ? (
+                                <span className="text-success">
+                                  {user.activePackage.name} • {user.activePackage.videoQuantity} vídeos
+                                  {user.activePackage.additionalPackagesCount > 0 && (
+                                    <span className="ml-1 text-xs bg-primary/10 px-1 rounded">
+                                      +{user.activePackage.additionalPackagesCount}
+                                    </span>
+                                  )}
                                 </span>
+                              ) : (
+                                <span className="text-muted-foreground/60">Sem pacote ativo</span>
                               )}
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground/60">Sem pacote ativo</span>
+                            </div>
                           )}
                         </div>
-                      )}
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+                  </motion.div>
+                ))}
 
-            {filteredUsers.length === 0 && !isLoadingUsers && (
-              <div className="text-center py-8 text-muted-foreground">Nenhum usuário encontrado.</div>
-            )}
-
-            {/* Infinite Scroll Sentinel */}
-            <div ref={observerTarget} className="h-4 w-full flex justify-center p-2">
-              {isFetchingNextPage && <Loader2 className="h-6 w-6 animate-spin text-primary" />}
-            </div>
-          </div>
+                {filteredUsers.length === 0 && !isLoadingUsers && (
+                  <div className="text-center py-8 text-muted-foreground">Nenhum usuário encontrado.</div>
+                )}
+              </div>
+            </InfiniteScroll>
         </CardContent>
       </Card>
 
