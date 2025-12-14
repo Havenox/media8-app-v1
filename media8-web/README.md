@@ -1,22 +1,5 @@
 # Media 8 - Plataforma de Edição de Vídeo
 
-Plataforma SaaS para gerenciamento de serviços de edição de vídeo, conectando clientes a editores profissionais.
-
-## 📚 Documentação do Backend
-
-A documentação completa para desenvolvimento e integração do backend está disponível na pasta `/docs`:
-
-| Documento | Descrição |
-|-----------|-----------|
-| [ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Visão geral da arquitetura, stack tecnológico e padrões de integração |
-| [DATABASE_SCHEMA.md](./docs/DATABASE_SCHEMA.md) | Esquema completo do banco de dados PostgreSQL, tabelas, índices e triggers |
-| [API_ROUTES.md](./docs/API_ROUTES.md) | Todas as rotas da API REST, payloads e códigos de resposta |
-| [SECURITY.md](./docs/SECURITY.md) | Políticas de segurança, RLS, RBAC e proteções contra ataques |
-
----
-
----
-
 ## Tecnologias Utilizadas
 
 ### Frontend
@@ -38,4 +21,40 @@ A documentação completa para desenvolvimento e integração do backend está d
 - **Entity Framework Core** - ORM
 - **JWT Bearer Authentication** - Auth
 
-> **Nota:** Configuração do backend **estritamente** via Variáveis de Ambiente (`.env`). Nenhuma secret em arquivos JSON.
+## 🚀 Como Executar Localmente
+
+### Pré-requisitos
+- Node.js 18+
+- NPM ou Yarn
+
+### Configuração
+1.  **Clone o repositório** e acesse a pasta do frontend:
+    ```sh
+    cd media8-web
+    ```
+
+2.  **Instale as dependências**:
+    ```sh
+    npm install
+    ```
+
+3.  **Configure as Variáveis de Ambiente**:
+    Copie o arquivo de exemplo `.env.example` para `.env`:
+    
+    ```sh
+    cp .env.example .env
+    ```
+    
+    Edite o arquivo `.env` para apontar para sua API (se diferente do padrão):
+    ```env
+    # URL da API Backend (.NET)
+    # Se estiver rodando via Docker, geralmente é http://localhost:5261/api/v1
+    VITE_API_URL=http://localhost:5261/api/v1
+    ```
+
+4.  **Inicie o Servidor de Desenvolvimento**:
+    ```sh
+    npm run dev
+    ```
+
+Acesse [http://localhost:5173](http://localhost:5173) no seu navegador.
