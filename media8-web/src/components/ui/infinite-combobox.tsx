@@ -76,7 +76,7 @@ export function InfiniteCombobox<T>({
   // Improvement: Accept a `selectedLabel` prop for optimistic display.
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={true}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
