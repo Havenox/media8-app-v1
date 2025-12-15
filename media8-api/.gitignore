@@ -26,6 +26,10 @@ out/
 *.nupkg
 packages/
 
+
+# Exceto a pasta DTOs/Packages
+!Media8.Application/DTOs/Packages/
+
 # Ignora diretórios do .NET
 .project/
 *.deps.json
