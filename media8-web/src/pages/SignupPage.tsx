@@ -118,7 +118,7 @@ const SignupPage: React.FC = () => {
           <Link to="/">
             <BrandLogo variant="cream" size="lg" />
             <p className="mt-2 text-cream/80 text-lg">
-              Plataforma de Gestão de Edição
+              Gestão de Edição de Vídeos
             </p>
           </Link>
 
@@ -144,7 +144,7 @@ const SignupPage: React.FC = () => {
 
           {/* Footer */}
           <div className="text-cream/50 text-sm">
-            © 2024 Media 8. Todos os direitos reservados.
+            © {new Date().getFullYear()} Media 8. Todos os direitos reservados.
           </div>
         </div>
       </motion.div>
@@ -160,8 +160,8 @@ const SignupPage: React.FC = () => {
           {/* Mobile Logo */}
           <div className="lg:hidden mb-8 text-center">
             <Link to="/">
-              <h1 className="text-3xl font-bold text-primary">Media 8</h1>
-              <p className="text-muted-foreground">Plataforma de Gestão</p>
+              <BrandLogo variant="wine" size="md" />
+              <p className="text-muted-foreground">Gestão de Edição de Vídeos</p>
             </Link>
           </div>
 

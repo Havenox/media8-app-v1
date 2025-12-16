@@ -76,7 +76,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ open, onOpenChange }) => {
               <Link to="/dashboard" onClick={handleNavClick} className="flex items-center gap-3 transition-opacity duration-200 hover:opacity-80">
                 <div>
                   <BrandLogo variant="cream" size="sm" href="/dashboard" />
-                  <p className="text-xs text-sidebar-foreground/60">Gestão de Edição</p>
+                  <p className="text-xs text-sidebar-foreground/60">Gestão de Edição de Vídeos</p>
                 </div>
               </Link>
             </div>

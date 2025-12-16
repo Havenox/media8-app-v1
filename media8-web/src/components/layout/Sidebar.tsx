@@ -71,7 +71,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
             >
               <div>
                 <BrandLogo variant="cream" size="sm" href="/dashboard" />
-                <p className="text-xs text-sidebar-foreground/60">Gestão de Edição</p>
+                <p className="text-xs text-sidebar-foreground/60">Gestão de Edição de Vídeos</p>
               </div>
             </motion.div>
           )}
