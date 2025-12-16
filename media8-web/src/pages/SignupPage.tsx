@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { BrandLogo } from '@/components/BrandLogo';
 
 const signupSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
@@ -115,9 +116,7 @@ const SignupPage: React.FC = () => {
         <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16 text-cream">
           {/* Logo */}
           <Link to="/">
-            <h1 className="text-4xl xl:text-5xl font-bold tracking-tight hover:opacity-80 transition-opacity">
-              Media 8
-            </h1>
+            <BrandLogo variant="cream" size="lg" />
             <p className="mt-2 text-cream/80 text-lg">
               Plataforma de Gestão de Edição
             </p>

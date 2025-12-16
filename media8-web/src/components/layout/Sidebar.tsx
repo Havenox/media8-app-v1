@@ -18,6 +18,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { BrandLogo } from '../BrandLogo';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -68,19 +69,14 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
               exit={{ opacity: 0 }}
               className="flex items-center gap-3"
             >
-              <div className="w-10 h-10 rounded-lg bg-sidebar-primary flex items-center justify-center">
-                <span className="text-sidebar-primary-foreground font-bold text-lg">M8</span>
-              </div>
               <div>
-                <h1 className="font-bold text-lg">Media 8</h1>
+                <BrandLogo variant="cream" size="sm" href="/dashboard" />
                 <p className="text-xs text-sidebar-foreground/60">Gestão de Edição</p>
               </div>
             </motion.div>
           )}
           {collapsed && (
-            <div className="w-10 h-10 rounded-lg bg-sidebar-primary flex items-center justify-center mx-auto">
-              <span className="text-sidebar-primary-foreground font-bold text-lg">M8</span>
-            </div>
+            <BrandLogo variant="cream" size="sm" />
           )}
         </Link>
       </div>

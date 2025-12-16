@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 
 import { Copy } from "lucide-react" // ícone de duas folhas
+import { BrandLogo } from '@/components/BrandLogo';
 
 
 // ======== COPY INPUT ========
@@ -116,9 +117,7 @@ const LoginPage: React.FC = () => {
         <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16 text-cream">
           {/* Logo */}
           <Link to="/">
-            <h1 className="text-4xl xl:text-5xl font-bold tracking-tight hover:opacity-80 transition-opacity">
-              Media 8
-            </h1>
+            <BrandLogo variant="cream" size="lg" />
             <p className="mt-2 text-cream/80 text-lg">
               Plataforma de Gestão de Edição
             </p>

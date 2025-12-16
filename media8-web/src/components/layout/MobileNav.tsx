@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import UserNav from './UserNav';
+import { BrandLogo } from '../BrandLogo';
 
 interface NavItem {
   icon: React.ElementType;
@@ -73,11 +74,8 @@ const MobileNav: React.FC<MobileNavProps> = ({ open, onOpenChange }) => {
             {/* Sheet Header */}
             <div className="p-4 border-b border-sidebar-border flex items-center justify-between">
               <Link to="/dashboard" onClick={handleNavClick} className="flex items-center gap-3 transition-opacity duration-200 hover:opacity-80">
-                <div className="w-10 h-10 rounded-lg bg-sidebar-primary flex items-center justify-center">
-                  <span className="text-sidebar-primary-foreground font-bold text-lg">M8</span>
-                </div>
                 <div>
-                  <h1 className="font-bold text-lg text-sidebar-foreground">Media 8</h1>
+                  <BrandLogo variant="cream" size="sm" href="/dashboard" />
                   <p className="text-xs text-sidebar-foreground/60">Gestão de Edição</p>
                 </div>
               </Link>
@@ -126,10 +124,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ open, onOpenChange }) => {
 
         {/* Center - Logo */}
         <Link to="/dashboard" className="flex items-center gap-2 transition-opacity duration-200 hover:opacity-80">
-          <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center">
-            <span className="text-sidebar-primary-foreground font-bold text-sm">M8</span>
-          </div>
-          <h1 className="font-bold text-sidebar-foreground text-sm">Media 8</h1>
+          <BrandLogo variant="cream" size="sm" href="/dashboard" />
         </Link>
 
         {/* Right - User Avatar */}

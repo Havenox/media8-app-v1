@@ -2,6 +2,7 @@ import { useLocation, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Home, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const NotFound = () => {
   const location = useLocation();
@@ -19,9 +20,7 @@ const NotFound = () => {
             404
           </span>
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-24 h-24 rounded-2xl gradient-hero flex items-center justify-center">
-              <span className="text-cream font-bold text-3xl">M8</span>
-            </div>
+            <BrandLogo variant="wine" size="lg" />
           </div>
         </div>
 

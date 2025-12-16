@@ -37,6 +37,7 @@ import {
   contactInfo,
   Product,
 } from '@/data/products';
+import { BrandLogo } from '@/components/BrandLogo';
 
 // Animation variants
 const fadeInUp = {
@@ -63,10 +64,7 @@ const LandingHeader: React.FC = () => {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg gradient-hero flex items-center justify-center">
-            <span className="text-cream font-bold text-lg">M8</span>
-          </div>
-          <span className="font-bold text-xl text-foreground">Media 8</span>
+          <BrandLogo variant="wine" size="sm" />
         </Link>
 
         {/* Navigation */}
@@ -686,10 +684,7 @@ const Footer: React.FC = () => {
           {/* Brand */}
           <div className="md:col-span-2">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-cream flex items-center justify-center">
-                <span className="text-primary font-bold text-lg">M8</span>
-              </div>
-              <span className="font-bold text-xl text-cream">Media 8</span>
+              <BrandLogo variant="cream" size="sm" />
             </div>
             <p className="text-cream/60 max-w-sm">
               Edição estratégica de vídeos para experts, mentores e marcas que buscam autoridade
