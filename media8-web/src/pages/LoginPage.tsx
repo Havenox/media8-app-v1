@@ -11,6 +11,41 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 
+import { Copy } from "lucide-react" // ícone de duas folhas
+
+
+// ======== COPY INPUT ========
+function CopyInput({ value }) {
+  // função que copia o texto para a área de transferência
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(value)
+  }
+
+  return (
+    <div className="relative">
+      {/* campo somente leitura para visual e seleção */}
+      <input
+        type="text"
+        value={value}
+        readOnly
+        className="w-full px-3 py-2 pr-10 rounded-md border border-border bg-background text-foreground text-sm"
+      />
+
+      {/* botão de copiar */}
+      <button
+        onClick={copyToClipboard}
+        type="button"
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+      >
+        <Copy size={16} />
+      </button>
+    </div>
+  )
+}
+// FIM COPY INPUT
+
+
+
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
@@ -232,11 +267,42 @@ const LoginPage: React.FC = () => {
           </div>
 
           {/* Demo info */}
-          <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border">
+
+          {/* <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border">
             <p className="text-sm text-muted-foreground text-center">
-              <span className="font-medium text-foreground">Modo Demo:</span> Use qualquer email e senha para entrar.
+              <span className="font-medium text-foreground">Modo Demo:</span> <br /> Login: admin@admin.com | Senha: SenhaAdmin <br /> Login: cliente@cliente.com | Senha: SenhaAdmin
             </p>
-          </div>
+          </div> */}
+
+          
+<div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border">
+  <p className="text-sm text-center mb-3">
+    <span className="font-medium">Modo Demo</span>
+  </p>
+
+  <div className="space-y-4 text-sm">
+    <div>
+      <p className="font-medium mb-1">Admin</p>
+      <CopyInput value="admin@admin.com" />
+      <div className="mt-2">
+        <CopyInput value="SenhaAdmin" />
+      </div>
+    </div>
+
+    <div>
+      <p className="font-medium mb-1">Cliente</p>
+      <CopyInput value="cliente@cliente.com" />
+      <div className="mt-2">
+        <CopyInput value="SenhaCliente" />
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+          {/* FIM DEMO INFO */}
         </div>
       </motion.div>
     </div>
