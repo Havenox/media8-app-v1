@@ -1,103 +1,83 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { serviceBalanceService } from '@/services/serviceBalanceService';
-import { ServiceType, ServiceBalanceAggregated, ServiceBalanceLot } from '@/types/services';
-import { useToast } from '@/hooks/use-toast';
+import { UnifiedServiceBalance } from '@/types/services';
 
-// Query keys - exported for use in other hooks
 export const serviceBalanceKeys = {
   all: ['service-balances'] as const,
-  balances: (userId: string) => ['service-balances', userId] as const,
-  lots: (userId: string) => ['service-balance-lots', userId] as const,
+  available: ['available-services'] as const,
 };
 
-// Alias for internal use
-const QUERY_KEYS = serviceBalanceKeys;
-
-/**
- * Hook to fetch aggregated service balances for UI display
- */
-export function useServiceBalances(userId: string | undefined) {
-  return useQuery<ServiceBalanceAggregated[]>({
-    queryKey: QUERY_KEYS.balances(userId || ''),
-    queryFn: () => serviceBalanceService.getAggregatedBalances(userId!),
-    enabled: !!userId,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+interface UseServiceBalancesOptions {
+  clientId?: string; // Optional: If provided, fetches for specific client (Admin). If not, fetches for current user.
+  status?: 'active' | 'expired' | 'all';
+  pageSize?: number;
+  enabled?: boolean;
 }
 
-/**
- * Hook to fetch raw lots (for detailed views)
- */
-export function useServiceBalanceLots(userId: string | undefined) {
-  return useQuery<ServiceBalanceLot[]>({
-    queryKey: QUERY_KEYS.lots(userId || ''),
-    queryFn: () => serviceBalanceService.getLots(userId!),
-    enabled: !!userId,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
-}
-
-/**
- * Hook to consume a service (with FIFO logic)
- */
-export function useConsumeService() {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: async ({ userId, serviceType }: { userId: string; serviceType: ServiceType }) => {
-      return serviceBalanceService.consumeService(userId, serviceType);
-    },
-    onSuccess: (result, { userId, serviceType }) => {
-      if (result.success) {
-        // Invalidate both queries to refresh data
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.balances(userId) });
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.lots(userId) });
+export const useServiceBalances = ({
+  clientId,
+  status = 'active',
+  pageSize = 20,
+  enabled = true
+}: UseServiceBalancesOptions = {}) => {
+  return useInfiniteQuery({
+    queryKey: ['service-balances', clientId || 'me', status],
+    queryFn: async ({ pageParam = 1 }) => {
+      // Determine which service method to call
+      if (clientId) {
+        return serviceBalanceService.getClientBalances(clientId, pageParam, pageSize, status);
       } else {
-        // Handle error cases
-        const errorMessages: Record<string, string> = {
-          NO_BALANCE: 'Você não tem saldo disponível para este serviço.',
-          EXPIRED: 'Seus créditos para este serviço expiraram.',
-          NOT_FOUND: 'Serviço não encontrado.',
-        };
-        toast({
-          title: 'Erro ao consumir serviço',
-          description: errorMessages[result.error || ''] || 'Erro desconhecido.',
-          variant: 'destructive',
-        });
+        return serviceBalanceService.getMyBalances(pageParam, pageSize, status);
       }
     },
-    onError: (error) => {
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível processar a solicitação.',
-        variant: 'destructive',
-      });
+    getNextPageParam: (lastPage, allPages) => {
+      const currentCount = allPages.flatMap(p => p.data).length;
+      if (currentCount < lastPage.total) {
+        return allPages.length + 1;
+      }
+      return undefined;
     },
+    initialPageParam: 1,
+    enabled: enabled,
   });
-}
+};
 
-/**
- * Hook to get available services for order creation
- * Returns only services with balance > 0
- */
-export function useAvailableServices(userId: string | undefined) {
-  const { data: balances, ...rest } = useServiceBalances(userId);
-  
-  return {
-    ...rest,
-    data: balances?.filter(b => b.totalQuantity > 0) || [],
-  };
-}
-
-/**
- * Hook to fetch ALL service balances including expired (for history page)
- */
-export function useAllServiceBalances(userId: string | undefined) {
-  return useQuery<ServiceBalanceAggregated[]>({
-    queryKey: [...QUERY_KEYS.balances(userId || ''), 'all'],
-    queryFn: () => serviceBalanceService.getAllAggregatedBalances(userId!),
+export const useAvailableServices = (userId?: string) => {
+  return useQuery({
+    queryKey: ['available-services', userId],
+    queryFn: () => {
+      if (!userId) return Promise.resolve([]);
+      return serviceBalanceService.getAggregatedBalances(userId);
+    },
     enabled: !!userId,
-    staleTime: 1000 * 60 * 5, // 5 minutes
   });
-}
+};
+
+export const useAllServiceBalances = (userId?: string) => {
+  return useQuery({
+    queryKey: ['service-balances', 'all-flat', userId],
+    queryFn: async () => {
+      // Fetch large page to simulate "All" for client-side filtering
+      // Ideal fix: Refactor ServicesPage to server-side filtering
+      const result = await serviceBalanceService.getMyBalances(1, 100, 'all');
+      return result.data;
+    },
+    enabled: !!userId
+  });
+};
+
+export const useConsumeService = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ userId, serviceType }: { userId: string, serviceType: import('@/types/services').ServiceType }) =>
+      serviceBalanceService.consumeService(userId, serviceType),
+    onSuccess: (result, variables) => {
+      if (result.success) {
+        // Invalidate both aggregated and infinite lists
+        queryClient.invalidateQueries({ queryKey: ['available-services', variables.userId] });
+        queryClient.invalidateQueries({ queryKey: ['service-balances'] });
+      }
+    }
+  });
+};

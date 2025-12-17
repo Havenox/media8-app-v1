@@ -64,6 +64,18 @@ export interface ServiceBalanceAggregated {
   daysUntilExpiry?: number;        // Dias até expirar (pacotes)
 }
 
+// NOVO: Interface Unificada vinda da API /service-balances/my-balances
+export interface UnifiedServiceBalance {
+  id: string;
+  serviceName: string;
+  packageName: string;
+  remainingQuantity: number;
+  totalQuantity: number;
+  expiresAt?: string;
+  purchaseDate: string;
+  status: 'active' | 'expired' | 'depleted';
+}
+
 // Resultado do consumo de serviço
 export interface ConsumeResult {
   success: boolean;

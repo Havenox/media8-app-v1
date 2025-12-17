@@ -47,18 +47,13 @@ const groupLotsByServiceAndPlan = (lots: ServiceBalanceLot[]): Record<string, Se
   }, {} as Record<string, ServiceBalanceLot[]>);
 };
 
-// Normalize serviceType from Backend (PascalCase) to Frontend (snake_case)
+// Normalize serviceType from Backend (PascalCase) to Frontend (PascalCase) 
+// The backend returns PascalCase, and our Frontend Types are PascalCase. 
+// No transformation needed, just type assertion/validation if necessary.
 const normalizeServiceType = (type: string): ServiceType => {
-  const map: Record<string, ServiceType> = {
-    'ReelsStandard': 'reels_standard',
-    'ReelsPremium': 'reels_premium',
-    'YoutubeCurto': 'youtube_curto',
-    'YoutubeMedio': 'youtube_medio',
-    'YoutubeLongo': 'youtube_longo',
-    'PacoteReels': 'pacote_reels',
-    'Avulso': 'avulso'
-  };
-  return map[type] as ServiceType || type.toLowerCase() as ServiceType;
+  // If we had legacy snake_case mapping, we would do it here. 
+  // For now, assume backend sends valid PascalCase matching our keys.
+  return type as ServiceType;
 };
 
 // Aggregate lots into UI-friendly format
@@ -182,6 +177,30 @@ const getLotsAPI = async (userId: string): Promise<ServiceBalanceLot[]> => {
   return response.data;
 };
 
+// NEW: Use Unified API (Snapshot Architecture)
+const getMyBalancesAPI = async (page = 1, pageSize = 50, status = 'active'): Promise<{ data: import('../types/services').UnifiedServiceBalance[], total: number }> => {
+  const response = await api.get('/service-balances/my-balances', {
+    params: { page, pageSize, status }
+  });
+  // API returns direct array currently in standard controller return, but might be wrapped if we used PaginatedResponse. 
+  // Let's check Controller: return Ok(dtos) with Header. 
+  // So data is array. Header 'X-Total-Count' is total.
+  return {
+    data: response.data,
+    total: parseInt(response.headers['x-total-count'] || '0', 10)
+  };
+};
+
+const getClientBalancesAPI = async (clientId: string, page = 1, pageSize = 50, status = 'active'): Promise<{ data: import('../types/services').UnifiedServiceBalance[], total: number }> => {
+  const response = await api.get(`/service-balances/${clientId}`, {
+    params: { page, pageSize, status }
+  });
+  return {
+    data: response.data,
+    total: parseInt(response.headers['x-total-count'] || '0', 10)
+  };
+};
+
 const consumeServiceAPI = async (userId: string, serviceType: ServiceType): Promise<ConsumeResult> => {
   const response = await api.post(`/users/${userId}/service-balances/consume`, { serviceType });
   return response.data;
@@ -193,10 +212,24 @@ const consumeServiceAPI = async (userId: string, serviceType: ServiceType): Prom
 
 export const serviceBalanceService = {
   /**
-   * Get all lots for a user
+   * Get all lots for a user (Legacy / Internal use)
    */
   async getLots(userId: string): Promise<ServiceBalanceLot[]> {
     return getLotsAPI(userId);
+  },
+
+  /**
+   * Get Paged Balances for Current User (Client Dashboard)
+   */
+  async getMyBalances(page = 1, pageSize = 50, status = 'active') {
+    return getMyBalancesAPI(page, pageSize, status);
+  },
+
+  /**
+   * Get Paged Balances for Specific Client (Admin View)
+   */
+  async getClientBalances(clientId: string, page = 1, pageSize = 50, status = 'active') {
+    return getClientBalancesAPI(clientId, page, pageSize, status);
   },
 
   /**

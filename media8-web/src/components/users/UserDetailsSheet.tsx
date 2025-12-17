@@ -30,6 +30,7 @@ import { Separator } from '@/components/ui/separator';
 import { User as UserType } from '@/types/api';
 import { useClientAssignments } from '@/hooks/usePackageAssignments';
 import { usePackages } from '@/hooks/usePackages';
+import { ServiceBalanceList } from '@/components/dashboard/ServiceBalanceList';
 
 interface UserDetailsSheetProps {
   user: UserType | null;
@@ -143,114 +144,22 @@ const UserDetailsSheet: React.FC<UserDetailsSheetProps> = ({
             {/* Pacotes ativos - apenas para clientes */}
             {user.role === 'Client' && (
               <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-                  <Package className="h-4 w-4" />
-                  Pacotes Ativos ({activeAssignments.length})
-                </h4>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Package className="h-4 w-4" />
+                    Saldos e Serviços
+                  </h4>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 text-xs"
+                    onClick={() => onAssignPackage(user)}
+                  >
+                    + Atribuir
+                  </Button>
+                </div>
 
-                {assignmentsLoading || packagesLoading ? (
-                  <div className="space-y-3">
-                    <Skeleton className="h-24 w-full" />
-                    <Skeleton className="h-24 w-full" />
-                  </div>
-                ) : sortedAssignments.length === 0 ? (
-                  <div className="p-4 rounded-lg border border-dashed border-border text-center">
-                    <Package className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">
-                      Nenhum pacote ativo
-                    </p>
-                    <Button 
-                      variant="link" 
-                      className="mt-2 h-auto p-0 text-primary"
-                      onClick={() => onAssignPackage(user)}
-                    >
-                      Atribuir um pacote
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {sortedAssignments.map(assignment => {
-                      const pkg = packages.find(p => p.id === assignment.packageId);
-                      if (!pkg) return null;
-
-                      const expiringSoon = isExpiringSoon(assignment.expiresAt);
-                      const daysLeft = getDaysUntilExpiry(assignment.expiresAt);
-                      const isExpired = hasExpiry(assignment.expiresAt) && daysLeft < 0;
-                      const showExpiryWarning = hasExpiry(assignment.expiresAt) && (expiringSoon || isExpired);
-
-                      return (
-                        <div 
-                          key={assignment.id}
-                          className={`p-4 rounded-lg border transition-colors ${
-                            isExpired 
-                              ? 'bg-destructive/5 border-destructive/30' 
-                              : expiringSoon 
-                                ? 'bg-warning/5 border-warning/30' 
-                                : 'bg-muted/30 border-border'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1">
-                              <h5 className="font-medium text-foreground">{pkg.name}</h5>
-                              <p className="text-sm text-muted-foreground mt-0.5">
-                                {pkg.videoQuantity} vídeos
-                              </p>
-                            </div>
-                            {showExpiryWarning && (
-                              <AlertTriangle className={`h-4 w-4 flex-shrink-0 ${
-                                isExpired ? 'text-destructive' : 'text-warning'
-                              }`} />
-                            )}
-                          </div>
-                          
-                          <div className="mt-3 pt-3 border-t border-border/50 space-y-1.5">
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="text-muted-foreground flex items-center gap-1.5">
-                                <Calendar className="h-3.5 w-3.5" />
-                                Ativado em
-                              </span>
-                              <span className="text-foreground">
-                                {safeFormatDate(assignment.assignedAt, 'dd/MM/yyyy')}
-                              </span>
-                            </div>
-                            {hasExpiry(assignment.expiresAt) ? (
-                              <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground flex items-center gap-1.5">
-                                  <Calendar className="h-3.5 w-3.5" />
-                                  {isExpired ? 'Expirou em' : 'Expira em'}
-                                </span>
-                                <span className={`font-medium ${
-                                  isExpired 
-                                    ? 'text-destructive' 
-                                    : expiringSoon 
-                                      ? 'text-warning' 
-                                      : 'text-foreground'
-                                }`}>
-                                  {safeFormatDate(assignment.expiresAt, 'dd/MM/yyyy')}
-                                  {expiringSoon && !isExpired && (
-                                    <span className="ml-1 text-xs">
-                                      ({daysLeft} {daysLeft === 1 ? 'dia' : 'dias'})
-                                    </span>
-                                  )}
-                                </span>
-                              </div>
-                            ) : (
-                              <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground flex items-center gap-1.5">
-                                  <Calendar className="h-3.5 w-3.5" />
-                                  Validade
-                                </span>
-                                <span className="text-success font-medium">
-                                  Sem expiração
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                <ServiceBalanceList clientId={user.id} className="grid-cols-1" />
               </div>
             )}
           </div>

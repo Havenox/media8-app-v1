@@ -41,6 +41,12 @@ public class PackageAssignment
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+    // Snapshot Properties (Immutable Contract)
+    public string? SnapshotPackageName { get; set; }
+    public int? SnapshotVideoQuantity { get; set; }
+    public decimal? SnapshotPrice { get; set; }
+    public int? SnapshotValidityDays { get; set; }
+
     // Navigation properties
     public Package? Package { get; set; }
     public User? Client { get; set; }

@@ -73,7 +73,13 @@ public class PackageAssignmentsController : ControllerBase
             AssignedAt = DateTime.UtcNow,
             ActivatedAt = DateTime.UtcNow,
             ExpiresAt = expiresAt,
-            Status = AssignmentStatus.Active
+
+            Status = AssignmentStatus.Active,
+            // Snapshot Data (Immutable Contract)
+            SnapshotPackageName = package.Name,
+            SnapshotVideoQuantity = package.VideoQuantity,
+            SnapshotPrice = package.Price,
+            SnapshotValidityDays = package.ValidityDays
         };
 
         await _assignmentRepository.AddAsync(assignment);

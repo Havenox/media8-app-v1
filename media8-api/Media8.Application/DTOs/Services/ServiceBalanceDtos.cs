@@ -18,3 +18,15 @@ public class ConsumeServiceResponse
     public string? Error { get; set; }
     public int RemainingTotal { get; set; }
 }
+
+public class UnifiedServiceBalanceDto
+{
+    public Guid Id { get; set; } // Balance Lot ID
+    public string ServiceName { get; set; } = string.Empty; // e.g. "Reels Estratégico"
+    public string PackageName { get; set; } = string.Empty; // e.g. "Plano Growth" (Snapshot)
+    public int RemainingQuantity { get; set; }
+    public int TotalQuantity { get; set; } // Snapshot Quantity
+    public DateTime? ExpiresAt { get; set; }
+    public DateTime PurchaseDate { get; set; }
+    public string Status { get; set; } = "active"; // active, expired, depleted
+}
