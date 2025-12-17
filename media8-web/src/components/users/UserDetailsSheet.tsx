@@ -29,7 +29,6 @@ import { Separator } from '@/components/ui/separator';
 
 import { User as UserType } from '@/types/api';
 import { useClientAssignments } from '@/hooks/usePackageAssignments';
-import { usePackages } from '@/hooks/usePackages';
 import { ServiceBalanceList } from '@/components/dashboard/ServiceBalanceList';
 
 interface UserDetailsSheetProps {
@@ -54,7 +53,6 @@ const UserDetailsSheet: React.FC<UserDetailsSheetProps> = ({
   const { data: assignments = [], isLoading: assignmentsLoading } = useClientAssignments(
     user?.role === 'Client' ? user?.id : undefined
   );
-  const { data: packages = [], isLoading: packagesLoading } = usePackages();
 
   if (!user) return null;
 

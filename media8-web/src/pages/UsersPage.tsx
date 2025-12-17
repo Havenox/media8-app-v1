@@ -458,21 +458,23 @@ const UsersPage: React.FC = () => {
       </Dialog>
 
       {/* User Details Sheet */}
-      <UserDetailsSheet
-        user={selectedUserForDetails}
-        open={!!selectedUserForDetails}
-        onOpenChange={(open) => !open && setSelectedUserForDetails(null)}
-        onEdit={(user) => {
-          setSelectedUserForDetails(null);
-          openEditDialog(user);
-        }}
-        onAssignPackage={(user) => {
-          setSelectedUserForDetails(null);
-          openAssignDialog(user);
-        }}
-        onDelete={handleDeleteUser}
-        isDeleting={false} // Disabled
-      />
+      {selectedUserForDetails && (
+        <UserDetailsSheet
+          user={selectedUserForDetails}
+          open={!!selectedUserForDetails}
+          onOpenChange={(open) => !open && setSelectedUserForDetails(null)}
+          onEdit={(user) => {
+            setSelectedUserForDetails(null);
+            openEditDialog(user);
+          }}
+          onAssignPackage={(user) => {
+            setSelectedUserForDetails(null);
+            openAssignDialog(user);
+          }}
+          onDelete={handleDeleteUser}
+          isDeleting={false} // Disabled
+        />
+      )}
     </motion.div>
   );
 };
