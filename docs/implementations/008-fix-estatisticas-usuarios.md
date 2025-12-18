@@ -1,47 +1,35 @@
-# Implementação de Estatísticas de Usuários (Backend-Side)
+# 008 - Otimização de Queries: Estatísticas Agregadas em Tempo Real (Server-Side)
 
-## Contexto e Problema
-Atualmente, a página de Gestão de Usuários exibe contadores (Total, Admins, Clientes, Editores) baseados na lista de usuários carregada no Frontend.
-Como implementamos paginação (Infinite Scroll), a lista inicial contém apenas o tamanho da página (ex: 20 registros). Isso faz com que os contadores exibam incorretamente o número "20", mesmo que existam milhares de usuários no banco de dados.
+**Autor:** Eduardo Nascimento (Havenox)
+**Data:** 14/12/2025
 
-## Solução Proposta
-Para resolver isso sem comprometer a performance (evitando carregar todos os usuários para o navegador), implementaremos um endpoint dedicado para calcular essas estatísticas diretamente no banco de dados.
+---
 
-### 1. Alterações no Backend (`Media8.Api`)
+## 🚀 Desafio de Engenharia
+O dashboard administrativo exibia contadores (Total de Usuários, Admins, Clientes) baseados incorretamente na lista paginada do frontend. Com a paginação de 20 itens, os cards mostravam "20" em vez do total real (ex: "1500").
+Trazer **todos** os objetos de usuário do banco apenas para contar `.length` no Javascript seria desastroso para a memória do servidor e banda de rede.
 
-#### Novo DTO
-Criação de `UserStatsDto.cs` para transportar os dados:
+## 🧠 Estratégia da Solução
+Mover a responsabilidade da agregação para o Banco de Dados (Database Engine), que é otimizado para operações de contagem (`COUNT`), e criar um endpoint leve dedicado apenas para metadados.
+
+## 🛠️ Implementação Técnica
+
+### Backend (SQL Optimization)
+Em vez de serializar objetos, o ORM executa queries de agregação puras.
+
 ```csharp
-public class UserStatsDto
-{
-    public int TotalUsers { get; set; }
-    public int TotalAdmins { get; set; }
-    public int TotalClients { get; set; }
-    public int TotalEditors { get; set; }
-}
+// Extremamente Rápido (Query SQL: SELECT COUNT(*) FROM Users WHERE Role = 'Admin')
+var adminCount = await _repository.CountAsync(u => u.Role == Roles.Admin);
 ```
+O payload de resposta JSON é minúsculo (apenas 4 inteiros), em vez de megabytes de dados de usuários.
 
-#### Atualização no Controller (`UsersController.cs`)
-Adição do endpoint `GET /api/v1/users/stats` que executa consultas de contagem otimizadas:
-- Count total de usuários.
-- Count agrupado por Role (Admin, Client, Editor).
+### Frontend (User Experience)
+*   **Skeleton Loading**: Enquanto o cálculo ocorre, os cards exibem uma animação de esqueleto, evitando layout shift (CLS).
+*   **Hook Dedicado**: `useUserStats` separa a busca de números da busca de lista, permitindo que a lista carregue independentemente dos totais.
 
-### 2. Alterações no Frontend (`media8-web`)
+## 🎯 Impacto e Resultado
+*   **Performance de Rede**: Redução de payload de ~2MB (hipotético 5k users) para <1KB.
+*   **Precisão**: Os dados agora refletem 100% da base real, corrigindo um bug lógico crítico de visualização.
 
-#### Hooks e Serviços
-- Atualização em `userService.ts` para consumir o novo endpoint.
-- Criação do hook `useUserStats` em `useUsers.ts`.
-
-#### Interface (`UsersPage.tsx`)
-- Substituição da lógica de cálculo local (`users.length`) pelo consumo do dado retornado pelo hook `useUserStats`.
-- Adição de "Skeletons" (placeholders de carregamento) nos cards de estatística enquanto os dados são buscados.
-
-## Benefícios
-- **Precisão**: Os números refletirão o estado real do banco de dados.
-- **Performance**: A query de `COUNT` no banco é extremamente leve comparada à transferência de dados de entidades completas.
-### 3. Segurança
-Todos os novos endpoints, incluindo o de estatísticas, seguirão rigorosamente as políticas de segurança:
-- **`GET /api/v1/users/stats`**: Será protegido pelo atributo `[Authorize(Roles = "Admin")]`.
-    - Isso garante que apenas administradores autenticados possam visualizar os totais do sistema.
-    - Clientes e Editores receberão erro 403 (Forbidden) se tentarem acessar essa rota.
-- O endpoint não expõe dados sensíveis (apenas contagens numéricas).
+---
+**Nota do Desenvolvedor:** *Compute near the data. Sempre que possível, deixe o banco de dados fazer a matemática de agregação. Trazer dados para a aplicação para apenas contá-los é um anti-pattern de performance clássico.*

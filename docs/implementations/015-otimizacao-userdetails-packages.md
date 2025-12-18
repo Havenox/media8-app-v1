@@ -1,44 +1,22 @@
-# [OBSOLETO - NÃO IMPLEMENTADO] Otimização: Lista Unificada de Pacotes do Cliente
-> **ATENÇÃO:** Esta abordagem foi substituída pela **Reestruturação Arquitetural (Snapshot + ServiceBalances)** documentada em `016-arquitetura-snapshot-contratos.md`.
+# 015 - [DEPRECATED] Estudo de Caso: Evolução Arquitetural e Mudança de Paradigma
 
-<!-- id: 015-deprecated -->
+**Autor:** Eduardo Nascimento (Havenox)
+**Data:** 16/12/2025
 
-## Descrição do Problema
-Atualmente, o sistema possui fragmentação na forma como exibe os pacotes de um cliente:
-1.  **Dashboard do Cliente:** Exibe apenas um resumo limitado ou precisa fazer múltiplas requisições.
-2.  **Admin > Usuários (Detalhes):** Fazia requisições redundantes de todos os pacotes.
+---
 
-## Novo Paradigma Arquitetural (Pos-Discussão)
+> **Nota Histórica:** *Esta documentação foi mantida propositalmente para demonstrar o processo de decisão e evolução da arquitetura. A implementação descrita aqui foi substituída pela arquitetura de Snapshots descrita no documento 016.*
 
-### 1. Conceitos Refinados
-*   **Produto (Tabela `Package`):** É o item do catálogo. Pode ser:
-    *   **Avulso:** 1 unidade, sem renovação (ex: 1 Reels).
-    *   **Pacote:** N unidades, sem renovação (ex: 5 Reels).
-    *   **Assinatura:** N unidades, com renovação (ex: Plano Growth).
-    *   *Nota:* Um produto sempre entrega um único `ServiceType` (não há mix de escopos no MVP).
-*   **Contrato (Tabela `PackageAssignment`):** O registro da compra. Gerencia renovação e validade administrativa.
-*   **Saldo/Card (Tabela `ServiceBalanceLot`):** O item visual no Dashboard. É o que o usuário clica para "Fazer um Pedido". É aqui que está o `RemainingQuantity`.
+## 🚀 Desafio de Engenharia
+Inicialmente, tentamos otimizar a exibição de pacotes carregando-os de forma agregada. O problema é que o modelo de domínio "Pacote" não era suficiente para representar o **estado atual** do contrato do cliente (ex: "Quantos vídeos restam?"). Estávamos tentando forçar o conceito de "Catálogo" para resolver um problema de "Inventário".
 
-### 2. Solução Definitiva: API de Saldos Unificada
+## 🧠 Pivô Estratégico
+Durante o planejamento técnico desta feature, identificamos que continuar insistindo na entidade `Package` traria complexidade acidental excessiva (cálculos de saldo em tempo real no frontend, fragilidade a mudanças de preço, etc).
 
-Em vez de listar Atribuições (`PackageAssignments`), vamos listar **Lotes de Saldo (`ServiceBalanceLots`)**.
-Isso resolve a exibição dos "Cards Amarelos" onde o usuário vê seus créditos disponíveis.
+**Decisão de Engenharia:** Abortar a implementação baseada em `Package` e migrar para um modelo de `ServiceBalanceLot` (Lotes de Saldo) com Snapshot de contrato.
 
-#### Backend
-*   **Novo Endpoint:** `GET /api/v1/service-balances/my-balances` (Paginado)
-*   **Repositório:** `IServiceBalanceRepository.GetPagedByUserIdAsync(...)`
-*   **Retorno Enriquecido (DTO):**
-    *   `Id` (Do Lote)
-    *   `PackageName` (Nome do Produto, ex: "Plano Growth")
-    *   `ServiceName` (ex: "Reels Estratégico")
-    *   `RemainingQuantity` (Saldo atual)
-    *   `ExpiresAt` (Validade do Lote)
-    *   `Status` (Ativo/Expirado - derivado da data)
+## 🎯 Lição Aprendida
+Às vezes, a melhor linha de código é a que **não** foi escrita. Reconhecer que o modelo de domínio atual não atende aos novos requisitos antes de escrever a implementação final economizou semanas de refatoração futura.
 
-#### Frontend
-*   **Componente `<ServiceBalanceList />`:** Substitui a lista de pacotes no Dashboard e nos Detalhes do Usuário.
-*   **Hooks:** `useServiceBalances({ userId, type: 'active' })`.
-
-## Discussão: Refatorar "Package" para "Product"?
-Embora semanticamente "Produto" ou "Oferta" seja um nome melhor que "Pacote" (já que "Pacote" confunde com "Agrupamento"), uma refatoração completa do nome da tabela e classes (`Package` -> `Product`) traria alto risco de regressão.
-**Decisão:** Manteremos `Package` no código (Backend/DB) mas trataremos como "Produto/Oferta" no domínio/UI. O termo "Serviço" será reservado para o *tipo de trabalho* (Reels, Edição), e não para o produto comercial.
+---
+**Ver Próximo Passo:** *Implementação 016 - Arquitetura de Contratos Imutáveis.*

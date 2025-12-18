@@ -1,34 +1,40 @@
-# Otimização de Performance: Listagem de Usuários
+# 017 - Performance Tuning: Diagnóstico e Correção de Overfetching
 
-## Contexto
-A página `/users` apresentava um gargalo de performance identificado como "overfetching". Ao carregar a lista de usuários, o sistema disparava uma requisição para buscar 100 pacotes (`GET /packages?pageSize=100`), adicionando latência e consumo de dados desnecessários.
+**Autor:** Eduardo Nascimento (Havenox)
+**Data:** 16/12/2025
 
-## Diagnóstico
-A investigação revelou que o componente `UserDetailsSheet` chamava incondicionalmente o hook `usePackages`, mesmo quando o componente estava fechado (devido à renderização oculta na árvore do React) e, pior, não utilizava os dados retornados.
+---
 
-Além disso, confirmou-se que a listagem principal de usuários ("Tiles") já é otimizada, recebendo um resumo do pacote ativo (`ActivePackageSummary`) diretamente do Backend no DTO do usuário, sem necessidade de chamadas adicionais (N+1).
+## 🚀 Desafio de Engenharia
+A página principal de usuários (`/users`) apresentava degradação de TTI (Time to Interactive). A análise via *Network Waterfall* revelou uma requisição pesada (`GET /packages`) sendo disparada no carregamento inicial.
+O paradoxo: Essa lista de pacotes não era visível na tela inicial. Ela era requerida apenas por um componente secundário (Modal de Detalhes) que estava oculto.
 
-## Solução Implementada
+## 🧠 Estratégia da Solução
+**Análise de Fluxo de Renderização**.
+Identifiquei que o hook de dados estava posicionado no topo da árvore do componente de Detalhes, que por sua vez era renderizado "escondido" (CSS `display: none` ou lógica similar) em vez de ser condicionalmente montado.
+A estratégia foi aplicar **Renderização Condicional Estrita** (`{isOpen && <Component />}`) e remover dependências desnecessárias.
 
-### 1. Remoção de Código Morto (`UserDetailsSheet.tsx`)
-*   **Ação:** Removido o hook `usePackages` e a variável não utilizada `packages`.
-*   **Resultado:** Eliminação completa da chamada `GET /packages` no carregamento da página de usuários.
+## 🛠️ Implementação Técnica
 
-### 2. Renderização Condicional (`UsersPage.tsx`)
-*   **Ação:** O componente `UserDetailsSheet` agora só é renderizado na árvore do DOM quando um usuário é explicitamente selecionado (`selectedUserForDetails !== null`).
-*   **Código:**
-    ```tsx
-    {selectedUserForDetails && (
-      <UserDetailsSheet
-        user={selectedUserForDetails}
-        open={!!selectedUserForDetails}
-        ...
-      />
-    )}
-    ```
-*   **Resultado:** Os hooks internos do Sheet (como `useClientAssignments` para buscar o histórico detalhado) só são disparados quando o usuário clica no card, economizando recursos de rede e processamento inicial.
+### 1. Limpeza de Dependências
+Remoção de Hooks não utilizados (`Dead Code Elimination`). O componente `UserDetailsSheet` buscava listas que ele nem sequer renderizava.
 
-## Benefícios
-*   Redução drástica no número de requisições iniciais da página `/users`.
-*   Melhoria no TTI (Time to Interactive).
-*   Manutenção da arquitetura limpa, confiando na projeção do Backend para a lista resumida.
+### 2. Lazy Mounting
+Alteração da lógica na Page Pai:
+
+```tsx
+// Antes (Renderizava oculto, disparando hooks)
+<UserDetailsSheet open={isOpen} ... />
+
+// Depois (Só monta/dispara hooks se necessário)
+{selectedUser && (
+  <UserDetailsSheet user={selectedUser} ... />
+)}
+```
+
+## 🎯 Impacto e Resultado
+*   **Eficiência**: Eliminação de 1 request HTTP pesado (300ms de latência economizados) no load inicial.
+*   **Boas Práticas**: Reforço do padrão de que componentes "pesados" devem gerenciar seu próprio data-fetching apenas quando ativos.
+
+---
+**Nota do Desenvolvedor:** *Hooks do React rodam mesmo se o componente retornar `null` ou estiver invisível CSS. Controlar a montagem é vital para performance.*

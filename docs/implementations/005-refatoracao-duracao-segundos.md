@@ -1,32 +1,38 @@
-# Refatoração: Duração de Vídeos em Segundos
+# 005 - Modernização de Produto: Suporte a Micro-Formatos (Segundos) e Migração de Schema
 
+**Autor:** Eduardo Nascimento (Havenox)
 **Data:** 13/12/2025
-**Responsável:** Havenox
-**Status:** Implementado
 
-## Contexto
-Anteriormente, a duração máxima dos vídeos nos pacotes era armazenada em **Minutos** (`int`). Isso impedia a criação precisa de pacotes para formatos curtos como Reels/TikToks (ex: 90 segundos / 1 min 30 seg), obrigando o arredondamento.
+---
 
-## Mudanças Realizadas
+## 🚀 Desafio de Engenharia
+A plataforma foi originalmente concebida para vídeos longos (YouTube), armazenando a duração em **Minutos** (`int`). Com a mudança do mercado para formatos curtos (Reels, TikTok), a granularidade de minutos tornou-se insuficiente (ex: impossível vender um pacote de "90 segundos", pois viraria 1 ou 2 minutos). O desafio era migrar a base de dados e a lógica de negócio para precisão de segundos sem quebrar os dados existentes.
 
-### 1. Banco de Dados e Backend
-*   **Entidade `Package`**: Renomeada propriedade `MaxDurationMinutes` para `MaxDurationSeconds`.
-*   **Migração**:
-    *   Coluna renomeada na tabela `Packages`.
-    *   Dados existentes convertidos: `Seconds = Minutes * 60`.
-*   **DTOs**: Atualizados `CreatePackageRequest`, `UpdatePackageRequest` e `PackageDto` para transportar `MaxDurationSeconds`.
+## 🧠 Estratégia da Solução
+Foi necessário um **Refactor Full Stack via Schema Migration**:
+1.  **Backend**: Alterar o tipo de dado fundamental da aplicação.
+2.  **Migração de Dados**: Converter os dados legados (Minutos -> Segundos) para manter a consistência.
+3.  **Frontend**: Criar uma UI inteligente que abstraia a complexidade (usuário pode digitar "1.5 minutos" e o sistema converte para 90s).
 
-### 2. Frontend (UX/UI)
-*   **Input Composto**:
-    *   Adicionado seletor de unidade (**Minutos** ou **Segundos**) ao criar/editar pacotes.
-    *   Permite entrada intuitiva (ex: "90 Segundos" ou "1.5 Minutos" -> Salva 90s).
-    *   *Update*: Default para novos pacotes alterado para "Segundos".
-*   **Exibição Formatada**:
-    *   Lista de pacotes agora exibe a duração de forma inteligente:
-        *   `< 60s`: Ex: "45 seg"
-        *   `Múltiplo de 60s`: Ex: "2 min"
-        *   `Fracionado`: Ex: "1 min 30 seg"
+## 🛠️ Implementação Técnica
 
-## Impacto
-*   **Precisão**: Permite definir preços e regras para vídeos curtos com exatidão.
-*   **Flexibilidade**: Suporta futuros formatos de vídeo de qualquer duração.
+### Backend & Database
+*   **Schema Change**: Coluna `MaxDurationMinutes` renomeada e re-tipada para `MaxDurationSeconds`.
+*   **Data Migration**: Script SQL para multiplicar valores existentes por 60.
+*   **DTO Update**: Atualização de todos os contratos de API para trafegar segundos.
+
+### Frontend (User Experience)
+Desenvolvi um **Input de Unidade Composta**:
+*   O usuário escolhe a unidade ("Segundos" ou "Minutos") em um dropdown.
+*   O sistema converte automaticamente para segundos antes de enviar ao backend.
+*   **Display Inteligente**: Na listagem, o sistema formata humanamente:
+    *   `90s` -> exibe "1 min 30 seg"
+    *   `60s` -> exibe "1 min"
+
+## 🎯 Impacto e Resultado
+*   **Alinhamento de Mercado**: A plataforma agora suporta nativamente produtos da era TikTok/Shorts.
+*   **Flexibilidade de Pricing**: O time de negócios pode criar pacotes ultra-específicos (ex: "Pacote 30 segundos").
+*   **Retrocompatibilidade**: Nenhum dado histórico foi perdido na transição.
+
+---
+**Nota do Desenvolvedor:** *Adaptação de schema é sempre delicada em produção. A escolha por converter tudo para a menor unidade comum (segundos) é um padrão clássico para evitar problemas de ponto flutuante.*

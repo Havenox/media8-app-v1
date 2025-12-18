@@ -1,26 +1,26 @@
-# Otimização de Performance: Remoção de Fetch Redundante (UserDetailsSheet)
+# 020 - Code Hygiene: Eliminação de Dívida Técnica (Dead Code Removal)
 
-## Diagnóstico
-Ao abrir o painel de detalhes do usuário (`UserDetailsSheet`), identificamos duas chamadas de API simultâneas:
-1.  `GET /service-balances?status=active`: Busca os saldos ativos para exibição no novo componente `ServiceBalanceList`. **(Necessário)**
-2.  `GET /package-assignments?clientId=...`: Busca o histórico de atribuições legado. **(Redundante)**
+**Autor:** Eduardo Nascimento (Havenox)
+**Data:** 16/12/2025
 
-## Causa Raiz
-O componente `UserDetailsSheet.tsx` manteve uma chamada ao hook `useClientAssignments` de uma implementação anterior.
-Com a migração para a arquitetura de Snapshots e a introdução do `ServiceBalanceList`, a variável `assignments` retornada por esse hook **não é mais utilizada** no render do componente.
+---
 
-## Impacto
-*   **Rede:** 1 request extra desnecessária a cada abertura de painel.
-*   **Backend:** Processamento de query desnecessário no banco de dados.
-*   **Frontend:** Ciclos de CPU gastos processando/ordenando dados que não são exibidos.
+## 🚀 Desafio de Engenharia
+Após a migração para a nova arquitetura de Snapshots (Impl. 016) e Lista de Serviços (Impl. 019), o componente de Detalhes do Usuário continuava funcionando, mas lento.
+Uma auditoria de código revelou que ele ainda disparava requisições para a API antiga (`/package-assignments`), processava os dados na memória do cliente, e então... **não fazia nada com eles**. Variáveis órfãs consumiam CPU e Rede.
 
-## Solução
-Remover o código morto ("Dead Code") do componente `UserDetailsSheet.tsx`.
+## 🧠 Estratégia da Solução
+**Refatoração de Limpeza**.
+Identificar e remover agressivamente dependências não utilizadas. Código morto não é neutro; é passivo. Ele ocupa banda, confunde novos desenvolvedores e pode gerar bugs laterais.
 
-### Alterações Planejadas
-*   Remover import `useClientAssignments`.
-*   Remover chamada do hook e variáveis derivadas (`activeAssignments`, `sortedAssignments`).
-*   Remover funções auxiliares não utilizadas (`getDaysUntilExpiry`, `hasExpiry`, etc., se não usadas em outro lugar).
+## 🛠️ Implementação Técnica
+1.  **Análise Estática**: Identificação de imports não utilizados no TypeScript.
+2.  **Network Pruning**: Remoção do hook `useClientAssignments`.
+3.  **Lógica de Render**: Simplificação para depender exclusivamente do novo endpoint `/service-balances`.
 
-## Resultado Esperado
-O painel carregará apenas o endpoint `/service-balances`, mantendo a funcionalidade visual idêntica, mas com metade das requisições de rede.
+## 🎯 Impacto e Resultado
+*   **Eficiência**: Redução de 50% nas requisições de rede ao abrir o painel.
+*   **Legibilidade**: O arquivo reduziu 30 linhas, tornando o fluxo de dados claro para quem ler o código no futuro.
+
+---
+**Nota do Desenvolvedor:** *Entregar features é importante, mas limpar a bagunça depois é o que mantém o projeto saudável. "Deixar o acampamento mais limpo do que você encontrou".*

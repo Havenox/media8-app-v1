@@ -1,35 +1,38 @@
-# Fix: User Page Crash on Invalid Date
-<!-- id: 014 -->
+# 014 - Resiliência de Frontend: Tratamento Defensivo de Dados (Crash Prevention)
 
-## Descrição do Problema
-O sistema apresentava um erro crítico (`Uncaught RangeError: Invalid time value`) ao tentar abrir o painel de detalhes (`UserDetailsSheet`) na página de usuários (`UsersPage`).
+**Autor:** Eduardo Nascimento (Havenox)
+**Data:** 16/12/2025
 
-O erro ocorria porque o componente `UserDetailsSheet` tentava formatar datas (`user.createdAt`, `assignment.assignedAt`, `assignment.expiresAt`) diretamente usando `new Date()` e `date-fns/format` sem verificar se o valor era válido.
-Se algum usuário ou atribuição tivesse uma data inválida (ex: string malformada ou desconhecida), a criação do objeto `Date` falhava ou resultava em `Invalid Date`, fazendo o `date-fns` lançar uma exceção que quebrava toda a renderização da página (Tela Branca).
+---
 
-## Solução Aplicada
-Foi implementada uma função de "blindagem" (`safeFormatDate`) diretamente no componente `UserDetailsSheet.tsx`.
+## 🚀 Desafio de Engenharia
+Um erro de "Tela Branca" (White Screen of Death) foi reportado na produção. O log de erro apontava `RangeError: Invalid time value`.
+O problema era causado por um único registro de usuário com data malformada. Como o React renderiza a árvore de componentes de forma síncrona, uma exceção não tratada na formatação de data quebrava toda a interface para o administrador, tornando o sistema inutilizável devido a um único dado "sujo".
 
-### Função `safeFormatDate`
-Esta função encapsula a lógica de formatação em um bloco `try/catch` e realiza verificações prévias:
+## 🧠 Estratégia da Solução
+**Programação Defensiva**.
+Implementar uma camada de "Sanitização" na renderização. Nunca confiar que os dados vindos da API (ou de sistemas legados) estarão sempre perfeitos.
 
-1.  **Verificação de Nulo:** Se a string de data for nula ou undefined, retorna `'-'`.
-2.  **Verificação de Validade:** Tenta criar o objeto `Date`. Se `date.getTime()` retornar `NaN`, considera a data inválida e retorna `'-'`.
-3.  **Captura de Erros:** Qualquer exceção lançada pelo `format` é capturada e retorna `'-'`.
+## 🛠️ Implementação Técnica
+Criação da utility function `safeFormatDate`.
 
-### Mudanças no Código
-Todas as chamadas diretas de formatação foram substituídas:
-
-**Antes (Vulnerável):**
-```tsx
-{format(new Date(user.createdAt), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+```ts
+const safeFormatDate = (dateString: string) => {
+    try {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '-'; // Detecção de Invalid Date
+        return format(date, ...);
+    } catch {
+        return '-'; // Fallback silencioso
+    }
+};
 ```
+Esta função atua como um `try-catch` granular. Se a data for inválida, exibimos um *placeholder* amigável ("-") em vez de explodir a aplicação.
 
-**Depois (Blindado):**
-```tsx
-{safeFormatDate(user.createdAt, "dd 'de' MMMM 'de' yyyy")}
-```
+## 🎯 Impacto e Resultado
+*   **Estabilidade**: A página tornou-se imune a erros de formatação de dados.
+*   **Disponibilidade**: Mesmo com dados corrompidos, a funcionalidade de listagem permanece ativa e útil.
 
-## Benefícios
-*   **Estabilidade:** A aplicação não quebra mais se receber dados "sujos" ou incompletos do backend.
-*   **Experiência do Usuário:** Em vez de uma tela branca, o usuário vê um traço (`-`) onde a data estaria, permitindo que continue usando o sistema.
+---
+**Nota do Desenvolvedor:** *Em sistemas distribuídos, o Frontend deve ser resiliente. Um dado ruim não pode derrubar a experiência inteira.*

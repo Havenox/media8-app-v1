@@ -1,72 +1,42 @@
-# Reestruturação Arquitetural: Contratos Blindados e Saldos Unificados
-<!-- id: 016 -->
+# 016 - Arquitetura de Domínio: Contratos Imutáveis (Snapshot Pattern)
 
-## 1. Contexto e Problema
-A arquitetura anterior exibia inconsistências visuais e riscos de integridade:
-1.  **Mutabilidade Insegura:** Alterações na definição de um `Package` (Produto) refletiam retroativamente nos `assignments` (contratos) já vendidos na visualização do Admin, embora o saldo técnico (`ServiceBalanceLot`) estivesse correto.
-2.  **Fragmentação de API:** O frontend precisava buscar dados de `/packages` para compor telas de saldos, gerando overfetching e acoplamento desnecessário.
-3.  **Dependência de "Pacote" para UI:** A interface do dashboard dependia do conceito de "Pacote" (contrato) para exibir saldos, dificultando a seleção explícita de "de onde gastar".
+**Autor:** Eduardo Nascimento (Havenox)
+**Data:** 16/12/2025
 
-## 2. Nova Arquitetura de Dados (Pattern: Snapshot)
+---
 
-### Conceito
-O `PackageAssignment` deixa de ser um mero link para `Package`. Ele passa a ser um **Contrato Histórico Imutável**. No momento da compra, os termos cruciais são *copiados* do Produto para o Contrato.
+## 🚀 Desafio de Engenharia
+Em sistemas de e-commerce e serviços recorrentes, existe um dilema clássico: **O que acontece com os pedidos antigos quando o preço do produto muda?**
+A arquitetura original do sistema sofria de **Mutabilidade Insegura**. Ao alterar o nome ou a quantidade de vídeos de um "Pacote" no catálogo, essa mudança se propagava retroativamente para clientes que já haviam comprado o pacote meses atrás. Isso gerava inconsistência histórica e potencial risco jurídico (alterar o contrato após a venda).
 
-### Alterações no Banco de Dados (Migrations)
-Adição de colunas na tabela `PackageAssignments`:
-*   `SnapshotPackageName` (string): Nome do produto na época.
-*   `SnapshotVideoQuantity` (int): Quantidade contratada original.
-*   `SnapshotPrice` (decimal): Preço pago/acordado.
-*   `SnapshotValidityDays` (int?): Validade acordada.
+## 🧠 Estratégia da Solução
+Adoção do padrão arquitetural **Snapshot** (conforme descrito por Martin Fowler).
+Separamos o conceito de "Produto de Catálogo" (mutável) do conceito de "Contrato Assinado" (imutável).
 
-*Nota:* O `PackageId` permanece como referência para fins de BI/Estatística ("Quantos 'Plano Growth' vendemos?"), mas não para exibição de termos do contrato.
+## 🛠️ Implementação Técnica
 
-## 3. Nova Arquitetura de API (Unified Service Balances)
+### Modelagem de Dados
+A entidade `PackageAssignment` (o contrato) foi enriquecida para armazenar uma *cópia* dos termos no momento da transação.
 
-A fonte da verdade para o Dashboard do Cliente e Detalhes do Admin passa a ser a tabela de **Lotes de Saldo (`ServiceBalanceLot`)**, enriquecida com dados do **Contrato (`PackageAssignment`)**.
-
-### Novo Endpoint: `GET /api/v1/service-balances/my-balances`
-Este endpoint serve tanto ao Cliente (meus saldos) quanto ao Admin (saldos do cliente X).
-
-#### Request
-```http
-GET /api/v1/service-balances/my-balances?clientId={guid}&page=1&pageSize=20&status=active
-```
-
-#### Response (DTO Enriquecido)
-```json
+```csharp
+public class PackageAssignment
 {
-  "data": [
-    {
-      "id": "guid-do-lote",
-      "serviceName": "Reels Estratégico",  // Do ServiceType
-      "packageName": "Plano Growth",       // Do SnapshotPackageName
-      "remainingQuantity": 12,             // Do ServiceBalanceLot
-      "totalQuantity": 12,                 // Do SnapshotVideoQuantity (ou do Lote original)
-      "expiresAt": "2024-12-31T23:59:59Z", // Do Contrato ou Lote
-      "purchaseDate": "2024-01-01T10:00:00Z"
-    }
-  ],
-  "meta": { "total": 1, "page": 1 }
+    // Link fraco para BI (Saber qual pacote originou a venda)
+    public Guid PackageId { get; set; } 
+
+    // Snapshot Imutável (Os termos reais do contrato)
+    public string SnapshotPackageName { get; set; }
+    public decimal SnapshotPrice { get; set; }
+    public int SnapshotVideoQuantity { get; set; }
 }
 ```
 
-## 4. Plano de Implementação
+### Unificação de API
+Criamos o endpoint `/my-balances` que serve como "Single Source of Truth" para o cliente, lendo apenas os dados do Snapshot e os Lotes de Saldo (`ServiceBalanceLot`), ignorando completamente o estado atual do Catálogo de Pacotes.
 
-### Fase 1: Backend & Migrations
-1.  **Domain:** Adicionar propriedades `Snapshot*` na entidade `PackageAssignment`.
-2.  **EF Core:** Criar e aplicar Migration (`AddSnapshotsToAssignments`).
-3.  **Controller (Create):** Atualizar `PackageAssignmentsController.Create` para popular os Snapshots no momento da atribuição.
-4.  **Repository:** Criar `IServiceBalanceRepository.GetPagedByUserIdAsync` com `.Include(x => x.Assignment)`.
-5.  **API:** Criar endpoint `ServiceBalancesController.GetMyBalances`.
+## 🎯 Impacto e Resultado
+*   **Integridade Jurídica**: O sistema garante que "o que foi comprado é o que foi entregue", independente de mudanças futuras de preço ou marketing.
+*   **Segurança**: O administrador pode reformular totalmente o catálogo de vendas sem medo de quebrar a visualização dos clientes antigos.
 
-### Fase 2: Frontend
-1.  **Types:** Criar interface `ServiceBalanceItem` com os novos campos.
-2.  **Hook:** Criar `useServiceBalances`.
-3.  **Componente:** Criar `<ServiceBalanceList />` para substituir a lista antiga de pacotes.
-4.  **Integração:** Atualizar `Dashboard` e `UserDetailsSheet` para usar o novo componente.
-
-## 5. Benefícios
-*   **Imutabilidade Jurídica:** Alterar preços/prazos no futuro não afeta contratos passados.
-*   **Performance:** Apenas 1 query otimizada para listar tudo que o cliente "tem".
-*   **Clareza UX:** O cliente vê exatamente o item que vai consumir (o Lote), facilitando a ação de "Novo Pedido".
+---
+**Nota do Desenvolvedor:** *Referenciar IDs é bom para normalização, mas ruim para histórico. Em transações financeiras/contratuais, a desnormalização controlada (Snapshot) é a escolha correta.*

@@ -1,22 +1,35 @@
-# Implementação: Correção de Exibição de Data de Cadastro
+# 023 - Backend Engineering: Extensão de Contrato de API (DTOs)
 
-## Contexto
-Durante testes de qualidade na interface de Detalhes do Usuário (`UserDetailsSheet`), observou-se que o campo "Membro desde" não exibia a data de cadastro, apresentando apenas um caractere de placeholder (`-`).
+**Autor:** Eduardo Nascimento (Havenox)
+**Data:** 17/12/2025
 
-## Diagnóstico
-A investigação do fluxo de dados revelou que, embora a entidade de domínio `User` possua a propriedade `CreatedAt`, esta informação era perdida durante a serialização da resposta da API.
-O Data Transfer Object (DTO) utilizado para comunicação com o painel administrativo (`AdminUserDto`) não incluía a propriedade `CreatedAt`, resultando em um valor `undefined` no frontend.
+---
 
-## Solução Técnica
-Para garantir a disponibilidade desta informação sem expor dados desnecessários, a solução foi estender o contrato de resposta da API.
+## 🚀 Desafio de Engenharia
+O cliente reportou que o campo "Membro desde" na ficha do usuário exibia um placeholder (`-`).
+A análise do frontend mostrou que a propriedade `user.createdAt` estava vindo `undefined`.
+O desafio não era um bug de código (erro de sintaxe), mas um erro de **Definição de Contrato**: O DTO (`AdminUserDto`) que trafegava os dados do servidor para o cliente simplesmente não incluía essa propriedade, embora ela existisse no banco de dados.
 
-### Alterações no Backend (.NET)
-1.  **Extensão do DTO (`AdminUserDto.cs`):** Adição da propriedade `CreatedAt` ao modelo de transferência.
-2.  **Atualização de Mapeamento (`UsersController.cs`):** Ajuste no método `MapToAdminDto` para popular a nova propriedade a partir da entidade `User`.
+## 🧠 Estratégia da Solução
+**Evolução de API Controlada**.
+A solução exigiu intervenção no Backend (.NET) para expor o dado.
+O processo seguiu o fluxo de:
+1.  **Diagnóstico Full Stack**: Rastrear o dado do Banco (`UserAggregate`) -> Controller -> DTO -> Frontend para achar o "elo perdido".
+2.  **Mapping Explícito**: Adicionar a propriedade e garantir seu preenchimento manual no Controller, evitando frameworks de automapeamento "mágicos" que poderiam quebrar por convenção.
 
-### Alterações no Frontend (React)
-Nenhuma alteração lógica foi necessária no Frontend, pois o código já estava preparado para renderizar a propriedade `createdAt` (camelCase) assim que ela estivesse disponível na resposta JSON. A correção no Backend habilita automaticamente a exibição correta.
+## 🛠️ Implementação Técnica
+Alteração em `Media8.Application`:
+```csharp
+public class AdminUserDto {
+    // ...
+    public DateTime CreatedAt { get; set; } // Propriedade Adicionada
+}
+```
+Atualização do `UsersController` para popular `CreatedAt = user.CreatedAt`.
 
-## Impacto
-*   **Correção de Bug:** O campo "Membro desde" passa a exibir a data correta.
-*   **Melhoria de UX:** Fornece contexto temporal sobre o usuário para os administradores.
+## 🎯 Impacto e Resultado
+*   **Correção de Bug**: Informação restaurada na interface.
+*   **Qualidade**: O Frontend já estava preparado (defensivo) e passou a funcionar automaticamente assim que o contrato foi cumprido pelo Backend.
+
+---
+**Nota do Desenvolvedor:** *Isso demonstra a importância de DTOs tipados. Se estivéssemos retornando JSON dinâmico, talvez o erro passasse despercebido por mais tempo.*

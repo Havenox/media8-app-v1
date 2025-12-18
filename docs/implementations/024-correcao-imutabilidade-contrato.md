@@ -1,39 +1,32 @@
-# Correção de Imutabilidade de Contrato (Lista de Usuários)
+# 024 - Domain Integrity: Aplicação Prática de Imutabilidade
 
-## Problema
-A lista de usuários exibe o **nome atual do pacote** em vez do **nome do contrato** (pacote no momento da atribuição).
-Isso viola o princípio de imutabilidade, pois se o pacote original mudar de nome (ex: "Pacote A" -> "Pacote A Editado"), os usuários antigos não deveriam ver essa mudança, pois contrataram "Pacote A".
+**Autor:** Eduardo Nascimento (Havenox)
+**Data:** 17/12/2025
 
-## Diagnóstico
-O controlador `UsersController.cs` mapeia o DTO de usuário (`AdminUserDto`) acessando diretamente a propriedade de navegação `Package`:
+---
 
-```csharp
-// Código Atual (Bug)
-dto.ActivePackage = new ActivePackageSummary
-{
-    Name = activeAssignment.Package.Name, // Busca o nome dinâmico atual
-    // ...
-};
-```
+## 🚀 Desafio de Engenharia
+A lista de usuários exibia o nome *atual* do pacote atrelado. Se um administrador renomeasse "Pacote Básico" para "Pacote Legacy" no catálogo, todos os usuários antigos passavam a ver "Pacote Legacy".
+Isso quebra o **Princípio da Imutabilidade Contratual**: O usuário comprou "Básico", ele deve ver "Básico" para sempre, independente de como o produto evolua no futuro.
 
-## Solução Técnica
-A entidade `PackageAssignment` já possui propriedades de "Snapshot" para garantir a imutabilidade do contrato.
-A propriedade correta a ser utilizada é `SnapshotPackageName`.
+## 🧠 Estratégia da Solução
+Utilização das propriedades de **Snapshot** implementadas na arquitetura 016.
+O Backend estava ignorando esses dados na listagem geral de usuários, fazendo um JOIN direto com a tabela de produtos (`Package`).
+A correção forçou o sistema a respeitar a história: "Olhe primeiro para o contrato assinado (Snapshot). Se não houver (legado), olhe para o produto atual".
 
-### Alterações no Backend (`UsersController.cs`)
-Alterar o mapeamento para priorizar o snapshot:
+## 🛠️ Implementação Técnica
+Lógica de **Fallback Coalescing** no Controller:
 
 ```csharp
-// Código Corrigido
-dto.ActivePackage = new ActivePackageSummary
-{
-    // Usa o snapshot (contrato). Se nulo (legado), usa o nome atual.
-    Name = activeAssignment.SnapshotPackageName ?? activeAssignment.Package?.Name ?? "Unknown Package",
-    
-    // Mesma lógica para quantidade de vídeos, se aplicável
-    VideoQuantity = activeAssignment.SnapshotVideoQuantity ?? activeAssignment.Package?.VideoQuantity ?? 0,
-    // ...
-};
+// Prioridade: História > Estado Atual > Placeholder
+Name = assignment.SnapshotPackageName 
+    ?? assignment.Package?.Name 
+    ?? "Unknown Package"
 ```
 
-Isso garante que o usuário veja exatamente o que contratou.
+## 🎯 Impacto e Resultado
+*   **Integridade**: A visualização do sistema agora reflete a realidade jurídica do contrato.
+*   **Confiança**: O cliente não é surpreendido por mudanças de nome de produto que ele não solicitou.
+
+---
+**Nota do Desenvolvedor:** *Softwares de gestão devem ser cápsulas do tempo. Alterar o passado (nomes históricos) é um erro grave de design.*

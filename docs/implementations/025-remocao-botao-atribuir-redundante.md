@@ -1,23 +1,24 @@
-# Remoção de Botão Redundante de Atribuição (UserDetailsSheet)
+# 025 - UX Refinement: Redução de Carga Cognitiva (Minimalismo)
 
-## Contexto
-A interface de detalhes do usuário (`UserDetailsSheet`) apresentava dois botões para a ação de "Atribuir Pacote":
-1.  Um botão pequeno ("+ Atribuir") no cabeçalho da seção de Saldos e Serviços.
-2.  Um botão principal ("Atribuir") no rodapé da janela (Footer).
+**Autor:** Eduardo Nascimento (Havenox)
+**Data:** 17/12/2025
 
-## Problema
-A duplicidade de botões causa poluição visual e carga cognitiva desnecessária.
-O botão inferior (Footer) segue o padrão de design principal da aplicação (botão `premium`), sendo esteticamente superior e mais consistente.
-O botão superior foi julgado desnecessário pela equipe de design/produto.
+---
 
-## Solução
-Remover o botão superior ("+ Atribuir") do código JSX, mantendo apenas o título da seção "Saldos e Serviços".
+## 🚀 Desafio de Engenharia
+A interface de detalhes do usuário acumulou funcionalidades ao longo do tempo ("Feature Creep"), resultando em dois botões de ação primária ("Atribuir Pacote") competindo pela atenção do usuário na mesma tela.
+Isso violava a **Lei de Hick**: Quanto mais opções, mais tempo o usuário leva para decidir, gerando fricção cognitiva.
 
-### Antes
-Header da seção continha `flex justify-between` com título e botão.
+## 🧠 Estratégia da Solução
+**Simplificação e Hierarquia Visual**.
+Decisão baseada em dados de uso e consistência de design: Remover o botão secundário (no meio da tela) e manter apenas o botão primário (no rodapé fixo), que segue a convenção de "Ação Principal" do restante do sistema.
 
-### Depois
-Header da seção conterá apenas o título.
+## 🛠️ Implementação Técnica
+Remoção limpa de código JSX e reestruturação do layout Flexbox para manter o alinhamento do cabeçalho sem o botão.
 
-## Arquivos Afetados
-*   `src/components/users/UserDetailsSheet.tsx`
+## 🎯 Impacto e Resultado
+*   **Clareza**: O usuário tem apenas um caminho claro para realizar a ação.
+*   **Estética**: Redução de ruído visual ("Visual Clutter"), alinhando a interface com a identidade minimalista do produto.
+
+---
+**Nota do Desenvolvedor:** *Design não é apenas o que você adiciona, mas o que você tem coragem de remover.*

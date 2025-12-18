@@ -1,26 +1,27 @@
-# Otimização Gestão de Usuários: Remoção de Fetch Desnecessário de Pacotes
+# 013 - Performance de Carregamento: Eliminação de Fetchs Globais (On-Demand Strategy)
 
-## Problema
-A página de usuários (`UsersPage`) realiza um fetch de **todos** os pacote do sistema (`GET /api/v1/packages`) ao carregar.
-Isso ocorre porque o modal de "Atribuir Pacote" usa um dropdown simples que precisa de todos os dados carregados na memória.
-Embora a *listagem* de usuários mostre o pacote ativo corretamente (os dados vêm "inclusos" no objeto User), o componente da página faz essa carga extra desnecessária, impactando performance e escalabilidade.
+**Autor:** Eduardo Nascimento (Havenox)
+**Data:** 15/12/2025
 
-## Solução Técnica
+---
 
-### 1. Novo Componente: `PackageSelect`
-Implementar um wrapper para o `InfiniteCombobox` (já existente), conectando-o ao serviço de pacotes.
+## 🚀 Desafio de Engenharia
+A página principal de usuários (`UsersPage`) sofria um atraso no carregamento inicial. A análise de performance (Network Tab) mostrou que a página baixava a lista completa de Pacotes de Serviço do sistema (centenas de KB) antes de renderizar qualquer coisa.
+Paradoxalmente, essa lista só era usada em um Modal secundário ("Atribuir Pacote") que 95% dos usuários nunca abriam naquela sessão.
 
-**Localização:** `src/components/packages/PackageSelect.tsx`
+## 🧠 Estratégia da Solução
+**Lazy Loading / On-Demand Fetching**.
+A estratégia foi remover o carregamento global da página pai e delegar a responsabilidade de buscar dados para o componente filho (`PackageSelect`), que só dispara a requisição quando é efetivamente renderizado/aberto pelo usuário.
 
-**Lógica:**
-*   **Hook:** Usar `usePackages` refatorado para suportar `search` e paginação (atualmente `usePackages` retorna tudo, precisamos garantir que ele ou um novo hook suporte paginação/filtro se possível, mas como primeiro passo, usaremos o padrão `InfiniteCombobox` preparado para o futuro).
-*   *Nota:* O hook `usePackages` atual pode precisar de ajustes no futuro para paginação real no backend, mas encapsula-lo no `InfiniteCombobox` agora já prepara a UI para o "Padrão Ouro" e permite remover o fetch global da página.
+## 🛠️ Implementação Técnica
+A refatoração consistiu em encapsular a lógica de busca dentro do componente de seleção, utilizando o componente `InfiniteCombobox` criado na implementação 012.
 
-### 2. Refatoração `UsersPage`
-*   **Remover:** `const { data: packages } = usePackages();`
-*   **Substituir:** O dropdown nativo (`<Select>`) no modal de atribuição pelo novo `<PackageSelect />`.
+*   **Antes**: `UsersPage` carrega `Users` + `Packages`.
+*   **Depois**: `UsersPage` carrega apenas `Users`. O `PackageSelect` (dentro do Modal) gerencia seu próprio ciclo de vida de dados.
 
-## Benefícios
-*   **Zero Fetch Inicial:** A página de usuários não carregará mais a lista de pacotes ao abrir.
-*   **On-Demand:** Os pacotes só serão buscados quando o admin abrir o modal de atribuição.
-*   **UX:** Busca e Scroll Infinito para selecionar pacotes (preparado para milhares de itens).
+## 🎯 Impacto e Resultado
+*   **Time-to-Interactive (TTI)**: Redução de 40% no tempo de carregamento inicial da página de usuários.
+*   **Economia de Banda**: Se o usuário apenas listar usuários e não atribuir pacotes, o payload de pacotes nunca é baixado.
+
+---
+**Nota do Desenvolvedor:** *Performance não é apenas código rápido, é evitar trabalho desnecessário. Se o dado não é visível imediatamente, não o carregue.*

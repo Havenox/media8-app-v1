@@ -1,71 +1,41 @@
-# Redesign de UX: Lista de Saldos e Serviços
+# 019 - UX/UI System: Componentização Polimórfica (List vs Grid)
 
-## Objetivo
-Melhorar a experiência de visualização dos pacotes ativos no painel lateral de detalhes do usuário (`UserDetailsSheet`).
-Substituir o layout de cards em grid (que fica comprimido na lateral) por uma lista vertical limpa, seguindo a referência visual fornecida ("imagem 2").
+**Autor:** Eduardo Nascimento (Havenox)
+**Data:** 16/12/2025
 
-## Problema Atual
-*   O componente `ServiceBalanceList` forçam um layout `grid` que não se adapta bem a containers estreitos como o Sheet.
-*   Informações ficam quebradas ou difíceis de ler.
-*   Poluição visual com bordas grossas e ícones grandes.
+---
 
-## Solução Proposta
+## 🚀 Desafio de Engenharia
+O componente de listagem de serviços (`ServiceBalanceList`) foi projetado inicialmente para desktops largos (Grid Layout).
+Novos requisitos de design exigiram que esse mesmo componente fosse exibido dentro de uma janela lateral estreita (Sheet), onde o Grid quebrava o layout e dificultava a leitura.
+O desafio: Adaptar a visualização sem duplicar a lógica de busca de dados e negócios.
 
-### 1. Refatoração do `ServiceBalanceList.tsx`
-Introduzir uma prop `variant` para controlar o modo de exibição.
+## 🧠 Estratégia da Solução
+Implementação do padrão de **Prop Variant** (Polimorfismo Visual).
+O componente passa a aceitar uma propriedade `variant="grid" | "list"`. Isso desacopla a lógica de dados da lógica de apresentação.
 
-```typescript
-type ServiceListVariant = 'grid' | 'list';
+## 🛠️ Implementação Técnica
 
-interface ServiceBalanceListProps {
-  // ... props existentes
-  variant?: ServiceListVariant; // Default: 'grid'
-}
-```
+### CSS Modular / Tailwind
+Uso de classes condicionais para alternar a estrutura do DOM.
 
-### 2. Novo Layout 'List' (Referência Imagem 2)
-Quando `variant="list"`, renderizaremos um novo sub-componente `ServiceListItem` com as seguintes características:
-*   **Container:** `flex flex-col gap-3` (Lista vertical simples).
-*   **Card:** Design minimalista, fundo suave (amarelo claro/bege para harmonizar com a marca).
-*   **Tipografia:** Título e quantidade em destaque, datas alinhadas em uma linha separada ou grid interno.
-*   **Alertas:** Ícone de aviso (triângulo) discreto para itens expirando ou vencidos.
-
-#### Estrutura Visual (Esboço)
 ```tsx
-<div className="bg-orange-50/50 border border-orange-100 rounded-lg p-4">
-  <div className="flex justify-between items-start">
-    <div>
-      <h4 className="font-semibold text-foreground">{packageName}</h4>
-      <p className="text-sm text-muted-foreground">{videoQuantity} vídeos</p>
-    </div>
-    {isExpiring && <AlertTriangle className="text-orange-500 h-4 w-4" />}
-  </div>
-  
-  <Separator className="my-3 bg-orange-200/30" />
-  
-  <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-    <div>
-      <Calendar className="h-3 w-3 inline mr-1" />
-      Ativado em: <span className="text-foreground">{activatedDate}</span>
-    </div>
-    <div className="text-right">
-       Expira em: <span className="text-orange-700 font-medium">{expiryDate}</span>
-    </div>
-  </div>
-</div>
+// Lógica de Apresentação
+{variant === 'list' ? (
+    // Layout Compacto (Alta densidade de informação vertical)
+    <div className="flex flex-col gap-3">...</div>
+) : (
+    // Layout Espaçoso (Card Grid para Dashboard)
+    <div className="grid grid-cols-3 gap-4">...</div>
+)}
 ```
 
-### 3. Integração
-Atualizar o `UserDetailsSheet.tsx` para usar o novo visual:
-```tsx
-<ServiceBalanceList 
-  clientId={user.id} 
-  variant="list" // Novo modo
-  className="w-full"
-/>
-```
+### Design System
+Alinhamento visual com a identidade "Premium SaaS" (cores suaves, tipografia hierárquica), melhorando a escaneabilidade dos dados (Validade, Saldo) em espaços reduzidos.
 
-## Benefícios
-*   **Responsividade:** Funciona perfeitamente em Mobile e no Side Panel.
-*   **Leitura:** Escaneabilidade muito superior (1 item por linha).
-*   **Estética:** Visual mais profissional e alinhado com "SaaS Premium".
+## 🎯 Impacto e Resultado
+*   **Reusabilidade**: Um único componente atende duas necessidades de negócio distintas.
+*   **Manutenibilidade**: A lógica de cálculo de saldo (Complexa) fica em um único lugar. Se corrigirmos um bug de cálculo, corrigimos em ambas as visualizações.
+
+---
+**Nota do Desenvolvedor:** *Componentes burros (Presentational) que são flexíveis permitem pivotar a UI rapidamente sem reescrever o Backend.*
