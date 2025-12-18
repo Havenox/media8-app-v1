@@ -1,60 +1,54 @@
-# Media 8 - Plataforma de Edição de Vídeo
+# Media 8 Web (React)
 
-## Tecnologias Utilizadas
+Interface do usuário da plataforma Media 8, focada em **UX Fluida** e **Performance Mobile-First**.
 
-### Frontend
-- **React 18.3+** - UI Library
-- **TypeScript** - Type Safety
-- **Vite** - Build Tool
-- **Tailwind CSS** - Styling
-- **shadcn/ui (Radix UI)** - UI Components
-- **Lucide React** - Icons
-- **TanStack Query** - Server State Management
-- **React Hook Form + Zod** - Forms & Validation
-- **Framer Motion** - Animations
+> **Documentação de Design**: Veja [UI_GUIDELINES](../docs/Responsividade.md) e [BRANDING](../docs/Briefing%20da%20Marca%20-%20Diretrizes%20da%20Identidade%20Visual.md) na raiz.
 
-### Backend
-- **Docker & Docker Compose** - Orquestração
-- **PostgreSQL (Alpine)** - Database em Docker
-- **C# .NET 10** - Runtime
-- **ASP.NET Core Web API** - Framework
-- **Entity Framework Core** - ORM
-- **JWT Bearer Authentication** - Auth
+---
 
-## 🚀 Como Executar Localmente
+## Destaques Técnicos
 
-### Pré-requisitos
-- Node.js 18+
-- NPM ou Yarn
+*   **Virtualização**: Listas infinitas com `react-window` e `useVirtualizer` para performance.
+*   **Server State**: Uso agressivo de **TanStack Query** para cache e sincronização e otimistic updates.
+*   **Forms**: **React Hook Form** + **Zod** para validação robusta.
+*   **Componentes**: Baseados em **Indi UI / shadcn/ui** (Headless + Tailwind).
 
-### Configuração
-1.  **Clone o repositório** e acesse a pasta do frontend:
-    ```sh
-    cd media8-web
-    ```
+---
 
-2.  **Instale as dependências**:
-    ```sh
+## Developer Guide
+
+### Setup
+
+1.  **Instalar Dependências**
+    ```bash
     npm install
+    # ou
+    yarn
     ```
 
-3.  **Configure as Variáveis de Ambiente**:
-    Copie o arquivo de exemplo `.env.example` para `.env`:
-    
-    ```sh
-    cp .env.example .env
-    ```
-    
-    Edite o arquivo `.env` para apontar para sua API (se diferente do padrão):
-    ```env
-    # URL da API Backend (.NET)
-    # Se estiver rodando via Docker, geralmente é http://localhost:5261/api/v1
-    VITE_API_URL=http://localhost:5261/api/v1
+2.  **Variáveis de Ambiente**
+    Copie `.env.example` para `.env`:
+    ```bash
+    VITE_API_URL="http://localhost:5261/api/v1"
     ```
 
-4.  **Inicie o Servidor de Desenvolvimento**:
-    ```sh
+3.  **Rodar Servidor Dev**
+    ```bash
     npm run dev
     ```
+    Acesse: `http://localhost:5173`
 
-Acesse [http://localhost:5173](http://localhost:5173) no seu navegador.
+### Estrutura de Pastas
+
+*   `src/components/ui`: Componentes base reutilizáveis (Botões, Inputs).
+*   `src/layouts`: Estruturas de página (Root, Auth, Dashboard).
+*   `src/pages`: Telas da aplicação (Roteamento).
+*   `src/services`: Camada de comunicação HTTP (Axios).
+*   `src/hooks`: Lógica de negócio encapsulada (Custom Hooks).
+
+### Linting & Formatting
+
+O projeto usa ESLint e Prettier.
+```bash
+npm run lint
+```

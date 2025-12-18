@@ -31,7 +31,7 @@ Uso de classes condicionais para alternar a estrutura do DOM.
 ```
 
 ### Design System
-Alinhamento visual com a identidade "Premium SaaS" (cores suaves, tipografia hierárquica), melhorando a escaneabilidade dos dados (Validade, Saldo) em espaços reduzidos.
+Alinhamento visual com a identidade "Premium" (cores suaves, tipografia hierárquica), melhorando a escaneabilidade dos dados (Validade, Saldo) em espaços reduzidos.
 
 ## 🎯 Impacto e Resultado
 *   **Reusabilidade**: Um único componente atende duas necessidades de negócio distintas.

@@ -1,28 +1,54 @@
-Quero aplicar uma refatoração estrutural na aplicação para resolver a responsividade em TODAS as rotas de uma vez. O objetivo é transformar a experiência Mobile atual (que está apertada) em uma experiência "App Native" fluida.
+# Diretrizes de Responsividade e UX Mobile
 
-Por favor, realize as seguintes alterações na Arquitetura do Frontend:
+> **Objetivo**: Garantir uma experiência "Native App-like" em dispositivos móveis, sem sacrificar a produtividade no Desktop.
 
-1. **Refatoração do componente Wrapper principal:**
-   - Implemente um padrão de layout responsivo híbrido.
-   - **Desktop (`md` para cima):** Mantenha a Sidebar fixa lateral visível.
-   - **Mobile (`< md`):**
-     - Oculte a Sidebar fixa (`hidden`).
-     - Exiba uma **Mobile TopBar** fixa no topo (`sticky top-0 z-50`) com a cor de fundo Vinho (#400404) e a Logo centralizada ou à esquerda.
-     - Adicione um botão de Menu (Hamburger) nesta TopBar que abre a Sidebar atual dentro de um componente `Sheet` (Gaveta) do shadcn/ui.
-     - A `Sheet` deve ter o mesmo fundo Vinho e estilização da Sidebar original.
+---
 
-2. **Ajuste Global de Espaçamento (`Main Container`):**
-   - No container `main` que envolve o conteúdo das páginas (`children`), ajuste o padding:
-   - **Mobile:** `p-4` (ou `px-4 py-6`). Remova margens excessivas para aproveitar 100% da largura.
-   - **Desktop:** Mantenha o `p-8` ou o espaçamento atual que funciona bem.
-   - Isso deve corrigir o efeito "espremido" em todas as tabelas e formulários automaticamente.
+## Estratégia de Layout Híbrido
 
-3. **Atualização nos Componentes Base (`ui/input`, `ui/button`, `ui/select`):**
-   - Vá nos arquivos de definição desses componentes (ex: `components/ui/button.tsx`) e adicione classes utilitárias para garantir "Touch Friendly" no mobile:
-   - Adicione `h-12` (48px) para telas mobile e mantenha `md:h-10` para desktop se necessário.
-   - Isso garantirá que *todos* os formulários do sistema fiquem fáceis de tocar sem precisar editar página por página.
+O Frontend (`media8-web`) implementa um padrão de layout adaptativo:
 
-4. **Tipografia Responsiva Global:**
-   - Se houver um componente de `PageHeader` ou `Title`, ajuste o tamanho da fonte para escalar: `text-2xl` no mobile e `text-3xl/4xl` no desktop.
+### 1. Navegação (Sidebar vs Drawer)
 
-**Resumo:** O usuário não deve sentir que está num "site desktop diminuído", mas sim em um aplicativo web otimizado. Aplique essas regras de forma que afetem o layout raiz.
+*   **Desktop (`md` +)**: Sidebar lateral fixa e visível permanentemente. Maximiza o espaço útil para tabelas e dashboards complexos.
+*   **Mobile (`< md`)**:
+    *   Sidebar fixa oculta (`hidden`).
+    *   **TopBar Sticky**: Barra superior fixa (`sticky top-0 z-50`) com cor primária Vinho (#400404).
+    *   **Menu Hamburger**: Aciona a sidebar original dentro de um componente `Sheet` (Gaveta) do shadcn/ui.
+
+### 2. Espaçamento (Container Adaptativo)
+
+A fim de evitar o "efeito espremido" em telas pequenas:
+
+*   **Mobile**: Padding reduzido (`p-4` ou `px-4`). Remove margens excessivas para aproveitar 100% da largura horizontal (viewport width).
+*   **Desktop**: Padding confortável (`p-8`). Foco na legibilidade e respiro.
+
+---
+
+## Componentes Touch-Friendly
+
+Para garantir acessibilidade e facilidade de uso em telas de toque:
+
+### Inputs e Botões
+Todos os elementos interativos (`Button`, `Input`, `Select`) seguem a regra de **48px** de altura mínima em mobile.
+
+```tsx
+// Exemplo de classe utilitária (Tailwind)
+className="h-12 md:h-10" 
+```
+Isso garante que dedos (touch targets) consigam interagir sem erros, enquanto no desktop mantém-se a densidade de informação compacta.
+
+---
+
+## Tipografia Escalonável
+
+Uso de `clamp()` ou classes responsivas para títulos:
+
+*   **Mobile**: `text-2xl` (Headers compactos).
+*   **Desktop**: `text-3xl` ou `text-4xl` (Visual impactante).
+
+---
+
+## Implementação Técnica
+
+As regras acima são aplicadas no componente raiz de layout (`src/layouts/RootLayout.tsx`) e nos componentes base (`src/components/ui/*`), garantindo consistência automática sem necessidade de ajustes manuais em cada nova página.

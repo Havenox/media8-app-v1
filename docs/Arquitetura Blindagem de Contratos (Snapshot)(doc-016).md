@@ -1,80 +1,65 @@
-# Verificação e Walkthrough: Arquitetura Snapshot
+# Manual de Validação (QA): Arquitetura de Snapshots
 
-Este documento guia a verificação da nova arquitetura de **Blindagem de Contratos (Snapshot)** e **Unified Service Balances**.
+> **Objetivo**: Protocolo de teste para verificar a integridade e imutabilidade dos contratos (Assignments).
 
-## 1. Visão Geral das Mudanças
+---
 
-Implementamos o padrão **Snapshot** para garantir que alterações em Pacotes não afetem contratos já ativos. O contrato do cliente agora é uma cópia imutável ("Snapshot") feita no momento da atribuição.
+## 1. Conceito a Validar
+**Imutabilidade**: Garantir que alterações no Catálogo de Pacotes (`Packages`) **NÃO** afetem contratos já assinados (`PackageAssignments`). O cliente deve ver sempre o que comprou, não o que o produto se tornou.
 
-### Componentes Chave
-*   **Backend:** [PackageAssignments](file:///g:/DEV/Media8/media8-app-v1/media8-web/src/hooks/usePackageAssignments.ts#24-33) agora tem colunas `SnapshotPackageName`, `SnapshotPrice`, etc.
-*   **API:** Novo endpoint unificado `/api/v1/service-balances/my-balances` que retorna contratos ativos/expirados com paginação.
-*   **Frontend:** Novo hook [useServiceBalances](file:///g:/DEV/Media8/media8-app-v1/media8-web/src/hooks/useServiceBalances.ts#12-39) e componente `<ServiceBalanceList />` que substituiu as listas antigas no Dashboard e User Details.
+---
 
-## 2. Passos para Verificação
+## 2. Roteiro de Teste (Box Testing)
 
-### Passo 1: Preparação
-Certifique-se de que o Backend e Frontend estejam rodando e as migrações de banco de dados tenham sido aplicadas.
+### Cenário A: Contratação e Alteração de Produto
 
-1.  **Backend:** `dotnet run` (Isso deve aplicar a migration `AddSnapshotsToAssignments` automaticamente se configurado, ou rode `dotnet ef database update`).
-2.  **Frontend:** `npm run dev`.
+**Passo 1: Setup (Admin)**
+1.  Acesse `/admin/packages`.
+2.  Crie um Pacote:
+    *   **Nome**: "Plano Teste V1"
+    *   **Qtd**: 10 vídeos
+    *   **Preço**: R$ 100,00
+3.  Vá em Usuários e atribua este pacote ao `Cliente A`.
 
-### Passo 2: Criar e Atribuir Pacote (Cenário de Teste)
-Vamos verificar se os dados do snapshot são gravados corretamente.
+**Passo 2: Mutação (Admin)**
+1.  Volte em `/admin/packages`.
+2.  Edite o "Plano Teste V1":
+    *   **Nome** -> "Plano Teste V2 (Inflacionado)"
+    *   **Qtd** -> 50 vídeos
+    *   **Preço** -> R$ 500,00
+3.  Salve as alterações.
 
-1.  Acesse como **Admin**.
-2.  Vá em **Pacotes** (`/admin/packages`).
-3.  Crie um pacote "Teste Snapshot V1" com *10 vídeos*.
-4.  Vá em **Usuários** (`/admin/users`).
-5.  Selecione um cliente e clique em **Atribuir Pacote**.
-6.  Escolha "Teste Snapshot V1" e confirme.
+**Passo 3: Verificação (Cliente)**
+1.  Acesse o Dashboard do `Cliente A` (ou simule visualização).
+2.  **Resultado Esperado (SUCESSO)**:
+    *   O card exibe: "Plano Teste V1" (Nome Original).
+    *   O saldo exibe: "10 vídeos" (Qtd Original).
+3.  **Resultado Falho**:
+    *   O card exibe "Plano Teste V2". (Isso seria violação de contrato).
 
-### Passo 3: Modificar o Pacote Original (Prova de Imutabilidade)
-Agora vamos alterar a definição original para provar que o contrato do cliente não muda.
+---
 
-1.  Volte em **Pacotes**.
-2.  Edite o pacote "Teste Snapshot V1".
-3.  Mude o nome para "Teste Snapshot V2 (Modificado)" e quantidade para *50 vídeos*.
-4.  Salve.
+## 3. Verificação Técnica (SQL)
 
-### Passo 4: Verificar Dashboard do Cliente
-Agora veremos o que o cliente vê.
+Para desenvolvedores, a validação pode ser feita diretamente no banco:
 
-1.  Acesse o **Dashboard do Cliente** (ou simule login, ou veja via User Details como Admin).
-2.  O card de saldo deve mostrar:
-    *   **Nome:** "Teste Snapshot V1" (O nome original, NÃO V2).
-    *   **Quantidade:** "10 vídeos" (A quantidade original, NÃO 50).
-    *   **Tag:** Dependendo da implementação visual, o ID do pacote original ainda linka, mas os textos vêm do snapshot.
-
-### Passo 5: Consumo de Saldo
-1.  No Dashboard, clique em "Usar Crédito" (se habilitado) ou simule consumo via API.
-2.  O saldo deve decrementar corretamente do lote específico (Snapshot).
-
-## 3. Detalhes Técnicos para Desenvolvedores
-
-### API Unificada
-O frontend agora consome `GET /service-balances/my-balances`, que retorna [UnifiedServiceBalanceDto](file:///g:/DEV/Media8/media8-app-v1/media8-api/Media8.Application/DTOs/Services/ServiceBalanceDtos.cs#22-33).
-Exemplo de resposta:
-```json
-{
-  "data": [
-    {
-      "id": "guid-do-lote",
-      "packageName": "Teste Snapshot V1",  <-- VEM DO SNAPSHOT
-      "serviceName": "Reels",
-      "remainingQuantity": 10,
-      "totalQuantity": 10,
-      "status": "active"
-    }
-  ],
-  "total": 1
-}
+```sql
+SELECT 
+    p.name as current_catalog_name,
+    pa.snapshot_package_name as contracted_name,
+    pa.snapshot_video_quantity as contracted_qty
+FROM package_assignments pa
+JOIN packages p ON pa.package_id = p.id
+WHERE pa.client_id = 'uuid-do-cliente';
 ```
 
-### Frontend Hooks
-*   [useServiceBalances](file:///g:/DEV/Media8/media8-app-v1/media8-web/src/hooks/useServiceBalances.ts#12-39): Substitui chamadas antigas. Suporta paginação infinita nativa.
-*   [ServiceBalanceList](file:///g:/DEV/Media8/media8-app-v1/media8-web/src/components/dashboard/ServiceBalanceList.tsx#20-71): Componente visual padrão.
+Se `contracted_name` for diferente de `current_catalog_name`, o sistema está funcionando corretamente (Snapshot isolou o histórico).
 
-## Próximos Passos
-*   Monitorar performance da query unificada em produção.
-*   (Opcional) Migrar histórico antigo para Snapshots (via script SQL) se necessário para contratos legados.
+---
+
+## 4. Troubleshooting
+
+Se o teste falhar:
+1.  Verifique se a migration `AddSnapshotsToAssignments` foi aplicada.
+2.  Verifique se o Controller `PackageAssignmentsController.Create` está populando os campos `Snapshot*` no momento do POST.
+3.  Certifique-se de que o Frontend está lendo `snapshotPackageName` e não `package.name`.

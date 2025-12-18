@@ -1,45 +1,47 @@
-BRIEFING DA MARCA - Media 8
+# Diretrizes de Identidade Visual (Brand Guidelines)
 
-(Identidade Visual + Diretrizes de Marca)
+> **Essência da Marca**: Autoridade, Intensidade e Sofisticação.
 
-🎨 Paleta de Cores
+---
 
-Cor principal — #400404
-Tom vinho profundo, intenso e sofisticado.
-Representa autoridade, profissionalismo, intensidade e profundidade emocional. É a cor que guia toda a estética da marca e transmite seriedade e refinamento.
+## 🎨 Paleta de Cores
 
-Cor secundária — #FFFBE D
-Tom creme suave, usado principalmente para fundos.
-Traz leveza, contraste e um toque elegante que equilibra o peso do vinho. Perfeito para manter o conteúdo limpo e visualmente agradável.
+### Primária: Vinho Profundo
+*   **Hex**: `#400404`
+*   **Significado**: Autoridade, profissionalismo, profundidade emocional. É a cor que ancora toda a estética, transmitindo seriedade.
 
-Cores de Degradê
+### Secundária: Creme Suave
+*   **Hex**: `#FFFBED`
+*   **Significado**: Leveza e elegância. Usado em fundos para criar contraste legível sem a dureza do branco puro.
 
-#5C1212 → vinho mais quente
+### Paleta de Apoio (Degradês)
+Utilizados para criar textura e volume em assets visuais.
+*   `#5C1212` (Vinho Quente)
+*   `#7B0A0A` (Vinho Vibrante)
+*   `#000000` (Preto Puro - Profundidade)
 
-#000000 → preto puro
+---
 
-#7B0A0A → vinho vibrante
-Esses tons criam profundidade e textura, dando impacto visual em capas, banners e detalhes de destaque. Degradês intensos reforçam o ar premium, dramático e marcante da marca.
+## ✍️ Tipografia
 
-✍️ Tipografia
+### Títulos (Headlines)
+*   **Fonte**: `DREAM AVENUE`
+*   **Uso**: Capas, Banners, Destaques Hero.
+*   **Feeling**: Luxo, identidade única.
 
-Fonte de título — DREAM AVENUE
-Letra sofisticada, elegante e contemporânea.
-Ideal para headlines fortes, títulos de carrosséis e capas de vídeos. Passa sensação de luxo e identidade única.
+### Corpo de Texto (UI/Reading)
+*   **Fonte**: `Garet Regular` (ou `Inter` no Web App pela legibilidade)
+*   **Uso**: Parágrafos, legendas, interfaces.
+*   **Feeling**: Moderno, limpo, funcional.
 
-Fonte para textos — Garet Regular
-Limpa, moderna e fácil de ler.
-Utilizada em blocos de texto, legendas, explicações, conteúdos informativos. Garante clareza e experiência agradável.
+### Acentuação (Highlights)
+*   **Fonte**: `CALLEM`
+*   **Uso**: Assinaturas, palavras-chave ("emotional words").
+*   **Feeling**: Toque humano, manuscrito.
 
-Fonte de destaque — CALLEM
-Fonte manuscrita e com personalidade.
-Ideal para:
+---
 
-palavras de impacto
-
-frases curtas
-
-assinaturas
-
-acentos visuais
-Entrega emoção e humanização sem perder a estética premium.
+## Aplicação na Interface (Web App)
+*   **Botões Primários**: Fundo `#400404`, Texto `#FFFBED`.
+*   **Alertas/Warnings**: Laranja queimado (compatível com vinho).
+*   **Modo Dark**: O "Escuro" do app não é cinza, é um vinho extremamente escuro, mantendo a identidade mesmo no modo noturno.

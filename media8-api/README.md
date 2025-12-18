@@ -1,77 +1,58 @@
-# Media 8 API
+# Media 8 API (.NET 10)
 
-Este é o backend da plataforma **Media 8**, construído com **.NET 10** e **ASP.NET Core Web API**.
-Responsável por toda a lógica de negócios, autênticação, gestão de pacotes e processamento de pedidos.
+Esta pasta contém o backend da aplicação, construído seguindo os princípios de **Clean Architecture** e **Domain-Driven Design (DDD)**.
 
-## 🛠️ Tecnologias
+> **Documentação Completa**: Veja [docs/](../docs) na raiz do monorepo para Arquitetura, Schema e Segurança.
 
-- **Framework**: .NET 10 (ASP.NET Core)
-- **Banco de Dados**: PostgreSQL (via Entity Framework Core)
-- **Autenticação**: JWT Bearer (Token-based)
-- **Documentação**: Swagger / OpenAPI
+---
 
-## 🚀 Como Executar
+## Estrutura da Solução
 
-### Pré-requisitos
-- .NET SDK 10.0+ (para desenvolvimento local sem Docker)
-- Docker & Docker Compose (Recomendado)
-- PostgreSQL
+*   **`Media8.Api`**: Camada de Apresentação (Controllers). Depende de Application e Infra.
+*   **`Media8.Application`**: Casos de Uso, DTOs e Interfaces de Serviço. (Core Logic).
+*   **`Media8.Domain`**: Entidades Puras, Value Objects e Interfaces de Repositório. (Zero dependências).
+*   **`Media8.Infrastructure`**: Implementação de Repositórios (EF Core), Serviços Externos e Persistência.
 
-### Configuração
+---
 
-1.  **Clone o repositório** e acesse a pasta da API:
-    ```sh
-    cd media8-api
+## Developer Guide
+
+### Executando Localmente
+
+Recomendamos usar o **Docker Compose** da raiz (`media8-infra`) para orquestrar API e Banco de Dados.
+
+Se precisar rodar *apenas* a API isoladamente (para debugging):
+
+1.  **Startup do Banco (Docker)**
+    ```bash
+    cd ../media8-infra
+    docker-compose up -d postgres
     ```
 
-2.  **Configure as Variáveis de Ambiente**:
-    Copie o arquivo de exemplo:
-    ```sh
-    cp .env.example .env
-    ```
-    
-    Edite o `.env` com suas credenciais:
-    ```env
-    # Conexão com o Banco de Dados
-    DB_CONNECTION_STRING='Host=localhost;Port=5432;Database=media8;Username=postgres;Password=postgres'
-    
-    # Chave Secreta para assinatura de Tokens JWT (min 32 chars)
-    JWT_SECRET='SUA_CHAVE_SUPER_SECRETA_E_SEGURA_AQUI'
-    ```
+2.  **Configuração**
+    Copie `.env.example` para `.env` e ajuste a Connection String.
 
-### Executando com Docker (Recomendado)
-
-A maneira mais fácil de rodar a API junto com o Banco de Dados é utilizando o Docker Compose na pasta de infraestrutura.
-
-```sh
-cd ../media8-infra
-docker-compose up -d
-```
-
-A API estará disponível em: [http://localhost:5261](http://localhost:5261)
-Swagger UI: [http://localhost:5261/swagger](http://localhost:5261/swagger)
-
-### Executando Manualmente (.NET CLI)
-
-1.  **Restaure os pacotes**:
-    ```sh
+3.  **Execução (.NET CLI)**
+    ```bash
     dotnet restore
-    ```
-
-2.  **Aplique as Migrations (Criação do Banco)**:
-    ```sh
-    dotnet ef database update --project Media8.Infrastructure --startup-project Media8.Api
-    ```
-    *(Necessário ter a ferramenta dotnet-ef instalada)*
-
-3.  **Inicie a API**:
-    ```sh
     dotnet run --project Media8.Api
     ```
 
-## 📚 Documentação Técnica
+### Migrations
 
-Detalhes de implementações específicas podem ser encontrados na pasta `docs/implementations`.
+Para criar ou aplicar migrations, execute na raiz desta pasta (`media8-api`):
 
-- [Correção de Ciclo de Atribuição (DTOs)](./docs/implementations/002-fix-referencia-circular-atribuicao.md)
-- [Lógica de Consumo de Saldo](./docs/implementations/001-consumo-saldo-servicos.md)
+```bash
+# Criar Migration
+dotnet ef migrations add NomeDaMudanca --project Media8.Infrastructure --startup-project Media8.Api
+
+# Aplicar ao Banco
+dotnet ef database update --project Media8.Infrastructure --startup-project Media8.Api
+```
+
+---
+
+## Testando (Swagger)
+
+A API expõe documentação OpenAPI em ambiente de desenvolvimento.
+Acesse: `http://localhost:5261/swagger`
