@@ -31,11 +31,11 @@ export const useServiceBalances = ({
       }
     },
     getNextPageParam: (lastPage, allPages) => {
-      const currentCount = allPages.flatMap(p => p.data).length;
-      if (currentCount < lastPage.total) {
-        return allPages.length + 1;
+      const lastPageData = lastPage.data || [];
+      if (lastPageData.length < pageSize) {
+        return undefined;
       }
-      return undefined;
+      return allPages.length + 1;
     },
     initialPageParam: 1,
     enabled: enabled,
