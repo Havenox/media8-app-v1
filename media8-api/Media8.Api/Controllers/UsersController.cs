@@ -244,6 +244,7 @@ public class UsersController : ControllerBase
             Email = user.Email,
             Name = user.Profile?.Name ?? "Unknown",
             AvatarUrl = user.Profile?.AvatarUrl,
+            CreatedAt = user.CreatedAt,
             Role = user.Roles.FirstOrDefault()?.Role.ToString() ?? "Client",
             Roles = user.Roles.Select(r => r.Role.ToString()).ToList()
         };

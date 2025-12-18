@@ -8,6 +8,7 @@ public class AdminUserDto
     public string Email { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string? AvatarUrl { get; set; }
+    public DateTime CreatedAt { get; set; }
     
     [JsonPropertyName("role")]
     public string Role { get; set; } = string.Empty;
