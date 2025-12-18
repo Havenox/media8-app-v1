@@ -262,8 +262,8 @@ public class UsersController : ControllerBase
             var count = user.Assignments?.Count(a => a.Status == AssignmentStatus.Active) ?? 0;
             dto.ActivePackage = new ActivePackageSummary
             {
-                Name = activeAssignment.Package.Name,
-                VideoQuantity = activeAssignment.Package.VideoQuantity,
+                Name = activeAssignment.SnapshotPackageName ?? activeAssignment.Package?.Name ?? "Unknown",
+                VideoQuantity = activeAssignment.SnapshotVideoQuantity ?? activeAssignment.Package?.VideoQuantity ?? 0,
                 ExpiresAt = activeAssignment.ExpiresAt,
                 AdditionalPackagesCount = count > 1 ? count - 1 : 0
             };
