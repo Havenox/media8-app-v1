@@ -28,7 +28,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 
 import { User as UserType } from '@/types/api';
-import { useClientAssignments } from '@/hooks/usePackageAssignments';
 import { ServiceBalanceList } from '@/components/dashboard/ServiceBalanceList';
 
 interface UserDetailsSheetProps {
@@ -50,39 +49,10 @@ const UserDetailsSheet: React.FC<UserDetailsSheetProps> = ({
   onDelete,
   isDeleting = false,
 }) => {
-  const { data: assignments = [], isLoading: assignmentsLoading } = useClientAssignments(
-    user?.role === 'Client' ? user?.id : undefined
-  );
-
   if (!user) return null;
-
-  const activeAssignments = assignments.filter(a => a.status === 'active');
-  
-  // Sort by expiration date (soonest first), assignments without expiry go last
-  const sortedAssignments = [...activeAssignments].sort((a, b) => {
-    if (!a.expiresAt && !b.expiresAt) return 0;
-    if (!a.expiresAt) return 1;
-    if (!b.expiresAt) return -1;
-    return new Date(a.expiresAt).getTime() - new Date(b.expiresAt).getTime();
-  });
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
-  };
-
-  const isExpiringSoon = (expiresAt: string | undefined) => {
-    if (!expiresAt) return false;
-    const daysUntilExpiry = differenceInDays(new Date(expiresAt), new Date());
-    return daysUntilExpiry <= 7 && daysUntilExpiry >= 0;
-  };
-
-  const getDaysUntilExpiry = (expiresAt: string | undefined) => {
-    if (!expiresAt) return Infinity;
-    return differenceInDays(new Date(expiresAt), new Date());
-  };
-
-  const hasExpiry = (expiresAt: string | undefined): expiresAt is string => {
-    return !!expiresAt;
   };
 
   const safeFormatDate = (dateString: string | undefined | null, pattern: string) => {
