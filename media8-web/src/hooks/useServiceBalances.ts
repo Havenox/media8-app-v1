@@ -14,6 +14,8 @@ interface UseServiceBalancesOptions {
   enabled?: boolean;
 }
 
+import { getNextPageParam } from '@/lib/pagination';
+
 export const useServiceBalances = ({
   clientId,
   status = 'active',
@@ -30,13 +32,7 @@ export const useServiceBalances = ({
         return serviceBalanceService.getMyBalances(pageParam, pageSize, status);
       }
     },
-    getNextPageParam: (lastPage, allPages) => {
-      const lastPageData = lastPage.data || [];
-      if (lastPageData.length < pageSize) {
-        return undefined;
-      }
-      return allPages.length + 1;
-    },
+    getNextPageParam: (lastPage, allPages) => getNextPageParam(lastPage, allPages, pageSize),
     initialPageParam: 1,
     enabled: enabled,
   });

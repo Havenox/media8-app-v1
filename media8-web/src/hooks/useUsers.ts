@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tansta
 import { User, UserRole } from '@/types/api';
 import { userService } from '@/services/userService';
 import { toast } from 'sonner';
+import { getNextPageParam } from '@/lib/pagination';
 
 // ==========================================
 // QUERY KEYS
@@ -39,13 +40,7 @@ export const useInfiniteUsers = (role?: UserRole, pageSize = 20, search?: string
     queryKey: userKeys.infinite({ role, pageSize, search }),
     queryFn: ({ pageParam = 1 }) => userService.getAll(pageParam, pageSize, role, search),
     initialPageParam: 1,
-    getNextPageParam: (lastPage, allPages) => {
-      // If the last page has fewer items than pageSize, we've reached the end
-      if (lastPage.length < pageSize) {
-        return undefined;
-      }
-      return allPages.length + 1;
-    },
+    getNextPageParam: (lastPage, allPages) => getNextPageParam(lastPage, allPages, pageSize),
   });
 };
 

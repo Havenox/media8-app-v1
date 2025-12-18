@@ -24,15 +24,17 @@ export const packageKeys = {
 /**
  * Fetch packages with infinite scroll
  */
+import { getNextPageParam } from '@/lib/pagination';
+
+/**
+ * Fetch packages with infinite scroll
+ */
 export const useInfinitePackages = (pageSize = 20, search?: string) => {
   return useInfiniteQuery({
     queryKey: packageKeys.infinite({ pageSize, search }),
     queryFn: ({ pageParam = 1 }) => packageService.getAll(pageParam, pageSize, search),
     initialPageParam: 1,
-    getNextPageParam: (lastPage, allPages) => {
-      if (lastPage.length < pageSize) return undefined;
-      return allPages.length + 1;
-    },
+    getNextPageParam: (lastPage, allPages) => getNextPageParam(lastPage, allPages, pageSize),
   });
 };
 
