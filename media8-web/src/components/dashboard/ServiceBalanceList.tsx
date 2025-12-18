@@ -6,22 +6,28 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
-import { Package, Smartphone, Youtube, Video, AlertCircle } from 'lucide-react';
+import { ptBR } from 'date-fns/locale';
+import { Package, Smartphone, Youtube, Video, AlertCircle, AlertTriangle, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+type ServiceListVariant = 'grid' | 'list';
 
 interface ServiceBalanceListProps {
   clientId?: string; // Optional: If provided, shows for specific client (Admin mode)
   canConsume?: boolean; // If true, shows "Consume" button (for Client Dashboard)
   onConsume?: (lot: UnifiedServiceBalance) => void;
   className?: string;
+  variant?: ServiceListVariant; // Mode: 'grid' (default) or 'list' (stacked)
 }
 
 export const ServiceBalanceList: React.FC<ServiceBalanceListProps> = ({
   clientId,
   canConsume = false,
   onConsume,
-  className
+  className,
+  variant = 'grid'
 }) => {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useServiceBalances({
     clientId,
@@ -32,6 +38,15 @@ export const ServiceBalanceList: React.FC<ServiceBalanceListProps> = ({
   const lots = data?.pages.flatMap(page => page.data) || [];
 
   if (isLoading) {
+    if (variant === 'list') {
+      return (
+        <div className="flex flex-col gap-4">
+           {[1, 2, 3].map((i) => (
+             <Skeleton key={i} className="h-24 w-full rounded-lg" />
+           ))}
+        </div>
+      );
+    }
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {[1, 2, 3].map((i) => (
@@ -43,33 +58,151 @@ export const ServiceBalanceList: React.FC<ServiceBalanceListProps> = ({
 
   if (lots.length === 0) {
     return (
-      <div className="text-center py-10 text-muted-foreground border-2 border-dashed rounded-xl">
-        <Package className="mx-auto h-12 w-12 opacity-50 mb-2" />
-        <p>Nenhum serviço ativo encontrado.</p>
+      <div className={cn(
+        "text-center text-muted-foreground border-2 border-dashed rounded-xl",
+        variant === 'list' ? "py-6" : "py-10"
+      )}>
+        <Package className="mx-auto h-8 w-8 opacity-50 mb-2" />
+        <p className="text-sm">Nenhum serviço ativo encontrado.</p>
       </div>
     );
   }
+
+  const containerClasses = variant === 'list' 
+    ? cn("flex flex-col gap-3", className)
+    : cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4", className);
 
   return (
     <InfiniteScroll
       next={fetchNextPage}
       hasMore={!!hasNextPage}
       isLoading={isFetchingNextPage}
-      className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4", className)}
+      className={containerClasses}
     >
       {lots.map((lot) => (
-        <ServiceCard 
-          key={lot.id} 
-          lot={lot} 
-          canConsume={canConsume} 
-          onConsume={onConsume} 
-        />
+        variant === 'list' ? (
+          <ServiceListItem
+            key={lot.id}
+            lot={lot}
+            canConsume={canConsume}
+            onConsume={onConsume}
+          />
+        ) : (
+          <ServiceCard 
+            key={lot.id} 
+            lot={lot} 
+            canConsume={canConsume} 
+            onConsume={onConsume} 
+          />
+        )
       ))}
     </InfiniteScroll>
   );
 };
 
-// Sub-component for individual card
+// ==========================================
+// SUB-COMPONENTS
+// ==========================================
+
+const getIcon = (name: string) => {
+  if (name.toLowerCase().includes('reels')) return Smartphone;
+  if (name.toLowerCase().includes('youtube')) return Youtube;
+  if (name.toLowerCase().includes('pacote')) return Package;
+  return Video;
+};
+
+
+// 1. LIST VIEW (New Minimalist Design)
+const ServiceListItem = ({ 
+  lot, 
+  canConsume, 
+  onConsume 
+}: { 
+  lot: UnifiedServiceBalance; 
+  canConsume: boolean;
+  onConsume?: (lot: UnifiedServiceBalance) => void;
+}) => {
+  const isExpiringSoon = lot.expiresAt && 
+    new Date(lot.expiresAt) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+  const Icon = getIcon(lot.serviceName);
+
+  return (
+    <div className={cn(
+      "relative rounded-lg p-4 border transition-all hover:bg-muted/50",
+      // Visual styling: Soft yellow/beige background for cards
+      "bg-[#FFFCF5] border-[#E8E0D0]" 
+    )}>
+      {/* Top Row: Title + Qty + Alert */}
+      <div className="flex justify-between items-start mb-2">
+        <div className="flex items-start gap-3">
+          <div className="p-2 bg-amber-100/50 rounded-md text-amber-800 shrink-0 mt-0.5">
+            <Icon className="h-4 w-4" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-foreground leading-tight">
+              {lot.packageName}
+            </h4>
+            <p className="text-xs text-muted-foreground mt-0.5">{lot.serviceName}</p>
+          </div>
+        </div>
+        
+        <div className="text-right shrink-0">
+          <div className="flex items-center justify-end gap-1">
+             <span className="text-lg font-bold text-amber-950">
+               {lot.remainingQuantity}
+             </span>
+             <span className="text-xs text-muted-foreground">
+               / {lot.totalQuantity}
+             </span>
+          </div>
+          {isExpiringSoon && (
+            <div className="flex items-center justify-end gap-1 text-[10px] text-orange-600 font-medium mt-1">
+              <AlertTriangle className="h-3 w-3" />
+              <span>Expira em breve</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <Separator className="my-2 bg-amber-200/30" />
+
+      {/* Bottom Row: Dates */}
+      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+         <div className="flex items-center gap-1.5 opacity-80">
+           <Calendar className="h-3 w-3" />
+           <span>Ativado: {lot.purchaseDate ? format(new Date(lot.purchaseDate), 'dd/MM/yy') : '-'}</span>
+         </div>
+         
+         <div className="font-medium">
+            {lot.expiresAt ? (
+              <span className={cn(isExpiringSoon ? "text-orange-700" : "text-amber-900/70")}>
+                Válido até {format(new Date(lot.expiresAt), 'dd/MM/yyyy')}
+              </span>
+            ) : (
+             <span className="text-green-600">Assinatura Ativa</span>
+            )}
+         </div>
+      </div>
+
+      {canConsume && (
+        <div className="mt-3">
+            <Button 
+               size="sm" 
+               className="w-full h-7 text-xs bg-amber-900/90 hover:bg-amber-900"
+               onClick={() => onConsume?.(lot)}
+               disabled={lot.remainingQuantity <= 0}
+            >
+              Usar Crédito
+            </Button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+
+// 2. GRID CARD VIEW (Existing Design)
 const ServiceCard = ({ 
   lot, 
   canConsume, 
@@ -81,13 +214,6 @@ const ServiceCard = ({
 }) => {
   const isExpiringSoon = lot.expiresAt && 
     new Date(lot.expiresAt) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-
-  const getIcon = (name: string) => {
-    if (name.toLowerCase().includes('reels')) return Smartphone;
-    if (name.toLowerCase().includes('youtube')) return Youtube;
-    if (name.toLowerCase().includes('pacote')) return Package;
-    return Video;
-  };
 
   const Icon = getIcon(lot.serviceName);
 
@@ -102,7 +228,7 @@ const ServiceCard = ({
             <Icon className="h-4 w-4" />
           </div>
           <div>
-            <CardTitle className="text-base font-bold text-foreground">
+            <CardTitle className="text-base font-bold text-foreground line-clamp-1" title={lot.packageName}>
               {lot.packageName}
             </CardTitle>
             <p className="text-xs text-muted-foreground">{lot.serviceName}</p>
@@ -110,7 +236,7 @@ const ServiceCard = ({
         </div>
         {isExpiringSoon && (
           <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
-            Expira em breve
+            Expira
           </Badge>
         )}
       </CardHeader>

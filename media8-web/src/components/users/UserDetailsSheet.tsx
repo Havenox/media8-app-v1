@@ -157,7 +157,7 @@ const UserDetailsSheet: React.FC<UserDetailsSheetProps> = ({
                   </Button>
                 </div>
 
-                <ServiceBalanceList clientId={user.id} className="grid-cols-1" />
+                <ServiceBalanceList clientId={user.id} className="grid-cols-1" variant="list" />
               </div>
             )}
           </div>
