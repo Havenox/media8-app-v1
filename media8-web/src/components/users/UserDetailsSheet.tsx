@@ -112,19 +112,11 @@ const UserDetailsSheet: React.FC<UserDetailsSheetProps> = ({
             {/* Pacotes ativos - apenas para clientes */}
             {user.role === 'Client' && (
               <div>
-                <div className="flex items-center justify-between mb-3">
+                <div className="mb-3">
                   <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                     <Package className="h-4 w-4" />
                     Saldos e Serviços
                   </h4>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-6 text-xs"
-                    onClick={() => onAssignPackage(user)}
-                  >
-                    + Atribuir
-                  </Button>
                 </div>
 
                 <ServiceBalanceList clientId={user.id} className="grid-cols-1" variant="list" />
