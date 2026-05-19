@@ -1,7 +1,12 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-// API Base URL - will be configured via environment variable
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5261/api/v1';
+// API Base URL - configured via environment variable
+// Throws error if VITE_API_URL is not defined, preventing silent failures
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+if (!API_BASE_URL) {
+console.error('[API] VITE_API_URL is not configured. Please check your .env file.');
+}
 
 // Create axios instance with default config
 export const api = axios.create({
