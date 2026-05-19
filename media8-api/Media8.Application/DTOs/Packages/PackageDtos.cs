@@ -15,13 +15,17 @@ public class CreatePackageRequest
     public int? ValidityDays { get; set; }
     public int LoyaltyMonths { get; set; }
     public int DeliveryDays { get; set; }
-    public List<ServiceType> ServiceTypes { get; set; } = new();
+    
+    /// <summary>
+    /// IDs dos formatos de vídeo suportados por este pacote
+    /// </summary>
+    public List<Guid> VideoFormatIds { get; set; } = new();
+    
     public string? Description { get; set; }
     public List<string> Features { get; set; } = new();
     public string? Disclaimer { get; set; }
     public string? Badge { get; set; }
     public bool IsPublic { get; set; } = true;
-
 }
 
 public class UpdatePackageRequest
@@ -36,13 +40,17 @@ public class UpdatePackageRequest
     public int? ValidityDays { get; set; }
     public int? LoyaltyMonths { get; set; }
     public int? DeliveryDays { get; set; }
-    public List<ServiceType>? ServiceTypes { get; set; }
+    
+    /// <summary>
+    /// IDs dos formatos de vídeo suportados por este pacote
+    /// </summary>
+    public List<Guid>? VideoFormatIds { get; set; }
+    
     public string? Description { get; set; }
     public List<string>? Features { get; set; }
     public string? Disclaimer { get; set; }
     public string? Badge { get; set; }
     public bool? IsPublic { get; set; }
-
 }
 
 public class AssignPackageRequest

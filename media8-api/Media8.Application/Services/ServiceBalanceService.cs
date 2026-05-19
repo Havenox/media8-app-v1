@@ -1,6 +1,6 @@
 using Media8.Application.Interfaces;
 using Media8.Domain.Entities;
-using Media8.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace Media8.Application.Services;
 
@@ -13,12 +13,12 @@ public class ServiceBalanceService : IServiceBalanceService
         _balanceRepository = balanceRepository;
     }
 
-    public async Task<bool> ConsumeAsync(Guid userId, ServiceType serviceType, int quantity = 1)
+    public async Task<bool> ConsumeAsync(Guid userId, Guid videoFormatId, int quantity = 1)
     {
-        // 1. Fetch available lots for this user and service type
-        var activeLots = await _balanceRepository.FindAsync(b => 
-            b.UserId == userId && 
-            b.ServiceType == serviceType && 
+        // 1. Fetch available lots for this user and video format
+        var activeLots = await _balanceRepository.FindAsync(b =>
+            b.UserId == userId &&
+            b.VideoFormatId == videoFormatId &&
             b.RemainingQuantity > 0 &&
             (b.ExpiresAt == null || b.ExpiresAt > DateTime.UtcNow)
         );

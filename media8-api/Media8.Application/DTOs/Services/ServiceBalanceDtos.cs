@@ -1,4 +1,3 @@
-using Media8.Domain.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace Media8.Application.DTOs.Services;
@@ -6,7 +5,10 @@ namespace Media8.Application.DTOs.Services;
 public class ConsumeServiceRequest
 {
     [Required]
-    public ServiceType ServiceType { get; set; }
+    /// <summary>
+    /// ID do formato de vídeo dinâmico a ser consumido
+    /// </summary>
+    public Guid VideoFormatId { get; set; }
 
     [Range(1, 100)]
     public int Quantity { get; set; } = 1;
