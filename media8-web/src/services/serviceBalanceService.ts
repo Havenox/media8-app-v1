@@ -1,9 +1,7 @@
 import {
   ServiceBalanceLot,
   ServiceBalanceAggregated,
-  ServiceType,
   ConsumeResult,
-  serviceConfigs
 } from '@/types/services';
 import { api } from '@/lib/api';
 import { differenceInDays } from 'date-fns';
@@ -201,8 +199,8 @@ const getClientBalancesAPI = async (clientId: string, page = 1, pageSize = 50, s
   };
 };
 
-const consumeServiceAPI = async (userId: string, serviceType: ServiceType): Promise<ConsumeResult> => {
-  const response = await api.post(`/users/${userId}/service-balances/consume`, { serviceType });
+const consumeServiceAPI = async (userId: string, videoFormatId: string): Promise<ConsumeResult> => {
+  const response = await api.post(`/users/${userId}/service-balances/consume`, { videoFormatId });
   return response.data;
 };
 
@@ -249,19 +247,19 @@ export const serviceBalanceService = {
   },
 
   /**
-   * Consume one unit of a service using FIFO logic
+   * Consume one unit of a service using FIFO logic (Fase 0: videoFormatId)
    */
-  async consumeService(userId: string, serviceType: ServiceType): Promise<ConsumeResult> {
-    return consumeServiceAPI(userId, serviceType);
+  async consumeService(userId: string, videoFormatId: string): Promise<ConsumeResult> {
+    return consumeServiceAPI(userId, videoFormatId);
   },
 
   /**
-   * Check if user has available balance for a service type
+   * Check if user has available balance for a video format (LEGACY - will be refactored)
    */
-  async hasBalance(userId: string, serviceType: ServiceType): Promise<boolean> {
+  async hasBalance(userId: string, videoFormatId: string): Promise<boolean> {
     const lots = await this.getLots(userId);
     return lots.some(
-      lot => lot.serviceType === serviceType && isLotAvailable(lot)
+      lot => lot.videoFormatId === videoFormatId && isLotAvailable(lot)
     );
   },
 };

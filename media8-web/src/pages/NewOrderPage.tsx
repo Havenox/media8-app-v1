@@ -175,10 +175,10 @@ const NewOrderPage: React.FC = () => {
     if (!user?.id || !selectedVideoFormatId) return;
 
     try {
-      // Consume service using FIFO logic (legacy, will be refactored in next step)
+      // Consume service using FIFO logic with videoFormatId (Fase 0)
       const result = await consumeService.mutateAsync({
         userId: user.id,
-        serviceType: selectedServiceType || 'Avulso',
+        videoFormatId: selectedVideoFormatId,
       });
 
       if (!result.success) {

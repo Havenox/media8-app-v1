@@ -66,8 +66,8 @@ export const useConsumeService = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ userId, serviceType }: { userId: string, serviceType: import('@/types/services').ServiceType }) =>
-      serviceBalanceService.consumeService(userId, serviceType),
+    mutationFn: ({ userId, videoFormatId }: { userId: string, videoFormatId: string }) =>
+      serviceBalanceService.consumeService(userId, videoFormatId),
     onSuccess: (result, variables) => {
       if (result.success) {
         // Invalidate both aggregated and infinite lists
