@@ -16,17 +16,7 @@ public enum PackageCategory
     Avulso
 }
 
-[JsonConverter(typeof(JsonStringEnumConverter))]
-public enum ServiceType
-{
-    ReelsStandard,
-    ReelsPremium,
-    YoutubeCurto,
-    YoutubeMedio,
-    YoutubeLongo,
-    PacoteReels,
-    Avulso
-}
+
 
 public enum OrderStatus
 {
