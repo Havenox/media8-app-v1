@@ -1,38 +1,38 @@
 services:
-  # Backend API
-  media8-api:
-    build:
-      context: ../media8-api
-      dockerfile: Dockerfile
-    container_name: media8-api
-    ports:
-      - "5261:80"
-    environment:
-      # Using external database from .env
-      - DB_CONNECTION_STRING=Host=192.168.18.110;Port=5432;Database=media8;Username=media8;Password=Guerra2024!
-      - JWT_SECRET=M8_PRODUCTION_SECRET_KEY_CHANGE_THIS_TO_SOMETHING_VERY_SECURE_IN_REAL_PROD_1233
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_HTTP_PORTS=80
-      - SEED_USERS_FROM_JSON=false
-    networks:
-      - media8-network
-    restart: on-failure
+# Backend API
+media8-api:
+build:
+context: ../media8-api
+dockerfile: Dockerfile
+container_name: media8-api
+ports:
+- "5261:80"
+environment:
+# Using external database from .env
+- DB_CONNECTION_STRING=${DB_CONNECTION_STRING}
+- JWT_SECRET=${JWT_SECRET}
+- ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+- ASPNETCORE_HTTP_PORTS=${ASPNETCORE_HTTP_PORTS:-80}
+- SEED_USERS_FROM_JSON=${SEED_USERS_FROM_JSON:-false}
+networks:
+- media8-network
+restart: on-failure
 
-  # Frontend React App
-  media8-web:
-    build:
-      context: ../media8-web
-      dockerfile: Dockerfile
-    container_name: media8-web
-    ports:
-      - "5173:80"
-    environment:
-      - VITE_API_URL=http://localhost:5261/api/v1
-    depends_on:
-      - media8-api
-    networks:
-      - media8-network
+# Frontend React App
+media8-web:
+build:
+context: ../media8-web
+dockerfile: Dockerfile
+container_name: media8-web
+ports:
+- "5173:80"
+environment:
+- VITE_API_URL=${VITE_API_URL}
+depends_on:
+- media8-api
+networks:
+- media8-network
 
 networks:
-  media8-network:
-    driver: bridge
+media8-network:
+driver: bridge
