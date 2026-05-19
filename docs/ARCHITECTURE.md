@@ -56,10 +56,11 @@ graph TD
 
 ### Frontend (`media8-web`)
 Focado em **Performance** e **UX Premium**.
-*   **Core**: React 18, TypeScript, Vite.
-*   **State**: TanStack Query (Gerenciamento de Cache Server-Side).
-*   **UI System**: Tailwind CSS + shadcn/ui.
-*   **Performance**: Virtualização de listas (`InfiniteScroll`) e Debounce em buscas.
+* **Core**: React 18, TypeScript, Vite.
+* **State**: TanStack Query (Gerenciamento de Cache Server-Side).
+* **UI System**: Tailwind CSS + shadcn/ui.
+* **Performance**: Virtualização de listas (`InfiniteScroll`) e Debounce em buscas.
+* **Data-Driven Architecture**: Catálogo dinâmico de `VideoFormat` consumido via `useVideoFormats` hook com `staleTime: 5min`.
 
 ### Backend (`media8-api`)
 Focado em **Segurança** e **Integridade de Dados**.
@@ -88,6 +89,14 @@ Focado em **Segurança** e **Integridade de Dados**.
 ### 3. Service Balance & FIFO Strategy
 **Problema**: Clientes acumulam créditos de diferentes compras com validades diferentes.
 **Solução**: O sistema utiliza uma tabela de Lotes (`ServiceBalanceLots`). Ao consumir um serviço, o algoritmo consome automaticamente do lote mais antigo para o mais novo (**First-In, First-Out**), otimizando o uso dos créditos do cliente antes que expirem.
+
+### 4. Data-Driven Catalog (VideoFormat Entity)
+**Problema**: Enums estáticos (`ServiceType`) exigiam deploy de código para adicionar novos formatos de vídeo, limitando a agilidade do time de produto.
+**Solução**: Migração para entidade dinâmica `VideoFormat` com cache em memória (`IMemoryCache`) no backend e hook dedicado (`useVideoFormats`) no frontend. O catálogo é agora gerenciável via banco de dados.
+* **Frontend**: Componentes iteram sobre `videoFormats.data` (TanStack Query) ao invés de arrays hardcodados.
+* **Backend**: `VideoFormatsController` expõe endpoint `GET /api/v1/video-formats` com projeção otimizada.
+* **Impacto**: Novos formatos surgem na UI de pedidos instantaneamente, sem necessidade de deploy.
+* *Implementação*: Ver `docs/implementations/030-frontend-data-driven-migracao.md`.
 
 ---
 
