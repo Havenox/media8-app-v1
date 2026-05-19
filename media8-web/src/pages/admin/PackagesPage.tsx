@@ -126,12 +126,11 @@ const PackagesPage: React.FC = () => {
   // Filter packages
   const filteredPackages = useMemo(() => {
     return packages.filter((pkg) => {
-      const matchesSearch = pkg.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = pkg.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = categoryFilter === 'all' || pkg.category.toLowerCase() === categoryFilter.toLowerCase();
-      // Removed status filter since IsActive is gone. We could filter by Public/Private if requested, but for now just removing the broken logic.
       return matchesSearch && matchesCategory;
     });
-  }, [packages, searchQuery, categoryFilter, statusFilter]);
+  }, [packages, searchTerm, categoryFilter]);
 
   // Feature list management
   const addFeature = () => {
@@ -628,15 +627,15 @@ const PackagesPage: React.FC = () => {
 
       {/* Filters */}
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar pacotes..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+      <div className="relative flex-1 max-w-md">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar pacotes..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+      </div>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-40">
             <Filter className="h-4 w-4 mr-2" />
