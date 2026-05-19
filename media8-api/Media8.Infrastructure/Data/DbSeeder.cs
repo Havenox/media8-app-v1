@@ -39,24 +39,25 @@ await _context.SaveChangesAsync();
 }
 
 // ==========================================
-// 2. Seed Users
+// 2. Seed Users (always ensure they exist)
 // ==========================================
-var usersToSeed = new List<User>();
-if (!_context.Users.Any())
+var clientCarlosId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+var clientAnaId = Guid.Parse("00000000-0000-0000-0000-000000000002");
+var editorRobertoId = Guid.Parse("00000000-0000-0000-0000-000000000003");
+var adminId = Guid.Parse("00000000-0000-0000-0000-000000000004");
+
+// Check if users need to be seeded
+if (!await _context.Users.AnyAsync())
 {
-await EnsureUser(usersToSeed, Guid.Parse("00000000-0000-0000-0000-000000000001"), "Carlos Silva", "carlos@media8.com", AppRole.Client, passwordHasher.Hash("123456"));
-await EnsureUser(usersToSeed, Guid.Parse("00000000-0000-0000-0000-000000000002"), "Ana Souza", "ana@media8.com", AppRole.Client, passwordHasher.Hash("123456"));
-await EnsureUser(usersToSeed, Guid.Parse("00000000-0000-0000-0000-000000000003"), "Roberto Editor", "roberto@media8.com", AppRole.Editor, passwordHasher.Hash("123456"));
-await EnsureUser(usersToSeed, Guid.Parse("00000000-0000-0000-0000-000000000004"), "Admin Chefe", "admin@media8.com", AppRole.Admin, passwordHasher.Hash("123456"));
+var usersToSeed = new List<User>();
+await EnsureUser(usersToSeed, clientCarlosId, "Carlos Silva", "carlos@media8.com", AppRole.Client, passwordHasher.Hash("123456"));
+await EnsureUser(usersToSeed, clientAnaId, "Ana Souza", "ana@media8.com", AppRole.Client, passwordHasher.Hash("123456"));
+await EnsureUser(usersToSeed, editorRobertoId, "Roberto Editor", "roberto@media8.com", AppRole.Editor, passwordHasher.Hash("123456"));
+await EnsureUser(usersToSeed, adminId, "Admin Chefe", "admin@media8.com", AppRole.Admin, passwordHasher.Hash("123456"));
 
 await _context.Users.AddRangeAsync(usersToSeed);
 await _context.SaveChangesAsync();
 }
-
-        var clientCarlosId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-        var clientAnaId = Guid.Parse("00000000-0000-0000-0000-000000000002");
-        var editorRobertoId = Guid.Parse("00000000-0000-0000-0000-000000000003");
-        var adminId = Guid.Parse("00000000-0000-0000-0000-000000000004");
 
         // ==========================================
         // 3. Seed Packages

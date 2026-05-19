@@ -8,18 +8,13 @@ namespace Media8.Infrastructure.Migrations
     /// <inheritdoc />
     public partial class MigrateServiceTypeToVideoFormat : Migration
     {
-    /// <inheritdoc />
-    protected override void Up(MigrationBuilder migrationBuilder)
-    {
-        // Truncate transactional tables to avoid NOT NULL constraint violations
-        // Preserves Users, Profiles, UserRoles (core data)
-        migrationBuilder.Sql(@"
-            TRUNCATE TABLE ""OrderTimelines"", ""Orders"", ""ServiceBalanceLots"", ""PackageAssignments"", ""Packages"" CASCADE;
-        ");
-
-        migrationBuilder.DropColumn(
-            name: "ServiceType",
-            table: "ServiceBalanceLots");
+/// <inheritdoc />
+protected override void Up(MigrationBuilder migrationBuilder)
+{
+// Drop old columns first (data will be lost for these columns)
+migrationBuilder.DropColumn(
+name: "ServiceType",
+table: "ServiceBalanceLots");
 
             migrationBuilder.DropColumn(
                 name: "ServiceTypes",
