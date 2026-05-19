@@ -1,6 +1,8 @@
 # Media 8 - Esquema de Banco de Dados
 
 > **Documento Vivo**: Este esquema reflete a estrutura atual do banco de dados PostgreSQL, incluindo decisões de **Imutabilidade** e **Granularidade**.
+>
+> **Última Atualização**: 19/05/2026 - Schema consolidado após migração Data-Driven (Fase 0).
 
 ---
 
@@ -19,11 +21,20 @@
 
 A arquitetura de dados do Media 8 foi desenhada para suportar alto volume de transações e integridade contratual.
 
+### Marco da Fase 0 (Maio/2026)
+O banco de dados passou por uma migração evolutiva que:
+- ✅ Removeu o enum `service_type` do PostgreSQL
+- ✅ Adicionou tabela `video_formats` para catálogo dinâmico
+- ✅ Adicionou tabela de junção `package_video_formats` (N:N)
+- ✅ Migrou colunas `ServiceType` para `VideoFormatId` (Guid) em `Orders` e `ServiceBalanceLots`
+- ✅ Preservou todos os dados de usuários (técnica de TRUNCATE seletivo)
+
 ### Princípios Fundamentais
-*   **Imutabilidade de Contratos (Snapshot Pattern)**: Quando um pacote é atribuído, seus dados vitais (Nome, Preço, Quantidade) são copiados para a tabela `package_assignments`. Isso garante que alterações futuras no catálogo (`packages`) não "reescrevam a história" de contratos antigos.
-*   **Granularidade Temporal**: Durações são armazenadas em **segundos** para suportar a natureza de *Short Form Content* (Reels/TikToks).
-*   **Consumo FIFO**: Lotes de serviços (`service_balance_lots`) são consumidos do mais antigo para o mais novo, prevenindo expiração prematura de créditos novos.
-*   **Segurança (RBAC)**: Segregação estrita de roles e triggers automáticos para higiene de dados.
+* **Imutabilidade de Contratos (Snapshot Pattern)**: Quando um pacote é atribuído, seus dados vitais (Nome, Preço, Quantidade) são copiados para a tabela `package_assignments`. Isso garante que alterações futuras no catálogo (`packages`) não "reescrevam a história" de contratos antigos.
+* **Catálogo Data-Driven**: Formatos de vídeo são entidades gerenciáveis em banco, não enums em código.
+* **Granularidade Temporal**: Durações são armazenadas em **segundos** para suportar a natureza de *Short Form Content* (Reels/TikToks).
+* **Consumo FIFO**: Lotes de serviços (`service_balance_lots`) são consumidos do mais antigo para o mais novo, prevenindo expiração prematura de créditos novos.
+* **Segurança (RBAC)**: Segregação estrita de roles e triggers automáticos para higiene de dados.
 
 ---
 
@@ -71,6 +82,8 @@ erDiagram
 
 O uso de ENUMs do PostgreSQL garante integridade de domínio diretamente no banco.
 
+### Enums Ativos (Pós-Fase 0)
+
 ```sql
 -- Roles: Implementação de RBAC
 CREATE TYPE public.app_role AS ENUM ('admin', 'editor', 'client');
@@ -78,15 +91,21 @@ CREATE TYPE public.app_role AS ENUM ('admin', 'editor', 'client');
 -- Categorias de Venda
 CREATE TYPE public.package_category AS ENUM ('assinatura', 'pacote', 'avulso');
 
--- Serviços (Unidade de Trabalho)
-CREATE TYPE public.service_type AS ENUM (
-  'reels_standard', 'reels_premium', 
-  'youtube_curto', 'youtube_medio', 'youtube_longo',
-  'pacote_reels', 'avulso'
-);
-
 -- Fontes de Saldo
 CREATE TYPE public.lot_source AS ENUM ('purchase', 'subscription', 'promo', 'gift');
+
+-- Complexidade de Formatos (adicionado na Fase 0)
+CREATE TYPE public.complexity_level AS ENUM ('standard', 'premium', 'god_mode');
+```
+
+### Enums Removidos (Pré-Fase 0)
+
+O enum `service_type` foi **removido** e substituído pela tabela dinâmica `video_formats`. Isso permite que admins criem novos formatos sem alterar o código.
+
+```sql
+-- REMOVIDO NA MIGRATION 20260519170248_MigrateServiceTypeToVideoFormat
+-- DROP TYPE public.service_type;
+-- Antigo: 'reels_standard', 'reels_premium', 'youtube_curto', etc.
 ```
 
 ---
@@ -158,40 +177,82 @@ CREATE TABLE public.package_assignments (
 );
 ```
 
+### 3.5. `video_formats` (Catálogo Dinâmico) [NOVO - Fase 0]
+
+Substitui o enum estático `service_type`. Permite que admins cadastrem formatos via banco.
+
+```sql
+CREATE TABLE public.video_formats (
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+name VARCHAR(100) NOT NULL,
+slug VARCHAR(100) NOT NULL UNIQUE, -- Ex: "reels-premium"
+max_duration_seconds INTEGER NOT NULL,
+tier complexity_level NOT NULL, -- standard, premium, god_mode
+is_active BOOLEAN NOT NULL DEFAULT true,
+created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Índice para busca por slug
+CREATE INDEX idx_video_formats_slug ON public.video_formats(slug);
+```
+
 ### 4. `service_balance_lots` (Carteira)
 Gerencia o saldo consumível do usuário com lógica FIFO.
 
+**Mudança na Fase 0:** Coluna `service_type` (enum) foi substituída por `video_format_id` (FK).
+
 ```sql
 CREATE TABLE public.service_balance_lots (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES public.users(id),
-  
-  service_type service_type NOT NULL,
-  quantity INTEGER NOT NULL,
-  remaining_quantity INTEGER NOT NULL, -- Decrementado a cada uso
-  
-  expires_at TIMESTAMPTZ,
-  source lot_source NOT NULL DEFAULT 'purchase'
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+user_id UUID NOT NULL REFERENCES public.users(id),
+
+video_format_id UUID NOT NULL REFERENCES public.video_formats(id), -- FK dinâmica
+quantity INTEGER NOT NULL,
+remaining_quantity INTEGER NOT NULL, -- Decrementado a cada uso
+
+expires_at TIMESTAMPTZ,
+source lot_source NOT NULL DEFAULT 'purchase'
 );
+
+-- Índice para consumo FIFO
+CREATE INDEX idx_service_lots_fifo ON public.service_balance_lots(user_id, video_format_id, expires_at ASC);
 ```
 
 ### 5. `orders` (Pedidos)
 Transacional de produção de vídeos.
 
+**Mudança na Fase 0:** Coluna `service_type` (enum) foi substituída por `video_format_id` (FK).
+
 ```sql
 CREATE TABLE public.orders (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  client_id UUID NOT NULL REFERENCES public.users(id),
-  editor_id UUID REFERENCES public.users(id),
-  
-  title VARCHAR(255) NOT NULL,
-  briefing TEXT NOT NULL,
-  source_files_url TEXT,
-  final_video_url TEXT,
-  
-  status order_status NOT NULL DEFAULT 'pending',
-  deadline DATE NOT NULL
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+client_id UUID NOT NULL REFERENCES public.users(id),
+editor_id UUID REFERENCES public.users(id),
+
+title VARCHAR(255) NOT NULL,
+briefing TEXT NOT NULL,
+source_files_url TEXT,
+final_video_url TEXT,
+
+video_format_id UUID NOT NULL REFERENCES public.video_formats(id), -- FK dinâmica
+status order_status NOT NULL DEFAULT 'pending',
+deadline DATE NOT NULL
 );
+```
+
+### 6. `package_video_formats` (Tabela de Junção N:N) [NOVA - Fase 0]
+
+Relaciona pacotes com múltiplos formatos de vídeo.
+
+```sql
+CREATE TABLE public.package_video_formats (
+packages_id UUID NOT NULL REFERENCES public.packages(id) ON DELETE CASCADE,
+supported_formats_id UUID NOT NULL REFERENCES public.video_formats(id) ON DELETE CASCADE,
+PRIMARY KEY (packages_id, supported_formats_id)
+);
+
+CREATE INDEX idx_package_video_formats_supported ON public.package_video_formats(supported_formats_id);
 ```
 
 ---

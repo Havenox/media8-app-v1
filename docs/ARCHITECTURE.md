@@ -1,6 +1,8 @@
 # Media 8 - Arquitetura do Sistema
 
 > **Visão Técnica**: Este documento detalha as decisões de design, padrões e fluxos de dados que compõem a plataforma Media 8.
+> 
+> **Última Atualização**: 19/05/2026 - Fase 0 concluída: Migração para domínio Data-Driven com entidade `VideoFormat`.
 
 ---
 
@@ -18,6 +20,15 @@
 ## Visão Geral
 
 A arquitetura segue o estilo **Monorepo** com separação estrita de responsabilidades (Clean Architecture no Backend, Feature-Based no Frontend).
+
+### Marco da Fase 0 (Maio/2026)
+O sistema passou por uma refatoração arquitetural completa para substituir enums estáticos (`ServiceType`) por entidades dinâmicas (`VideoFormat`). Isso permite que o catálogo de formatos de vídeo seja gerenciado via banco de dados, sem necessidade de deploy de código.
+
+**Principais Mudanças:**
+- ✅ Entidade `VideoFormat` com cache em memória (`IMemoryCache`)
+- ✅ Relacionamentos N:N entre `Package` e `VideoFormat`
+- ✅ Migration evolutiva preservando dados de usuários
+- ✅ Endpoint público `/api/v1/video-formats` para consumo do frontend
 
 ```mermaid
 graph TD
