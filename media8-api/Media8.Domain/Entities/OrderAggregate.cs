@@ -1,3 +1,5 @@
+using Media8.Domain.Enums;
+
 namespace Media8.Domain.Entities;
 
 public class Order
