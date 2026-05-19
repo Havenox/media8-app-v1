@@ -18,6 +18,17 @@ export type TimelineActionType =
   | 'Comment'
   | 'VersionUpload';
 
+// Video Format (Dynamic Catalog - Fase 0)
+export type VideoFormatTier = 'Standard' | 'Premium' | 'GodMode';
+
+export interface VideoFormat {
+  id: string;
+  name: string;
+  slug: string;
+  maxDurationSeconds: number;
+  tier: VideoFormatTier;
+}
+
 // User
 export interface User {
   id: string;
@@ -56,26 +67,27 @@ export interface UserRegisterRequest {
 
 // Order
 export interface Order {
-  id: string;
-  clientId: string;
-  client?: User;
-  editorId?: string;
-  editor?: User;
-  title: string;
-  briefing: string;
-  sourceFilesUrl: string;
-  finalVideoUrl?: string;
-  status: OrderStatus;
-  deadline: string;
-  createdAt: string;
-  serviceType?: import('./services').ServiceType; // Link to service inventory
+id: string;
+clientId: string;
+client?: User;
+editorId?: string;
+editor?: User;
+title: string;
+briefing: string;
+sourceFilesUrl: string;
+finalVideoUrl?: string;
+status: OrderStatus;
+deadline: string;
+createdAt: string;
+videoFormatId?: string; // FK dinâmica para VideoFormat (Fase 0)
 }
 
 export interface CreateOrderRequest {
-  title: string;
-  briefing: string;
-  sourceFilesUrl: string;
-  deadline: string;
+title: string;
+briefing: string;
+sourceFilesUrl: string;
+deadline: string;
+videoFormatId?: string; // FK dinâmica para VideoFormat (Fase 0)
 }
 
 export interface UpdateOrderRequest {

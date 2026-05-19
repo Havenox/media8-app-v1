@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Order, OrderStatus, CreateOrderRequest } from '@/types/api';
+import { Order, OrderStatus, CreateOrderRequest, VideoFormat } from '@/types/api';
 import { ServiceType } from '@/types/services';
 import { orderService } from '@/services/orderService';
 import { toast } from 'sonner';
@@ -91,27 +91,28 @@ export const useOrderStats = () => {
 // ==========================================
 
 interface CreateOrderData extends CreateOrderRequest {
-  clientId: string;
-  serviceType?: ServiceType;
+clientId: string;
+serviceType?: ServiceType; // LEGACY - será removido
+videoFormatId?: string; // FK dinâmica para VideoFormat (Fase 0)
 }
 
 /**
  * Create a new order
  */
 export const useCreateOrder = () => {
-  const queryClient = useQueryClient();
+const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (data: CreateOrderData) => orderService.create(data),
-    onSuccess: (newOrder) => {
-      // Invalidate all order queries
-      queryClient.invalidateQueries({ queryKey: orderKeys.all });
-      toast.success('Pedido criado com sucesso!');
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao criar pedido');
-    },
-  });
+return useMutation({
+mutationFn: (data: CreateOrderData) => orderService.create(data),
+onSuccess: (newOrder) => {
+// Invalidate all order queries
+queryClient.invalidateQueries({ queryKey: orderKeys.all });
+toast.success('Pedido criado com sucesso!');
+},
+onError: (error: Error) => {
+toast.error(error.message || 'Erro ao criar pedido');
+},
+});
 };
 
 /**

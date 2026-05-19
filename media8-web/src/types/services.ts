@@ -2,10 +2,18 @@
 // MEDIA 8 - Service Inventory Types
 // Sistema de Saldos/Inventário de Serviços
 // ==========================================
+// ==========================================
+// Fase 0: Migração para Catálogo Dinâmico (VideoFormat)
+// ==========================================
 
 export type ServiceCategory = 'reels' | 'youtube' | 'pacote' | 'avulso';
 
-// Enum-like union type matching Backend Enums (PascalCase)
+// ==========================================
+// LEGACY: ServiceType enum (REMVIDO - Fase 0)
+// ==========================================
+// O enum estático ServiceType foi REMOVIDO e substituído pela entidade dinâmica VideoFormat.
+// Esta arquivo mantém o tipo ServiceType para compatibilidade durante a transição.
+// TODO: Remover completamente no Épico 2 - Passo 2 (Refatoração da UI)
 export type ServiceType =
   | 'ReelsStandard'
   | 'ReelsPremium'
@@ -27,6 +35,23 @@ export interface ServiceBalance {
   renewsAt?: string;
   planName?: string;
   createdAt: string;
+}
+
+// NOVO: Interface para representar um lote individual (FIFO)
+// Fase 0: Adicionado videoFormatId como FK dinâmica
+export interface ServiceBalanceLot {
+  id: string;
+  userId: string;
+  serviceType: ServiceType; // LEGACY - será removido
+  category: ServiceCategory;
+  quantity: number; // Quantidade original do lote
+  remainingQuantity: number; // Quanto ainda resta neste lote
+  purchasedAt: string; // Data da compra
+  expiresAt?: string; // Data de expiração (null = sem validade)
+  renewsAt?: string; // Para assinaturas
+  source: 'purchase' | 'subscription' | 'promo' | 'gift';
+  planName?: string;
+  videoFormatId?: string; // FK dinâmica para VideoFormat (Fase 0)
 }
 
 // NOVO: Interface para representar um lote individual (FIFO)

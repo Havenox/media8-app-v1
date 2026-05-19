@@ -1,4 +1,4 @@
-import { Order, OrderStatus, CreateOrderRequest } from '@/types/api';
+import { Order, OrderStatus, CreateOrderRequest, VideoFormat } from '@/types/api';
 import { ServiceType } from '@/types/services';
 import { api } from '@/lib/api';
 
@@ -7,8 +7,9 @@ import { api } from '@/lib/api';
 // ==========================================
 
 interface CreateOrderData extends CreateOrderRequest {
-  clientId: string;
-  serviceType?: ServiceType;
+clientId: string;
+serviceType?: ServiceType; // LEGACY - será removido
+videoFormatId?: string; // FK dinâmica para VideoFormat (Fase 0)
 }
 
 const getAllAPI = async (): Promise<Order[]> => {
