@@ -29,23 +29,22 @@ namespace Media8.Infrastructure.Migrations
                 name: "ServiceType",
                 table: "Orders");
 
-            migrationBuilder.AlterDatabase()
-                .Annotation("Npgsql:Enum:app_role", "client,editor,admin")
-                .Annotation("Npgsql:Enum:assignment_status", "active,expired,cancelled")
-                .Annotation("Npgsql:Enum:complexity_level", "standard,premium,god_mode")
-                .Annotation("Npgsql:Enum:lot_source", "purchase,subscription,promo,gift")
-                .Annotation("Npgsql:Enum:notification_type", "info,success,warning,order")
-                .Annotation("Npgsql:Enum:order_status", "pending,in_progress,in_review,changes_requested,approved")
-                .Annotation("Npgsql:Enum:package_category", "assinatura,pacote,avulso")
-                .Annotation("Npgsql:Enum:timeline_action_type", "status_change,comment,version_upload")
-                .OldAnnotation("Npgsql:Enum:app_role", "client,editor,admin")
-                .OldAnnotation("Npgsql:Enum:assignment_status", "active,expired,cancelled")
-                .OldAnnotation("Npgsql:Enum:lot_source", "purchase,subscription,promo,gift")
-                .OldAnnotation("Npgsql:Enum:notification_type", "info,success,warning,order")
-                .OldAnnotation("Npgsql:Enum:order_status", "pending,in_progress,in_review,changes_requested,approved")
-                .OldAnnotation("Npgsql:Enum:package_category", "assinatura,pacote,avulso")
-                .OldAnnotation("Npgsql:Enum:service_type", "reels_standard,reels_premium,youtube_curto,youtube_medio,youtube_longo,pacote_reels,avulso")
-                .OldAnnotation("Npgsql:Enum:timeline_action_type", "status_change,comment,version_upload");
+migrationBuilder.AlterDatabase()
+    .Annotation("Npgsql:Enum:app_role", "client,editor,admin")
+    .Annotation("Npgsql:Enum:assignment_status", "active,expired,cancelled")
+    .Annotation("Npgsql:Enum:complexity_level", "standard,premium,god_mode")
+    .Annotation("Npgsql:Enum:lot_source", "purchase,subscription,promo,gift")
+    .Annotation("Npgsql:Enum:notification_type", "info,success,warning,order")
+    .Annotation("Npgsql:Enum:order_status", "pending,in_progress,in_review,changes_requested,approved")
+    .Annotation("Npgsql:Enum:package_category", "assinatura,pacote,avulso")
+    .Annotation("Npgsql:Enum:timeline_action_type", "status_change,comment,version_upload")
+    .OldAnnotation("Npgsql:Enum:app_role", "client,editor,admin")
+    .OldAnnotation("Npgsql:Enum:assignment_status", "active,expired,cancelled")
+    .OldAnnotation("Npgsql:Enum:lot_source", "purchase,subscription,promo,gift")
+    .OldAnnotation("Npgsql:Enum:notification_type", "info,success,warning,order")
+    .OldAnnotation("Npgsql:Enum:order_status", "pending,in_progress,in_review,changes_requested,approved")
+    .OldAnnotation("Npgsql:Enum:package_category", "assinatura,pacote,avulso")
+    .OldAnnotation("Npgsql:Enum:timeline_action_type", "status_change,comment,version_upload");
 
             migrationBuilder.AddColumn<Guid>(
                 name: "VideoFormatId",
