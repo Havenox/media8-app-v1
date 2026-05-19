@@ -9,25 +9,16 @@
 export type ServiceCategory = 'reels' | 'youtube' | 'pacote' | 'avulso';
 
 // ==========================================
-// LEGACY: ServiceType enum (REMVIDO - Fase 0)
+// LEGACY: ServiceType enum (REMOVIDO - Fase 0)
 // ==========================================
 // O enum estático ServiceType foi REMOVIDO e substituído pela entidade dinâmica VideoFormat.
-// Esta arquivo mantém o tipo ServiceType para compatibilidade durante a transição.
-// TODO: Remover completamente no Épico 2 - Passo 2 (Refatoração da UI)
-export type ServiceType =
-  | 'ReelsStandard'
-  | 'ReelsPremium'
-  | 'YoutubeCurto'
-  | 'YoutubeMedio'
-  | 'YoutubeLongo'
-  | 'PacoteReels'
-  | 'Avulso';
+// Tipo removido completamente - usar VideoFormat.id (Guid) agora.
 
-// Legacy interface - mantida para compatibilidade
+// Legacy interface - mantida para compatibilidade (LEGADO)
 export interface ServiceBalance {
   id: string;
   userId: string;
-  serviceType: ServiceType;
+  serviceType: string; // LEGACY - usar videoFormatId
   category: ServiceCategory;
   name: string;
   quantity: number;
@@ -42,7 +33,7 @@ export interface ServiceBalance {
 export interface ServiceBalanceLot {
   id: string;
   userId: string;
-  serviceType: ServiceType; // LEGACY - será removido
+  serviceType: string; // LEGACY - usar videoFormatId
   category: ServiceCategory;
   quantity: number; // Quantidade original do lote
   remainingQuantity: number; // Quanto ainda resta neste lote

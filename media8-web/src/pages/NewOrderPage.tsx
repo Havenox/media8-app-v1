@@ -42,9 +42,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { ServiceType, getServiceConfig, isDynamicDeadline } from '@/types/services';
+import { getServiceConfig, isDynamicDeadline } from '@/types/services';
 import { useAvailableServices, useConsumeService } from '@/hooks/useServiceBalances';
 import { useCreateOrder } from '@/hooks/useOrders';
+import { useVideoFormats } from '@/hooks/useVideoFormats';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Icon mapping for service categories
@@ -64,7 +65,7 @@ const getMinDeliveryDate = (serviceType: ServiceType): Date => {
 };
 
 const orderSchema = z.object({
-  serviceType: z.string().min(1, 'Selecione um tipo de serviço'),
+  videoFormatId: z.string().min(1, 'Selecione um formato de vídeo'),
   title: z.string().min(5, 'Título deve ter no mínimo 5 caracteres'),
   briefing: z.string().min(20, 'Briefing deve ter no mínimo 20 caracteres'),
   sourceFilesUrl: z.string().url('URL inválida'),
@@ -78,15 +79,17 @@ const NewOrderPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [selectedServiceType, setSelectedServiceType] = useState<ServiceType | null>(null);
+  const [selectedServiceType, setSelectedServiceType] = useState<string | null>(null);
+  const [selectedVideoFormatId, setSelectedVideoFormatId] = useState<string | null>(null);
 
-  // Get pre-selected service from URL query param
+  // Get pre-selected service on load
   const preSelectedService = searchParams.get('service');
 
   // Get user's available services using hook
   const { data: availableServices = [], isLoading: isLoadingServices } = useAvailableServices(user?.id);
   const consumeService = useConsumeService();
   const createOrderMutation = useCreateOrder();
+  const { data: videoFormats = [], isLoading: isLoadingFormats } = useVideoFormats();
 
   // Get selected service config
   const selectedConfig = useMemo(() => {
@@ -105,6 +108,12 @@ const NewOrderPage: React.FC = () => {
     if (!selectedServiceType || hasDynamicDeadline) return null;
     return getMinDeliveryDate(selectedServiceType);
   }, [selectedServiceType, hasDynamicDeadline]);
+
+  // Get selected video format config
+  const selectedVideoFormat = useMemo(() => {
+    if (!selectedVideoFormatId) return null;
+    return videoFormats.find(vf => vf.id === selectedVideoFormatId) || null;
+  }, [selectedVideoFormatId, videoFormats]);
 
   const {
     register,
@@ -135,17 +144,22 @@ const NewOrderPage: React.FC = () => {
   }, [preSelectedService, availableServices, watchedServiceType]);
   const handleServiceTypeChange = (value: string) => {
     // Extract serviceType from unique key (format: "serviceType::planName")
-    const serviceType = value.split('::')[0] as ServiceType;
+    const serviceType = value.split('::')[0] as string;
     setSelectedServiceType(serviceType);
     setValue('serviceType', value);
-    
+
     // Reset deadline when service type changes
-    if (!isDynamicDeadline(serviceType)) {
-      const newMinDate = getMinDeliveryDate(serviceType);
+    if (!isDynamicDeadline(serviceType as any)) {
+      const newMinDate = getMinDeliveryDate(serviceType as any);
       setValue('deadline', newMinDate);
     } else {
       setValue('deadline', undefined);
     }
+  };
+
+  const handleVideoFormatChange = (videoFormatId: string) => {
+    setSelectedVideoFormatId(videoFormatId);
+    setValue('videoFormatId', videoFormatId);
   };
 
   // Function to check if a date should be disabled
@@ -158,29 +172,29 @@ const NewOrderPage: React.FC = () => {
   };
 
   const onSubmit = async (data: OrderFormData) => {
-    if (!user?.id || !selectedServiceType) return;
-    
+    if (!user?.id || !selectedVideoFormatId) return;
+
     try {
-      // Consume service using FIFO logic
+      // Consume service using FIFO logic (legacy, will be refactored in next step)
       const result = await consumeService.mutateAsync({
         userId: user.id,
-        serviceType: selectedServiceType,
+        serviceType: selectedServiceType || 'Avulso',
       });
-      
+
       if (!result.success) {
-        return; // Error is handled by the mutation hook
+        return; // Error is handled by the mutation loop
       }
-      
-      // Create order using the service
+
+      // Create order with videoFormatId
       await createOrderMutation.mutateAsync({
         clientId: user.id,
         title: data.title,
         briefing: data.briefing,
         sourceFilesUrl: data.sourceFilesUrl,
         deadline: data.deadline?.toISOString() || new Date().toISOString(),
-        serviceType: selectedServiceType,
+        videoFormatId: selectedVideoFormatId,
       });
-      
+
       navigate('/orders');
     } catch (error) {
       // Error handled in hooks
@@ -193,7 +207,7 @@ const NewOrderPage: React.FC = () => {
     return <Icon className="h-4 w-4 mr-2" />;
   };
 
-  const isLoading = consumeService.isPending || createOrderMutation.isPending;
+  const isLoading = consumeService.isPending || createOrderMutation.isPending || isLoadingFormats;
 
   return (
     <motion.div
@@ -230,55 +244,52 @@ const NewOrderPage: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Service Type Selection - Step 0 */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2 text-base font-semibold">
-                <Package className="h-4 w-4" />
-                O que vamos editar hoje?
-              </Label>
-              <p className="text-sm text-muted-foreground mb-3">
-                Selecione um serviço do seu inventário
-              </p>
-                <Controller
-                  control={control}
-                  name="serviceType"
-                  render={({ field }) => (
-                    <Select 
-                      value={field.value} 
-                      onValueChange={handleServiceTypeChange}
-                      disabled={isLoadingServices}
-                    >
-                      <SelectTrigger className="w-full h-12">
-                        <SelectValue placeholder={isLoadingServices ? "Carregando..." : "Selecione o tipo de serviço"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableServices.map((balance) => {
-                          const uniqueKey = `${balance.serviceType}::${balance.planName || 'default'}`;
-                          return (
-                            <SelectItem 
-                              key={uniqueKey} 
-                              value={uniqueKey}
-                              className="py-3"
-                            >
-                              <div className="flex items-center gap-3">
-                                {getServiceIcon(balance.category)}
-                                <span>{balance.planName || balance.name}</span>
-                                <span className="text-muted-foreground ml-auto">
-                                  ({balance.totalQuantity} disponíveis)
-                                </span>
-                              </div>
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              {errors.serviceType && (
-                <p className="text-sm text-destructive">{errors.serviceType.message}</p>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Video Format Selection - Dynamic Catalog (Fase 0) */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2 text-base font-semibold">
+              <Package className="h-4 w-4" />
+              Formato do Vídeo
+            </Label>
+            <p className="text-sm text-muted-foreground mb-3">
+              Selecione o formato dinâmico do catálogo
+            </p>
+            <Controller
+              control={control}
+              name="videoFormatId"
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={handleVideoFormatChange}
+                  disabled={isLoadingFormats}
+                >
+                  <SelectTrigger className="w-full h-12">
+                    <SelectValue placeholder={isLoadingFormats ? "Carregando..." : "Selecione o formato de vídeo"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {videoFormats.map((format) => (
+                      <SelectItem
+                        key={format.id}
+                        value={format.id}
+                        className="py-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          {getServiceIcon('avulso')}
+                          <span>{format.name}</span>
+                          <span className="text-muted-foreground ml-auto text-xs">
+                            {format.maxDurationSeconds}s • {format.tier}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               )}
-            </div>
+            />
+            {errors.videoFormatId && (
+              <p className="text-sm text-destructive">{errors.videoFormatId.message}</p>
+            )}
+          </div>
 
             {/* Dynamic Deadline Alert */}
             {selectedServiceType && (

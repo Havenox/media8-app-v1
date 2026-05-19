@@ -54,6 +54,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Package as PackageType, PackageCategory, CreatePackageRequest } from '@/types/packages';
 import { useAuth } from '@/contexts/AuthContext';
+import { useVideoFormats } from '@/hooks/useVideoFormats';
 
 // Hooks
 import { usePackages, useCreatePackage, useUpdatePackage, useTogglePackageStatus, useDeletePackage } from '@/hooks/usePackages';
@@ -98,16 +99,20 @@ const initialPackageState: NewPackageState = {
 
 const PackagesPage: React.FC = () => {
   const { user: currentUser } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  // Video Formats (Fase 0)
+  const { data: videoFormats = [], isLoading: isLoadingFormats } = useVideoFormats();
+
+  // State
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<PackageCategory | 'all'>('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [newPackage, setNewPackage] = useState<NewPackageState>(initialPackageState);
+  const [selectedPackage, setSelectedPackage] = useState<PackageType | null>(null);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [selectedClientId, setSelectedClientId] = useState('');
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [packageToDelete, setPackageToDelete] = useState<PackageType | null>(null);
-  const [selectedPackage, setSelectedPackage] = useState<PackageType | null>(null);
-  const [selectedClientId, setSelectedClientId] = useState<string>('');
-  const [newPackage, setNewPackage] = useState<NewPackageState>(initialPackageState);
 
   // Hooks
   const { data: packages = [], isLoading: isLoadingPackages } = usePackages();
@@ -200,7 +205,8 @@ const PackagesPage: React.FC = () => {
       validityDays: newPackage.validityDays > 0 ? newPackage.validityDays : null,
       loyaltyMonths: newPackage.loyaltyMonths,
       deliveryDays: newPackage.deliveryDays,
-      serviceTypes: ['ReelsStandard'], // Default, must match Backend Enum PascalCase
+      serviceTypes: ['ReelsStandard'], // LEGACY - will be removed in next step
+      supportedFormatsIds: videoFormats.map(vf => vf.id), // Fase 0: Dynamic catalog
       description: newPackage.description,
       features: newPackage.features.filter(f => f.trim().length > 0),
       disclaimer: newPackage.disclaimer || undefined,

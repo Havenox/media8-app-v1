@@ -132,7 +132,7 @@ export const ServiceBalanceCard: React.FC<ServiceBalanceCardProps> = ({
   const urgency = urgencyConfig[urgencyLevel];
   const UrgencyIcon = urgency.icon;
 
-  // Build the unique service key for pre-selection
+  // Build the unique service key for pre-selection (LEGACY - will be refactored)
   const serviceKey = `${balance.serviceType}::${balance.planName || 'default'}`;
 
   // Extensible menu actions
