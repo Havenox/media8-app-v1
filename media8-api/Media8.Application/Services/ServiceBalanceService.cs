@@ -1,6 +1,5 @@
 using Media8.Application.Interfaces;
 using Media8.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
 
 namespace Media8.Application.Services;
 

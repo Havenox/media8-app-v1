@@ -24,7 +24,7 @@ public class OrderService : IOrderService
             Title = request.Title,
             Briefing = request.Briefing,
             SourceFilesUrl = request.SourceFilesUrl,
-            ServiceType = request.ServiceType,
+            VideoFormatId = request.VideoFormatId,
             Deadline = request.Deadline,
             Status = OrderStatus.Pending
         };
@@ -48,8 +48,8 @@ public class OrderService : IOrderService
 
     public async Task<List<OrderResponse>> GetByEditorAsync(Guid editorId)
     {
-         var orders = await _orderRepository.FindAsync(o => o.EditorId == editorId);
-         return orders.Select(MapToResponse).ToList();
+        var orders = await _orderRepository.FindAsync(o => o.EditorId == editorId);
+        return orders.Select(MapToResponse).ToList();
     }
 
     public async Task<OrderResponse?> GetByIdAsync(Guid id)
@@ -70,7 +70,7 @@ public class OrderService : IOrderService
             SourceFilesUrl = order.SourceFilesUrl,
             FinalVideoUrl = order.FinalVideoUrl,
             Status = order.Status,
-            ServiceType = order.ServiceType,
+            VideoFormatId = order.VideoFormatId,
             Deadline = order.Deadline,
             CreatedAt = order.CreatedAt,
             UpdatedAt = order.UpdatedAt

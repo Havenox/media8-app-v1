@@ -1,4 +1,5 @@
 using Media8.Application.Interfaces;
+using Media8.Domain.Entities;
 using Media8.Domain.Enums;
 using Media8.Infrastructure.Data;
 using Media8.Infrastructure.Repositories;
@@ -18,15 +19,15 @@ public static class DependencyInjection
 
         var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
         
-        // Map Enums
-        dataSourceBuilder.MapEnum<AppRole>();
-        dataSourceBuilder.MapEnum<PackageCategory>();
-        dataSourceBuilder.MapEnum<ServiceType>();
-        dataSourceBuilder.MapEnum<OrderStatus>();
-        dataSourceBuilder.MapEnum<TimelineActionType>();
-        dataSourceBuilder.MapEnum<AssignmentStatus>();
-        dataSourceBuilder.MapEnum<LotSource>();
-        dataSourceBuilder.MapEnum<NotificationType>();
+// Map Enums
+dataSourceBuilder.MapEnum<AppRole>();
+dataSourceBuilder.MapEnum<PackageCategory>();
+dataSourceBuilder.MapEnum<OrderStatus>();
+dataSourceBuilder.MapEnum<TimelineActionType>();
+dataSourceBuilder.MapEnum<AssignmentStatus>();
+dataSourceBuilder.MapEnum<LotSource>();
+dataSourceBuilder.MapEnum<NotificationType>();
+dataSourceBuilder.MapEnum<ComplexityLevel>();
 
         var dataSource = dataSourceBuilder.Build();
 
