@@ -27,6 +27,7 @@ import SettingsPage from "@/pages/SettingsPage";
 import NotificationsPage from "@/pages/NotificationsPage";
 import EditsPage from "@/pages/EditsPage";
 import PackagesPage from "@/pages/admin/PackagesPage";
+import VideoFormatsPage from "@/pages/admin/VideoFormatsPage";
 import AccessDeniedPage from "@/pages/AccessDeniedPage";
 import NotFound from "@/pages/NotFound";
 
@@ -83,18 +84,23 @@ const App = () => (
                   </ProtectedRoute>
                 } />
                 
-                {/* Admin only routes */}
-                <Route path="/users" element={
-                  <ProtectedRoute allowedRoles={['Admin']}>
-                    <UsersPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/packages" element={
-                  <ProtectedRoute allowedRoles={['Admin']}>
-                    <PackagesPage />
-                  </ProtectedRoute>
-                } />
-              </Route>
+{/* Admin only routes */}
+<Route path="/users" element={
+  <ProtectedRoute allowedRoles={['Admin']}>
+    <UsersPage />
+  </ProtectedRoute>
+} />
+<Route path="/admin/packages" element={
+  <ProtectedRoute allowedRoles={['Admin']}>
+    <PackagesPage />
+  </ProtectedRoute>
+} />
+<Route path="/admin/video-formats" element={
+  <ProtectedRoute allowedRoles={['Admin']}>
+    <VideoFormatsPage />
+  </ProtectedRoute>
+} />
+</Route>
               
               {/* 404 */}
               <Route path="*" element={<NotFound />} />

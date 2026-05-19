@@ -13,6 +13,7 @@ import {
   Scissors,
   Package,
   ShoppingBag,
+  Film,
 } from 'lucide-react';
 
 import { useAuth } from '@/contexts/AuthContext';
@@ -40,6 +41,7 @@ const navItems: NavItem[] = [
   { icon: Scissors, label: 'Edições', path: '/edits', roles: ['Admin', 'Editor'] },
   { icon: Users, label: 'Usuários', path: '/users', roles: ['Admin'] },
   { icon: Package, label: 'Pacotes', path: '/admin/packages', roles: ['Admin'] },
+  { icon: Film, label: 'Formatos', path: '/admin/video-formats', roles: ['Admin'] },
   { icon: Settings, label: 'Configurações', path: '/settings' },
   { icon: ExternalLink, label: 'Contratar Mais', path: '/', external: true, roles: ['Client'] },
 ];

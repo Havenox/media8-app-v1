@@ -1,6 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { VideoFormat } from '@/types/api';
-import { videoFormatService } from '@/services/videoFormatService';
+import { videoFormatService, CreateVideoFormatRequest, UpdateVideoFormatRequest } from '@/services/videoFormatService';
+import { toast } from 'sonner';
 
 // ==========================================
 // QUERY KEYS
@@ -36,5 +37,65 @@ export const useVideoFormat = (id: string | undefined) => {
     queryKey: videoFormatKeys.detail(id!),
     queryFn: () => videoFormatService.getById(id!),
     enabled: !!id,
+  });
+};
+
+// ==========================================
+// MUTATIONS
+// ==========================================
+
+/**
+ * Create a new video format (Admin only)
+ */
+export const useCreateVideoFormat = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateVideoFormatRequest) => videoFormatService.create(data),
+    onSuccess: (newFormat) => {
+      queryClient.invalidateQueries({ queryKey: videoFormatKeys.all });
+      toast.success(`Formato "${newFormat.name}" criado com sucesso!`);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erro ao criar formato de vídeo');
+    },
+  });
+};
+
+/**
+ * Update an existing video format (Admin only)
+ */
+export const useUpdateVideoFormat = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateVideoFormatRequest }) =>
+      videoFormatService.update(id, data),
+    onSuccess: (updatedFormat) => {
+      queryClient.invalidateQueries({ queryKey: videoFormatKeys.all });
+      queryClient.invalidateQueries({ queryKey: videoFormatKeys.detail(updatedFormat.id) });
+      toast.success('Formato atualizado com sucesso!');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erro ao atualizar formato de vídeo');
+    },
+  });
+};
+
+/**
+ * Delete (soft delete) a video format (Admin only)
+ */
+export const useDeleteVideoFormat = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => videoFormatService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: videoFormatKeys.all });
+      toast.success('Formato removido com sucesso!');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erro ao remover formato de vídeo');
+    },
   });
 };
