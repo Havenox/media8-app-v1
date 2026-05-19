@@ -59,50 +59,9 @@ await _context.Users.AddRangeAsync(usersToSeed);
 await _context.SaveChangesAsync();
 }
 
-        // ==========================================
-        // 3. Seed Packages
-        // ==========================================
-        if (!_context.Packages.Any())
-        {
-            var packages = new List<Package>
-            {
-                CreatePackage("Pacote Reels Viral", "reels-viral", PackageCategory.Pacote, 499.90m, 10, 60, 30, 0, 3),
-                CreatePackage("YouTube Creator", "youtube-creator", PackageCategory.Assinatura, 899.90m, 8, 300, null, 0, 5),
-                CreatePackage("Pacote Completo", "completo", PackageCategory.Pacote, 1499.90m, 15, 180, 60, 1, 7)
-            };
-            
-            await _context.Packages.AddRangeAsync(packages);
-            await _context.SaveChangesAsync();
-        }
-
-        // ==========================================
-        // 4. Seed Orders (using VideoFormatId)
-        // ==========================================
-        if (!_context.Orders.Any())
-        {
-            var reelsStandardId = (await _context.VideoFormats.FirstAsync(v => v.Slug == "reels-standard")).Id;
-            var reelsPremiumId = (await _context.VideoFormats.FirstAsync(v => v.Slug == "reels-premium")).Id;
-            var youtubeCurtoId = (await _context.VideoFormats.FirstAsync(v => v.Slug == "youtube-curto")).Id;
-            var youtubeMedioId = (await _context.VideoFormats.FirstAsync(v => v.Slug == "youtube-medio")).Id;
-            var youtubeLongoId = (await _context.VideoFormats.FirstAsync(v => v.Slug == "youtube-longo")).Id;
-            var pacoteReelsId = (await _context.VideoFormats.FirstAsync(v => v.Slug == "pacote-reels")).Id;
-            var avulsoId = (await _context.VideoFormats.FirstAsync(v => v.Slug == "avulso")).Id;
-
-            var orders = new List<Order>
-            {
-                CreateOrder(clientCarlosId, null, "Reels Lançamento Produto", OrderStatus.Pending, reelsStandardId),
-                CreateOrder(clientCarlosId, editorRobertoId, "Reels Premium - Black Friday", OrderStatus.InProgress, reelsPremiumId),
-                CreateOrder(clientAnaId, editorRobertoId, "YouTube Tutorial", OrderStatus.InReview, youtubeCurtoId),
-                CreateOrder(clientAnaId, editorRobertoId, "YouTube Entrevista", OrderStatus.ChangesRequested, youtubeMedioId),
-                CreateOrder(clientAnaId, editorRobertoId, "Documentário Completo", OrderStatus.Approved, youtubeLongoId),
-                CreateOrder(clientCarlosId, null, "Pacote Black Friday", OrderStatus.Pending, pacoteReelsId),
-                CreateOrder(clientAnaId, editorRobertoId, "Projeto Especial - Evento", OrderStatus.InProgress, avulsoId)
-            };
-
-            await _context.Orders.AddRangeAsync(orders);
-            await _context.SaveChangesAsync();
-        }
-    }
+// Packages and Orders seeding removed for clean migration
+// They will be created via API calls
+}
 
     private async Task EnsureUser(List<User> usersToAdd, Guid id, string name, string email, AppRole role, string passwordHash)
     {
