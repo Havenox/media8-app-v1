@@ -1,5 +1,3 @@
-using Media8.Domain.Enums;
-
 namespace Media8.Domain.Entities;
 
 public class Package
@@ -14,7 +12,12 @@ public class Package
     public int? ValidityDays { get; set; }
     public int LoyaltyMonths { get; set; }
     public int DeliveryDays { get; set; }
-    public List<ServiceType> ServiceTypes { get; set; } = new List<ServiceType>();
+    
+    /// <summary>
+    /// Formatos de vídeo suportados por este pacote (relação N:N)
+    /// </summary>
+    public ICollection<VideoFormat> SupportedFormats { get; set; } = new List<VideoFormat>();
+    
     public string? Description { get; set; }
     public List<string> Features { get; set; } = new List<string>();
     public string? Disclaimer { get; set; }

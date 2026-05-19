@@ -1,5 +1,3 @@
-using Media8.Domain.Enums;
-
 namespace Media8.Domain.Entities;
 
 public class Order
@@ -12,7 +10,12 @@ public class Order
     public string SourceFilesUrl { get; set; } = string.Empty;
     public string? FinalVideoUrl { get; set; }
     public OrderStatus Status { get; set; }
-    public ServiceType ServiceType { get; set; }
+    
+    /// <summary>
+    /// Foreign Key para o formato de vídeo dinâmico
+    /// </summary>
+    public Guid VideoFormatId { get; set; }
+    
     public DateOnly Deadline { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
@@ -20,6 +23,7 @@ public class Order
     // Navigation properties
     public User? Client { get; set; }
     public User? Editor { get; set; }
+    public VideoFormat? VideoFormat { get; set; }
     public ICollection<OrderTimeline> Timeline { get; set; } = new List<OrderTimeline>();
 }
 

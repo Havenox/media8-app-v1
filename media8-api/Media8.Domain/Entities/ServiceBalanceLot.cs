@@ -1,12 +1,15 @@
-using Media8.Domain.Enums;
-
 namespace Media8.Domain.Entities;
 
 public class ServiceBalanceLot
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid UserId { get; set; }
-    public ServiceType ServiceType { get; set; }
+    
+    /// <summary>
+    /// Foreign Key para o formato de vídeo dinâmico
+    /// </summary>
+    public Guid VideoFormatId { get; set; }
+    
     public int Quantity { get; set; }
     public int RemainingQuantity { get; set; }
     public DateTime PurchasedAt { get; set; } = DateTime.UtcNow;
@@ -19,4 +22,5 @@ public class ServiceBalanceLot
     // Navigation properties
     public User? User { get; set; }
     public PackageAssignment? Assignment { get; set; }
+    public VideoFormat? VideoFormat { get; set; }
 }
