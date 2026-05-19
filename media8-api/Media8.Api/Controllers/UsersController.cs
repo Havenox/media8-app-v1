@@ -183,7 +183,7 @@ public class UsersController : ControllerBase
             return Unauthorized();
         }
 
-        var success = await _serviceBalanceService.ConsumeAsync(userId, request.ServiceType, request.Quantity);
+        var success = await _serviceBalanceService.ConsumeAsync(userId, request.VideoFormatId, request.Quantity);
 
         if (!success)
         {

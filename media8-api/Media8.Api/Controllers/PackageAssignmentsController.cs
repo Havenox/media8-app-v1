@@ -82,25 +82,25 @@ public class PackageAssignmentsController : ControllerBase
             SnapshotValidityDays = package.ValidityDays
         };
 
-        await _assignmentRepository.AddAsync(assignment);
+await _assignmentRepository.AddAsync(assignment);
 
-        // Provision ServiceBalanceLots for each ServiceType in the package
-        foreach (var serviceType in package.ServiceTypes)
-        {
-            var balanceLot = new ServiceBalanceLot
-            {
-                UserId = request.ClientId,
-                ServiceType = serviceType,
-                Quantity = package.VideoQuantity,
-                RemainingQuantity = package.VideoQuantity,
-                PurchasedAt = DateTime.UtcNow,
-                ExpiresAt = expiresAt,
-                Source = LotSource.Purchase, // From Package assignment
-                AssignmentId = assignment.Id
-            };
+// Provision ServiceBalanceLots for each VideoFormat in the package
+foreach (var videoFormat in package.SupportedFormats)
+{
+var balanceLot = new ServiceBalanceLot
+{
+UserId = request.ClientId,
+VideoFormatId = videoFormat.Id,
+Quantity = package.VideoQuantity,
+RemainingQuantity = package.VideoQuantity,
+PurchasedAt = DateTime.UtcNow,
+ExpiresAt = expiresAt,
+Source = LotSource.Purchase, // From Package assignment
+AssignmentId = assignment.Id
+};
 
-            await _balanceRepository.AddAsync(balanceLot);
-        }
+await _balanceRepository.AddAsync(balanceLot);
+}
 
         return CreatedAtAction(nameof(GetAll), new { clientId = request.ClientId }, MapToDto(assignment));
     }

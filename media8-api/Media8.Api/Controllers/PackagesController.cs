@@ -112,20 +112,28 @@ public class PackagesController : ControllerBase
         {
             Name = request.Name,
             Slug = request.Slug ?? GenerateSlug(request.Name),
-            Category = request.Category,
-            Price = request.Price,
-            VideoQuantity = request.VideoQuantity,
-            MaxDurationSeconds = request.MaxDurationSeconds,
-            ValidityDays = request.ValidityDays,
-            LoyaltyMonths = request.LoyaltyMonths,
-            DeliveryDays = request.DeliveryDays,
-            ServiceTypes = request.ServiceTypes,
-            Description = request.Description,
-            Features = request.Features,
-            Disclaimer = request.Disclaimer,
-            Badge = request.Badge,
-            IsPublic = request.IsPublic
-        };
+Category = request.Category,
+Price = request.Price,
+VideoQuantity = request.VideoQuantity,
+MaxDurationSeconds = request.MaxDurationSeconds,
+ValidityDays = request.ValidityDays,
+LoyaltyMonths = request.LoyaltyMonths,
+DeliveryDays = request.DeliveryDays,
+Description = request.Description,
+Features = request.Features,
+Disclaimer = request.Disclaimer,
+Badge = request.Badge,
+IsPublic = request.IsPublic
+};
+
+// Adicionar formatos de vídeo suportados
+if (request.VideoFormatIds != null && request.VideoFormatIds.Any())
+{
+    foreach (var formatId in request.VideoFormatIds)
+    {
+        package.SupportedFormats.Add(new VideoFormat { Id = formatId });
+    }
+}
 
         await _packageRepository.AddAsync(package);
         return CreatedAtAction(nameof(GetById), new { idOrSlug = package.Id }, package);
@@ -147,13 +155,12 @@ public class PackagesController : ControllerBase
         if (request.MaxDurationSeconds.HasValue) package.MaxDurationSeconds = request.MaxDurationSeconds.Value;
         if (request.ValidityDays.HasValue) package.ValidityDays = request.ValidityDays;
         if (request.LoyaltyMonths.HasValue) package.LoyaltyMonths = request.LoyaltyMonths.Value;
-        if (request.DeliveryDays.HasValue) package.DeliveryDays = request.DeliveryDays.Value;
-        if (request.ServiceTypes != null) package.ServiceTypes = request.ServiceTypes;
-        if (request.Description != null) package.Description = request.Description;
-        if (request.Features != null) package.Features = request.Features;
-        if (request.Disclaimer != null) package.Disclaimer = request.Disclaimer;
-        if (request.Badge != null) package.Badge = request.Badge;
-        if (request.IsPublic.HasValue) package.IsPublic = request.IsPublic.Value;
+if (request.DeliveryDays.HasValue) package.DeliveryDays = request.DeliveryDays.Value;
+if (request.Description != null) package.Description = request.Description;
+if (request.Features != null) package.Features = request.Features;
+if (request.Disclaimer != null) package.Disclaimer = request.Disclaimer;
+if (request.Badge != null) package.Badge = request.Badge;
+if (request.IsPublic.HasValue) package.IsPublic = request.IsPublic.Value;
 
         package.UpdatedAt = DateTime.UtcNow;
 
