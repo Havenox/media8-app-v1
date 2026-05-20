@@ -1,16 +1,19 @@
 using Media8.Application.Interfaces;
 using Media8.Domain.Entities;
 using Media8.Domain.Enums;
+using Microsoft.Extensions.Logging;
 
 namespace Media8.Application.Services;
 
 public class ServiceBalanceService : IServiceBalanceService
 {
 private readonly IRepository<ServiceBalanceLot> _balanceRepository;
+private readonly ILogger<ServiceBalanceService> _logger;
 
-public ServiceBalanceService(IRepository<ServiceBalanceLot> balanceRepository)
+public ServiceBalanceService(IRepository<ServiceBalanceLot> balanceRepository, ILogger<ServiceBalanceService> logger)
 {
 _balanceRepository = balanceRepository;
+_logger = logger;
 }
 
 public async Task<bool> ConsumeAsync(Guid userId, Guid videoFormatId, int quantity = 1)
@@ -68,6 +71,15 @@ var videoFormatId = offer.VideoFormatId ?? Guid.Empty;
 // Se não houver VideoFormatId, não cria saldo (caso edge case)
 if (videoFormatId == Guid.Empty)
 {
+// Log de aviso para auditoria
+_logger.LogWarning(
+"⚠️  PROVISIONAMENTO PULADO: Contrato {ContractId} do cliente {ClientId} sem VideoFormatId. Oferta: {OfferName} (ID: {OfferId}). Verifique se o frontend está enviando o formato selecionado.",
+contract.Id,
+contract.ClientId,
+offer.Name,
+offer.Id
+);
+
 // Tenta obter o primeiro formato da oferta se houver relacionamento
 // Por enquanto, não cria saldo se não houver VideoFormatId
 return;

@@ -68,10 +68,11 @@ public class CreateOfferRequest
     [Range(0, 90, ErrorMessage = "O prazo de entrega deve ser entre 0 e 90 dias")]
     public int DeliveryDays { get; set; }
 
-    /// <summary>
-    /// ID do formato de vídeo associado à oferta
-    /// </summary>
-    public Guid? VideoFormatId { get; set; }
+  /// <summary>
+  /// ID do formato de vídeo associado à oferta
+  /// </summary>
+  [Required(ErrorMessage = "O formato de vídeo associado à oferta é obrigatório.")]
+  public Guid VideoFormatId { get; set; }
 
     /// <summary>
     /// ID do estilo de edição associado à oferta
