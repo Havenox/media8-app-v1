@@ -29,7 +29,7 @@ const navItems: NavItem[] = [
   { icon: ShoppingBag, label: 'Serviços', path: '/services', roles: ['Admin', 'Client'] },
   { icon: Scissors, label: 'Edições', path: '/edits', roles: ['Admin', 'Editor'] },
   { icon: Users, label: 'Usuários', path: '/users', roles: ['Admin'] },
-  { icon: Package, label: 'Pacotes', path: '/admin/packages', roles: ['Admin'] },
+  { icon: Package, label: 'Ofertas', path: '/admin/offers', roles: ['Admin'] },
   { icon: Settings, label: 'Configurações', path: '/settings' },
   { icon: ExternalLink, label: 'Contratar Mais', path: '/', external: true, roles: ['Client'] },
 ];

@@ -16,7 +16,7 @@ const routeTitles: Record<string, string> = {
   '/orders': 'Pedidos',
   '/orders/new': 'Novo Pedido',
   '/users': 'Usuários',
-  '/admin/packages': 'Pacotes',
+  '/admin/offers': 'Ofertas',
   '/edits': 'Edições',
   '/settings': 'Configurações',
   '/notifications': 'Notificações',

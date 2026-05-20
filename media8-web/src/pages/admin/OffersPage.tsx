@@ -16,6 +16,7 @@ import {
   Video,
   Calendar,
   Star,
+  X,
 } from 'lucide-react';
 
 import { toast } from 'sonner';
