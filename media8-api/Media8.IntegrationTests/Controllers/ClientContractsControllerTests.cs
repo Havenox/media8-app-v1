@@ -46,8 +46,8 @@ public class ClientContractsControllerTests : IClassFixture<CustomWebApplication
         // Login as admin
         var loginRequest = new
         {
-            Email = "admin@media8.com",
-            Password = "Admin@123"
+            Email = "admin@admin.com",
+            Password = "SenhaAdmin"
         };
         
         var loginResponse = await client.PostAsync("/api/v1/auth/login",
@@ -61,18 +61,30 @@ public class ClientContractsControllerTests : IClassFixture<CustomWebApplication
         client.DefaultRequestHeaders.Authorization = 
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", loginData.Token);
 
-        // Create offer first
+        // Get seeded client ID (00000000-0000-0000-0000-000000000002)
+        var clientId = Guid.Parse("00000000-0000-0000-0000-000000000002");
+        
+        // Get video format from seed
+        var videoFormatsResponse = await client.GetAsync("/api/v1/video-formats");
+        videoFormatsResponse.EnsureSuccessStatusCode();
+        var videoFormatsContent = await videoFormatsResponse.Content.ReadAsStringAsync();
+        var videoFormats = JsonSerializer.Deserialize<List<VideoFormatDto>>(videoFormatsContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var videoFormatId = videoFormats.First().Id;
+
+        // Create offer first (with unique name/slug to avoid conflicts)
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
         var newOffer = new
         {
-            Name = "Oferta para Contrato Test",
-            Slug = "oferta-contrato-test",
-            ContractType = "one-time",
+            Name = $"Oferta Contrato {uniqueId}",
+            Slug = $"oferta-contrato-{uniqueId}",
+            ContractType = "Pacote",
             Price = 199.90m,
             VideoQuantity = 5,
             MaxDurationSeconds = 600,
             ValidityDays = 60,
             LoyaltyMonths = 0,
             DeliveryDays = 3,
+            VideoFormatId = videoFormatId,
             IsPublic = true
         };
 
@@ -86,15 +98,24 @@ public class ClientContractsControllerTests : IClassFixture<CustomWebApplication
         var assignContractRequest = new
         {
             OfferId = offerData.Id,
-            ClientId = Guid.NewGuid(), // Would need existing client
-            Status = "active"
+            ClientId = clientId,
+            AssignedByUserId = Guid.Parse("00000000-0000-0000-0000-000000000001") // Admin user ID from seed
         };
 
-        // Act - This would test the full flow
-        // var response = await client.PostAsync("/api/v1/client-contracts", ...);
+        // Act - Create contract
+        var response = await client.PostAsync("/api/v1/client-contracts",
+            new StringContent(JsonSerializer.Serialize(assignContractRequest), Encoding.UTF8, "application/json"));
         
-        // Assert - Validate snapshot and balance lot creation
-        // Skipping for now as it requires a seeded client user
+        var errorContent = await response.Content.ReadAsStringAsync();
+        
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Created, $"Expected 201 but got {response.StatusCode}. Content: {errorContent}");
+        
+        // Verify contract was created with snapshot
+        var contractsResponse = await client.GetAsync($"/api/v1/client-contracts?clientId={clientId}");
+        contractsResponse.EnsureSuccessStatusCode();
+        var contractsContent = await contractsResponse.Content.ReadAsStringAsync();
+        contractsContent.Should().Contain(offerData.Name);
     }
 }
 

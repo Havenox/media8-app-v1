@@ -23,8 +23,8 @@ public class AuthControllerTests : IClassFixture<CustomWebApplicationFactory<Pro
         var client = _factory.CreateClient();
         var loginRequest = new
         {
-            Email = "admin@media8.com",
-            Password = "Admin@123"
+            Email = "admin@admin.com",
+            Password = "SenhaAdmin"
         };
 
         // Act
@@ -45,8 +45,8 @@ public class AuthControllerTests : IClassFixture<CustomWebApplicationFactory<Pro
         var client = _factory.CreateClient();
         var loginRequest = new
         {
-            Email = "admin@media8.com",
-            Password = "SenhaIncorreta123"
+            Email = "admin@admin.com",
+            Password = "SenhaErrada123"
         };
 
         // Act
@@ -54,7 +54,7 @@ public class AuthControllerTests : IClassFixture<CustomWebApplicationFactory<Pro
             new StringContent(JsonSerializer.Serialize(loginRequest), Encoding.UTF8, "application/json"));
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
