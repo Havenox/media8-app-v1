@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Media8.Infrastructure", "Me
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Media8.Api", "Media8.Api\Media8.Api.csproj", "{C22AE999-CC6F-48DB-849A-3E0F703FAC9B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Media8.IntegrationTests", "Media8.IntegrationTests\Media8.IntegrationTests.csproj", "{5DD09CE9-5079-4BDE-BF8A-9087F2C5CF13}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,18 @@ Global
 		{C22AE999-CC6F-48DB-849A-3E0F703FAC9B}.Release|x64.Build.0 = Release|Any CPU
 		{C22AE999-CC6F-48DB-849A-3E0F703FAC9B}.Release|x86.ActiveCfg = Release|Any CPU
 		{C22AE999-CC6F-48DB-849A-3E0F703FAC9B}.Release|x86.Build.0 = Release|Any CPU
+		{5DD09CE9-5079-4BDE-BF8A-9087F2C5CF13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DD09CE9-5079-4BDE-BF8A-9087F2C5CF13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DD09CE9-5079-4BDE-BF8A-9087F2C5CF13}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5DD09CE9-5079-4BDE-BF8A-9087F2C5CF13}.Debug|x64.Build.0 = Debug|Any CPU
+		{5DD09CE9-5079-4BDE-BF8A-9087F2C5CF13}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5DD09CE9-5079-4BDE-BF8A-9087F2C5CF13}.Debug|x86.Build.0 = Debug|Any CPU
+		{5DD09CE9-5079-4BDE-BF8A-9087F2C5CF13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DD09CE9-5079-4BDE-BF8A-9087F2C5CF13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5DD09CE9-5079-4BDE-BF8A-9087F2C5CF13}.Release|x64.ActiveCfg = Release|Any CPU
+		{5DD09CE9-5079-4BDE-BF8A-9087F2C5CF13}.Release|x64.Build.0 = Release|Any CPU
+		{5DD09CE9-5079-4BDE-BF8A-9087F2C5CF13}.Release|x86.ActiveCfg = Release|Any CPU
+		{5DD09CE9-5079-4BDE-BF8A-9087F2C5CF13}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
