@@ -113,22 +113,7 @@ public class DbSeeder
         return user;
     }
 
-    private Package CreatePackage(string name, string slug, PackageCategory category, decimal price, int qty, int duration, int? validity, int loyalty, int delivery)
-    {
-        return new Package
-        {
-            Name = name,
-            Slug = slug,
-            Category = category,
-            Price = price,
-            VideoQuantity = qty,
-            MaxDurationSeconds = duration * 60,
-            ValidityDays = validity,
-            LoyaltyMonths = loyalty,
-            DeliveryDays = delivery,
-            Description = $"Pacote {name} com {qty} vídeos de até {duration} minutos."
-        };
-    }
+    // Legacy method removed - use Offer entity instead
 
     private Order CreateOrder(Guid clientId, Guid? editorId, string title, OrderStatus status, Guid videoFormatId)
     {

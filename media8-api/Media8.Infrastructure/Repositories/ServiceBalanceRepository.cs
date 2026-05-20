@@ -12,13 +12,13 @@ public class ServiceBalanceRepository : Repository<ServiceBalanceLot>, IServiceB
     }
 
     public async Task<(IEnumerable<ServiceBalanceLot> Items, int TotalCount)> GetPagedByUserIdAsync(
-        Guid userId, 
-        int page, 
-        int pageSize, 
+        Guid userId,
+        int page,
+        int pageSize,
         string? status)
     {
         var query = _dbSet
-            .Include(x => x.Assignment) // Eager Load Contract for Snapshot
+            .Include(x => x.Contract) // Eager Load ClientContract for Snapshot
             .Where(x => x.UserId == userId);
 
         if (!string.IsNullOrEmpty(status))

@@ -15,7 +15,6 @@ public class User
     public ICollection<UserRole> Roles { get; set; } = new List<UserRole>();
     public ICollection<Order> ClientOrders { get; set; } = new List<Order>();
     public ICollection<Order> EditorOrders { get; set; } = new List<Order>();
-    public ICollection<PackageAssignment> Assignments { get; set; } = new List<PackageAssignment>();
     public ICollection<ServiceBalanceLot> ServiceBalanceLots { get; set; } = new List<ServiceBalanceLot>();
     public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
     public ICollection<ClientContract> Contracts { get; set; } = new List<ClientContract>();

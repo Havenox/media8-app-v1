@@ -23,6 +23,6 @@ public class ServiceBalanceLot
 
     // Navigation properties
     public User? User { get; set; }
-    public PackageAssignment? Assignment { get; set; }
+    public ClientContract? Contract { get; set; } // Updated to ClientContract
     public VideoFormat? VideoFormat { get; set; }
 }

@@ -13,8 +13,6 @@ public class ApplicationDbContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Profile> Profiles { get; set; }
     public DbSet<UserRole> UserRoles { get; set; }
-    public DbSet<Package> Packages { get; set; }
-    public DbSet<PackageAssignment> PackageAssignments { get; set; }
     public DbSet<ServiceBalanceLot> ServiceBalanceLots { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderTimeline> OrderTimelines { get; set; }
@@ -31,12 +29,12 @@ public class ApplicationDbContext : DbContext
     public DbSet<EditingStyle> EditingStyles => Set<EditingStyle>();
 
     /// <summary>
-    /// Entidade Offer (substitui Package) para ofertas comerciais
+    /// Entidade Offer para ofertas comerciais
     /// </summary>
     public DbSet<Offer> Offers => Set<Offer>();
 
     /// <summary>
-    /// Entidade ClientContract (substitui PackageAssignment) para contratos de clientes
+    /// Entidade ClientContract para contratos de clientes
     /// </summary>
     public DbSet<ClientContract> ClientContracts => Set<ClientContract>();
 
@@ -66,8 +64,6 @@ public class ApplicationDbContext : DbContext
         // Offers & Contracts
         modelBuilder.Entity<Offer>().ToTable("Offers");
         modelBuilder.Entity<ClientContract>().ToTable("ClientContracts");
-        modelBuilder.Entity<Package>().ToTable("Packages"); // Legacy
-        modelBuilder.Entity<PackageAssignment>().ToTable("PackageAssignments"); // Legacy
 
         // Video & Editing
         modelBuilder.Entity<VideoFormat>().ToTable("VideoFormats");
@@ -106,40 +102,23 @@ public class ApplicationDbContext : DbContext
 
         // Order relationships
         modelBuilder.Entity<Order>()
-        .HasOne(o => o.Client)
-        .WithMany(u => u.ClientOrders)
-        .HasForeignKey(o => o.ClientId)
-        .OnDelete(DeleteBehavior.Restrict);
+            .HasOne(o => o.Client)
+            .WithMany(u => u.ClientOrders)
+            .HasForeignKey(o => o.ClientId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Order>()
-        .HasOne(o => o.Editor)
-        .WithMany(u => u.EditorOrders)
-        .HasForeignKey(o => o.EditorId)
-        .OnDelete(DeleteBehavior.SetNull);
-
-        // Package Assignment
-        modelBuilder.Entity<PackageAssignment>()
-        .HasOne(pa => pa.Client)
-        .WithMany(u => u.Assignments)
-        .HasForeignKey(pa => pa.ClientId);
-
-        modelBuilder.Entity<PackageAssignment>()
-        .HasOne(pa => pa.Assigner)
-        .WithMany()
-        .HasForeignKey(pa => pa.AssignedBy)
-        .OnDelete(DeleteBehavior.Restrict);
-
-        // Package
-        modelBuilder.Entity<Package>()
-        .HasIndex(p => p.Slug)
-        .IsUnique();
+            .HasOne(o => o.Editor)
+            .WithMany(u => u.EditorOrders)
+            .HasForeignKey(o => o.EditorId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         // Service Balance Lot
         modelBuilder.Entity<ServiceBalanceLot>()
-        .HasOne(sl => sl.Assignment)
-        .WithMany(pa => pa.ServiceBalanceLots)
-        .HasForeignKey(sl => sl.AssignmentId)
-        .OnDelete(DeleteBehavior.SetNull);
+            .HasOne(sl => sl.Contract)
+            .WithMany(cc => cc.ServiceBalanceLots)
+            .HasForeignKey(sl => sl.AssignmentId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         // VideoFormat Configuration
         modelBuilder.Entity<VideoFormat>(entity =>
@@ -168,14 +147,6 @@ public class ApplicationDbContext : DbContext
             entity.Property(es => es.Description).HasMaxLength(500);
             entity.Property(es => es.IsActive).HasDefaultValue(true);
         });
-
-        // Package - VideoFormat Many-to-Many (Legacy)
-        modelBuilder.Entity<Package>()
-            .HasMany(p => p.SupportedFormats)
-            .WithMany(v => v.Packages)
-            .UsingEntity(j => j
-                .ToTable("PackageVideoFormats")
-            );
 
         // Offer Configuration
         modelBuilder.Entity<Offer>(entity =>

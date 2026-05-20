@@ -56,20 +56,20 @@ public class ServiceBalancesController : ControllerBase
         return Ok(dtos);
     }
 
-private static UnifiedServiceBalanceDto MapToUnifiedDto(ServiceBalanceLot lot)
-{
-return new UnifiedServiceBalanceDto
-{
-Id = lot.Id,
-ServiceName = lot.VideoFormat?.Name ?? "Formato Desconhecido",
-// Prefer Snapshot Data -> Fallback to Assignment Package -> Fallback to Unknown
-PackageName = lot.Assignment?.SnapshotPackageName ?? lot.Assignment?.Package?.Name ?? "Pacote Legado",
-RemainingQuantity = lot.RemainingQuantity,
-// Snapshot Quantity is stored in Assignment (which is the Contract for this lot)
-TotalQuantity = lot.Assignment?.SnapshotVideoQuantity ?? lot.Quantity, // lot.Quantity should be initial quantity
-ExpiresAt = lot.ExpiresAt,
-PurchaseDate = lot.PurchasedAt,
-Status = lot.ExpiresAt.HasValue && lot.ExpiresAt.Value < DateTime.UtcNow ? "expired" : "active"
-};
-}
+    private static UnifiedServiceBalanceDto MapToUnifiedDto(ServiceBalanceLot lot)
+    {
+        return new UnifiedServiceBalanceDto
+        {
+            Id = lot.Id,
+            ServiceName = lot.VideoFormat?.Name ?? "Formato Desconhecido",
+            // Use ClientContract Snapshot data
+            PackageName = lot.Contract?.SnapshotOfferName ?? lot.Contract?.Offer?.Name ?? "Contrato Legado",
+            RemainingQuantity = lot.RemainingQuantity,
+            // Snapshot Quantity is stored in Contract
+            TotalQuantity = lot.Contract?.SnapshotVideoQuantity ?? lot.Quantity,
+            ExpiresAt = lot.ExpiresAt,
+            PurchaseDate = lot.PurchasedAt,
+            Status = lot.ExpiresAt.HasValue && lot.ExpiresAt.Value < DateTime.UtcNow ? "expired" : "active"
+        };
+    }
 }

@@ -238,37 +238,37 @@ public class UsersController : ControllerBase
     // Mapping Logic
     private static AdminUserDto MapToAdminDto(User user)
     {
-        var dto = new AdminUserDto
-        {
-            Id = user.Id,
-            Email = user.Email,
-            Name = user.Profile?.Name ?? "Unknown",
-            AvatarUrl = user.Profile?.AvatarUrl,
-            CreatedAt = user.CreatedAt,
-            Role = user.Roles.FirstOrDefault()?.Role.ToString() ?? "Client",
-            Roles = user.Roles.Select(r => r.Role.ToString()).ToList()
-        };
-
-        // Map Active Package
-        // Logic: Find active assignment (Status = Active)
-        // If multiple, pick latest.
-        var activeAssignment = user.Assignments?
-            .Where(a => a.Status == AssignmentStatus.Active)
-            .OrderByDescending(a => a.AssignedAt)
-            .FirstOrDefault();
-
-        if (activeAssignment != null && activeAssignment.Package != null)
-        {
-            var count = user.Assignments?.Count(a => a.Status == AssignmentStatus.Active) ?? 0;
-            dto.ActivePackage = new ActivePackageSummary
+            var dto = new AdminUserDto
             {
-                Name = activeAssignment.SnapshotPackageName ?? activeAssignment.Package?.Name ?? "Unknown",
-                VideoQuantity = activeAssignment.SnapshotVideoQuantity ?? activeAssignment.Package?.VideoQuantity ?? 0,
-                ExpiresAt = activeAssignment.ExpiresAt,
-                AdditionalPackagesCount = count > 1 ? count - 1 : 0
+                Id = user.Id,
+                Email = user.Email,
+                Name = user.Profile?.Name ?? "Unknown",
+                AvatarUrl = user.Profile?.AvatarUrl,
+                CreatedAt = user.CreatedAt,
+                Role = user.Roles.FirstOrDefault()?.Role.ToString() ?? "Client",
+                Roles = user.Roles.Select(r => r.Role.ToString()).ToList()
             };
-        }
 
-        return dto;
+            // Map Active Contract (substituted Assignments)
+            // Logic: Find active contract (Status = Active)
+            // If multiple, pick latest.
+            var activeContract = user.Contracts?
+                .Where(c => c.Status == AssignmentStatus.Active)
+                .OrderByDescending(c => c.AssignedAt)
+                .FirstOrDefault();
+
+            if (activeContract != null && activeContract.Offer != null)
+            {
+                var count = user.Contracts?.Count(c => c.Status == AssignmentStatus.Active) ?? 0;
+                dto.ActivePackage = new ActivePackageSummary
+                {
+                    Name = activeContract.SnapshotOfferName ?? activeContract.Offer?.Name ?? "Unknown",
+                    VideoQuantity = activeContract.SnapshotVideoQuantity ?? activeContract.Offer?.VideoQuantity ?? 0,
+                    ExpiresAt = activeContract.ExpiresAt,
+                    AdditionalPackagesCount = count > 1 ? count - 1 : 0
+                };
+            }
+
+            return dto;
     }
 }

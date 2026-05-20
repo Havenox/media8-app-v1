@@ -16,8 +16,8 @@ public class UserRepository : Repository<User>, IUserRepository
         return await _dbSet
             .Include(u => u.Profile)
             .Include(u => u.Roles)
-            .Include(u => u.Assignments)
-                .ThenInclude(a => a.Package)
+            .Include(u => u.Contracts)
+            .ThenInclude(c => c.Offer)
             .ToListAsync();
     }
 
@@ -42,8 +42,8 @@ public class UserRepository : Repository<User>, IUserRepository
         var query = _dbSet
             .Include(u => u.Profile)
             .Include(u => u.Roles)
-            .Include(u => u.Assignments)
-                .ThenInclude(a => a.Package)
+            .Include(u => u.Contracts)
+            .ThenInclude(c => c.Offer)
             .AsNoTracking()
             .AsQueryable();
 

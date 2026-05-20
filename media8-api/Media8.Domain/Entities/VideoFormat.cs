@@ -36,10 +36,7 @@ public class VideoFormat
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-    // Navigation properties
-    public ICollection<Package> Packages { get; set; } = new List<Package>();
-    
-    // Navigation properties
+    // Navigation properties (Offer N:N relationship removed - legacy)
     public EditingStyle? EditingStyle { get; set; }
 }
 

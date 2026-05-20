@@ -34,10 +34,9 @@ dataSourceBuilder.MapEnum<ComplexityLevel>();
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(dataSource));
 
-        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-        services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IPackageRepository, PackageRepository>();
-        services.AddScoped<IServiceBalanceRepository, ServiceBalanceRepository>();
+    services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+    services.AddScoped<IUserRepository, UserRepository>();
+    services.AddScoped<IServiceBalanceRepository, ServiceBalanceRepository>();
 
         services.AddSingleton<IPasswordHasher, Authentication.PasswordHasher>();
         services.AddScoped<IJwtProvider, Authentication.JwtProvider>();
