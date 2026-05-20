@@ -2,7 +2,7 @@
 
 > **Visão Técnica**: Este documento detalha as decisões de design, padrões e fluxos de dados que compõem a plataforma Media 8.
 > 
-> **Última Atualização**: 19/05/2026 - Fase 0 concluída: Migração para domínio Data-Driven com entidade `VideoFormat`.
+> **Última Atualização**: 20/05/2026 - Épico 3 concluído: Refatoração completa de domínio (Packages → Offers/ClientContracts) e purga do legado.
 
 ---
 
@@ -97,6 +97,16 @@ Focado em **Segurança** e **Integridade de Dados**.
 * **Backend**: `VideoFormatsController` expõe endpoint `GET /api/v1/video-formats` com projeção otimizada.
 * **Impacto**: Novos formatos surgem na UI de pedidos instantaneamente, sem necessidade de deploy.
 * *Implementação*: Ver `docs/implementations/030-frontend-data-driven-migracao.md`.
+
+### 5. Domain Refactoring (Offers & ClientContracts) - Épico 3
+**Problema**: A entidade `Package` representava simultaneamente o produto comercial e o direito adquirido, gerando ambiguidade e limitando flexibilidade. O admin não conseguia definir regras dinâmicas de validade, fidelidade e entrega por oferta.
+**Solução**: Separação em duas entidades distintas:
+- **Offer**: Produto comercial com `ContractType`, `ValidityDays`, `LoyaltyMonths`, `DeliveryDays`.
+- **ClientContract**: Contrato imutável com snapshot dos dados no momento da contratação.
+* **Dual-Run Migration**: Criação paralela das novas entidades coexistindo com legado, seguida de purga completa.
+* **PascalCase Standard**: Schema de banco 100% PascalCase, eliminando ambiguidades snake_case.
+* **Impacto**: Admins criam ofertas com regras dinâmicas sem deploy; histórico de clientes protegido via Snapshot.
+* *Implementação*: Ver `docs/implementations/034-refatoracao-dominio-offers-clientcontracts.md`.
 
 ---
 

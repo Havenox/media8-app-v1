@@ -2,7 +2,7 @@
 
 > **Documento Vivo**: Este esquema reflete a estrutura atual do banco de dados PostgreSQL, incluindo decisões de **Imutabilidade** e **Granularidade**.
 >
-> **Última Atualização**: 19/05/2026 - Schema consolidado após migração Data-Driven (Fase 0).
+> **Última Atualização**: 20/05/2026 - Schema consolidado após refatoração Épico 3 (Offers/ClientContracts) e purga do legado Packages.
 
 ---
 
@@ -30,11 +30,13 @@ O banco de dados passou por uma migração evolutiva que:
 - ✅ Preservou todos os dados de usuários (técnica de TRUNCATE seletivo)
 
 ### Princípios Fundamentais
-* **Imutabilidade de Contratos (Snapshot Pattern)**: Quando um pacote é atribuído, seus dados vitais (Nome, Preço, Quantidade) são copiados para a tabela `package_assignments`. Isso garante que alterações futuras no catálogo (`packages`) não "reescrevam a história" de contratos antigos.
-* **Catálogo Data-Driven**: Formatos de vídeo são entidades gerenciáveis em banco, não enums em código.
+* **Imutabilidade de Contratos (Snapshot Pattern)**: Quando um contrato é criado, seus dados vitais (Nome, Preço, Quantidade, Validade) são copiados para `ClientContracts`. Isso garante que alterações futuras em `Offers` não "reescrevam a história" de contratos antigos.
+* **Separação Offer/Contract**: `Offers` (produto comercial) é distinto de `ClientContracts` (direito adquirido), permitindo evolução independente do catálogo e dos contratos.
+* **Catálogo Data-Driven**: Formatos de vídeo e estilos de edição são entidades gerenciáveis em banco, não enums em código.
 * **Granularidade Temporal**: Durações são armazenadas em **segundos** para suportar a natureza de *Short Form Content* (Reels/TikToks).
 * **Consumo FIFO**: Lotes de serviços (`service_balance_lots`) são consumidos do mais antigo para o mais novo, prevenindo expiração prematura de créditos novos.
 * **Segurança (RBAC)**: Segregação estrita de roles e triggers automáticos para higiene de dados.
+* **Padrão PascalCase**: Todas as tabelas e colunas seguem nomenclatura PascalCase consistente, eliminando ambiguidades snake_case.
 
 ---
 
