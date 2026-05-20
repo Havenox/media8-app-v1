@@ -48,8 +48,8 @@ const ServicesPage: React.FC = () => {
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
     result = result.filter((s) => {
-      // Get snapshot name from first lot's contract
-      const snapshotName = s.lots[0]?.contract?.snapshotOfferName || '';
+      // Get snapshot name from first lot's contract (defensive access)
+      const snapshotName = s.lots?.[0]?.contract?.snapshotOfferName || '';
       return (
         s.name.toLowerCase().includes(query) ||
         s.planName?.toLowerCase().includes(query) ||
@@ -107,10 +107,10 @@ const ServicesPage: React.FC = () => {
         });
         break;
       case 'recent':
-        // Sort by lots with most recent purchase first
+        // Sort by lots with most recent purchase first (defensive access)
         result.sort((a, b) => {
-          const dateA = a.lots[0]?.purchasedAt || '';
-          const dateB = b.lots[0]?.purchasedAt || '';
+          const dateA = a.lots?.[0]?.purchasedAt || '';
+          const dateB = b.lots?.[0]?.purchasedAt || '';
           return new Date(dateB).getTime() - new Date(dateA).getTime();
         });
         break;
