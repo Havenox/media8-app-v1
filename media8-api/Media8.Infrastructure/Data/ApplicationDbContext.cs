@@ -30,6 +30,16 @@ public class ApplicationDbContext : DbContext
     /// </summary>
     public DbSet<EditingStyle> EditingStyles => Set<EditingStyle>();
 
+    /// <summary>
+    /// Entidade Offer (substitui Package) para ofertas comerciais
+    /// </summary>
+    public DbSet<Offer> Offers => Set<Offer>();
+
+    /// <summary>
+    /// Entidade ClientContract (substitui PackageAssignment) para contratos de clientes
+    /// </summary>
+    public DbSet<ClientContract> ClientContracts => Set<ClientContract>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -142,7 +152,62 @@ public class ApplicationDbContext : DbContext
             .HasData()
         );
 
-        // Enforce DateOnly conversion if needed (Postgres 6+ handles it natively, but good to be safe)
-        // Npgsql 6.0+ maps DateOnly to 'date' automatically.
+    // Offer Configuration (parallel to Package)
+    modelBuilder.Entity<Offer>(entity =>
+    {
+        entity.ToTable("offers");
+        entity.HasKey(o => o.Id);
+        entity.HasIndex(o => o.Slug).IsUnique();
+        entity.Property(o => o.Name).IsRequired().HasMaxLength(100);
+        entity.Property(o => o.Slug).IsRequired().HasMaxLength(100);
+        entity.Property(o => o.Price).IsRequired();
+        entity.Property(o => o.VideoQuantity).IsRequired();
+        entity.Property(o => o.MaxDurationSeconds).IsRequired();
+        entity.Property(o => o.IsPublic).HasDefaultValue(true);
+        
+        // Relationships
+        entity.HasOne(o => o.VideoFormat)
+            .WithMany()
+            .HasForeignKey(o => o.VideoFormatId)
+            .OnDelete(DeleteBehavior.SetNull);
+            
+        entity.HasOne(o => o.EditingStyle)
+            .WithMany()
+            .HasForeignKey(o => o.EditingStyleId)
+            .OnDelete(DeleteBehavior.SetNull);
+    });
+
+    // ClientContract Configuration (parallel to PackageAssignment)
+    modelBuilder.Entity<ClientContract>(entity =>
+    {
+        entity.ToTable("client_contracts");
+        entity.HasKey(cc => cc.Id);
+        entity.Property(cc => cc.OfferId).IsRequired();
+        entity.Property(cc => cc.ClientId).IsRequired();
+        entity.Property(cc => cc.AssignedBy).IsRequired();
+        entity.Property(cc => cc.Status).HasDefaultValue(AssignmentStatus.Active);
+        
+        // Snapshot properties
+        entity.Property(cc => cc.SnapshotOfferName).HasMaxLength(255);
+        
+        // Relationships
+        entity.HasOne(cc => cc.Offer)
+            .WithMany(o => o.Contracts)
+            .HasForeignKey(cc => cc.OfferId)
+            .OnDelete(DeleteBehavior.Restrict);
+            
+        entity.HasOne(cc => cc.Client)
+            .WithMany(u => u.Contracts)
+            .HasForeignKey(cc => cc.ClientId)
+            .OnDelete(DeleteBehavior.Restrict);
+            
+        entity.HasOne(cc => cc.Assigner)
+            .WithMany()
+            .HasForeignKey(cc => cc.AssignedBy)
+            .OnDelete(DeleteBehavior.Restrict);
+    });
+
+    // Enforce DateOnly conversion if needed (Postgres 6+ handles it natively, but good to be safe)
+    // Npgsql 6.0+ maps DateOnly to 'date' automatically.
     }
 }

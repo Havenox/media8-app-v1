@@ -18,7 +18,8 @@ public class User
     public ICollection<PackageAssignment> Assignments { get; set; } = new List<PackageAssignment>();
     public ICollection<ServiceBalanceLot> ServiceBalanceLots { get; set; } = new List<ServiceBalanceLot>();
     public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
-}
+    public ICollection<ClientContract> Contracts { get; set; } = new List<ClientContract>();
+    }
 
 public class Profile
 {
