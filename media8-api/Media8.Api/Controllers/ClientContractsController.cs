@@ -1,4 +1,5 @@
 using Media8.Application.DTOs.Offers;
+using Media8.Application.Interfaces;
 using Media8.Domain.Entities;
 using Media8.Domain.Enums;
 using Media8.Infrastructure.Data;
@@ -17,12 +18,14 @@ namespace Media8.Api.Controllers;
 [Authorize]
 public class ClientContractsController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
+private readonly ApplicationDbContext _context;
+private readonly IServiceBalanceService _serviceBalanceService;
 
-    public ClientContractsController(ApplicationDbContext context)
-    {
-        _context = context;
-    }
+public ClientContractsController(ApplicationDbContext context, IServiceBalanceService serviceBalanceService)
+{
+_context = context;
+_serviceBalanceService = serviceBalanceService;
+}
 
     /// <summary>
     /// Lista todos os contratos de clientes (com filtros opcionais)
@@ -124,69 +127,82 @@ public class ClientContractsController : ControllerBase
         return Ok(contract);
     }
 
-    /// <summary>
-    /// Cria um novo contrato (atribuição de oferta a um cliente)
-    /// Regra de Negócio: Gera snapshot imutável dos dados da oferta
-    /// </summary>
-    [HttpPost]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ClientContractResponse>> CreateContract([FromBody] CreateClientContractRequest request)
-    {
-        // Buscar oferta para copiar dados do snapshot
-        var offer = await _context.Offers.FindAsync(request.OfferId);
-        if (offer == null)
-            return NotFound(new { message = $"Oferta com ID {request.OfferId} não encontrada." });
+/// <summary>
+/// Cria um novo contrato (atribuição de oferta a um cliente)
+/// Regra de Negócio: Gera snapshot imutável dos dados da oferta e provisiona saldos
+/// </summary>
+[HttpPost]
+[Authorize(Roles = "Admin")]
+public async Task<ActionResult<ClientContractResponse>> CreateContract([FromBody] CreateClientContractRequest request)
+{
+// Buscar oferta para copiar dados do snapshot
+var offer = await _context.Offers.FindAsync(request.OfferId);
+if (offer == null)
+return NotFound(new { message = $"Oferta com ID {request.OfferId} não encontrada." });
 
-        // Calcular data de expiração baseada no ValidityDays da oferta
-        DateTime? expiresAt = null;
-        if (offer.ValidityDays.HasValue && offer.ValidityDays > 0)
-        {
-            expiresAt = DateTime.UtcNow.AddDays(offer.ValidityDays.Value);
-        }
+// Calcular data de expiração baseada no ValidityDays da oferta
+DateTime? expiresAt = null;
+if (offer.ValidityDays.HasValue && offer.ValidityDays > 0)
+{
+expiresAt = DateTime.UtcNow.AddDays(offer.ValidityDays.Value);
+}
 
-        var contract = new ClientContract
-        {
-            OfferId = request.OfferId,
-            ClientId = request.ClientId,
-            AssignedBy = request.AssignedByUserId,
-            AssignedAt = DateTime.UtcNow,
-            ActivatedAt = DateTime.UtcNow,
-            ExpiresAt = expiresAt,
-            Status = AssignmentStatus.Active,
+var contract = new ClientContract
+{
+OfferId = request.OfferId,
+ClientId = request.ClientId,
+AssignedBy = request.AssignedByUserId,
+AssignedAt = DateTime.UtcNow,
+ActivatedAt = DateTime.UtcNow,
+ExpiresAt = expiresAt,
+Status = AssignmentStatus.Active,
 
-            // SNAPSHOT IMUTÁVEL - Cópia dos dados da oferta no momento da contratação
-            SnapshotOfferName = offer.Name,
-            SnapshotVideoQuantity = offer.VideoQuantity,
-            SnapshotPrice = offer.Price,
-            SnapshotValidityDays = offer.ValidityDays,
+// SNAPSHOT IMUTÁVEL - Cópia dos dados da oferta no momento da contratação
+SnapshotOfferName = offer.Name,
+SnapshotVideoQuantity = offer.VideoQuantity,
+SnapshotPrice = offer.Price,
+SnapshotValidityDays = offer.ValidityDays,
 
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+CreatedAt = DateTime.UtcNow,
+UpdatedAt = DateTime.UtcNow
+};
 
-        _context.ClientContracts.Add(contract);
-        await _context.SaveChangesAsync();
+_context.ClientContracts.Add(contract);
+await _context.SaveChangesAsync();
 
-        var response = new ClientContractResponse
-        {
-            Id = contract.Id,
-            OfferId = contract.OfferId,
-            ClientId = contract.ClientId,
-            AssignedBy = contract.AssignedBy,
-            SnapshotOfferName = contract.SnapshotOfferName,
-            SnapshotVideoQuantity = contract.SnapshotVideoQuantity,
-            SnapshotPrice = contract.SnapshotPrice,
-            SnapshotValidityDays = contract.SnapshotValidityDays,
-            AssignedAt = contract.AssignedAt,
-            ActivatedAt = contract.ActivatedAt,
-            ExpiresAt = contract.ExpiresAt,
-            Status = contract.Status,
-            CreatedAt = contract.CreatedAt,
-            UpdatedAt = contract.UpdatedAt
-        };
+// Provisionar saldos de serviço com base no contrato
+try
+{
+await _serviceBalanceService.ProvisionContractBalanceAsync(contract, offer);
+}
+catch (Exception ex)
+{
+// Se falhar ao provisionar, remove o contrato e retorna erro
+_context.ClientContracts.Remove(contract);
+await _context.SaveChangesAsync();
+return StatusCode(500, new { message = $"Erro ao provisionar saldos: {ex.Message}" });
+}
 
-        return CreatedAtAction(nameof(GetContractById), new { id = contract.Id }, response);
-    }
+var response = new ClientContractResponse
+{
+Id = contract.Id,
+OfferId = contract.OfferId,
+ClientId = contract.ClientId,
+AssignedBy = contract.AssignedBy,
+SnapshotOfferName = contract.SnapshotOfferName,
+SnapshotVideoQuantity = contract.SnapshotVideoQuantity,
+SnapshotPrice = contract.SnapshotPrice,
+SnapshotValidityDays = contract.SnapshotValidityDays,
+AssignedAt = contract.AssignedAt,
+ActivatedAt = contract.ActivatedAt,
+ExpiresAt = contract.ExpiresAt,
+Status = contract.Status,
+CreatedAt = contract.CreatedAt,
+UpdatedAt = contract.UpdatedAt
+};
+
+return CreatedAtAction(nameof(GetContractById), new { id = contract.Id }, response);
+}
 
     /// <summary>
     /// Atualiza um contrato existente (ex: alteração de status)
