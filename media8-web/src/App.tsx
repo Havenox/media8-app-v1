@@ -26,7 +26,7 @@ import ServicesPage from "@/pages/ServicesPage";
 import SettingsPage from "@/pages/SettingsPage";
 import NotificationsPage from "@/pages/NotificationsPage";
 import EditsPage from "@/pages/EditsPage";
-import PackagesPage from "@/pages/admin/PackagesPage";
+import OffersPage from "@/pages/admin/OffersPage";
 import VideoFormatsPage from "@/pages/admin/VideoFormatsPage";
 import AccessDeniedPage from "@/pages/AccessDeniedPage";
 import NotFound from "@/pages/NotFound";
@@ -92,7 +92,7 @@ const App = () => (
 } />
 <Route path="/admin/packages" element={
   <ProtectedRoute allowedRoles={['Admin']}>
-    <PackagesPage />
+    <OffersPage />
   </ProtectedRoute>
 } />
 <Route path="/admin/video-formats" element={
