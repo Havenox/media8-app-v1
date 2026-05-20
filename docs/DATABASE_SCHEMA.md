@@ -38,6 +38,7 @@ O banco de dados passou por uma migração evolutiva que:
 * **Segurança (RBAC)**: Segregação estrita de roles e triggers automáticos para higiene de dados.
 * **Padrão PascalCase**: Todas as tabelas e colunas seguem nomenclatura PascalCase consistente, eliminando ambiguidades snake_case.
 * **Testabilidade**: Schema projetado para suportar testes E2E com seed automático de dados padrão (usuários, formatos, estilos).
+* **Frontend-Backend Sync**: Estrutura de banco reflete exatamente os DTOs do frontend, garantindo tipagem ponta-a-ponta.
 
 ---
 

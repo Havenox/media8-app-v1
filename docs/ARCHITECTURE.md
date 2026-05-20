@@ -117,6 +117,24 @@ Focado em **Segurança** e **Integridade de Dados**.
 * **Cobertura**: 10 testes automatizados validando Auth, RBAC, Criação de Ofertas e Contração com Snapshot.
 * *Implementação*: Ver `docs/implementations/035-testes-integracao-blindagem-backend.md`.
 
+### 7. Frontend Unit Testing - Épico 3.7
+**Problema**: Com a migração do frontend para `Offers/ClientContracts`, era crítico garantir que services e hooks funcionassem com precisão sem depender de testes manuais na UI.
+**Solução**: Implementação de suíte de testes unitários com Vitest, mockando Axios e TanStack Query.
+* **Infraestrutura**: Vitest + jsdom + Testing Library React
+* **Services**: 12 testes validando chamadas HTTP, payloads e URLs para `/offers` e `/client-contracts`
+* **Hooks**: 9 testes validando ciclo de vida, invalidação de cache e toasts do TanStack Query
+* **Cobertura**: 21 testes passando, garantindo 100% da engine de dados do frontend
+* *Implementação*: Ver `docs/implementations/037-testes-unitarios-frontend.md`.
+
+### 8. UI Contract Management - Épico 3.9
+**Problema**: A página de usuários estava quebrada após remoção de hooks legados (`useAssignPackage`), e a gaveta de detalhes não exibia contratos dos clientes.
+**Solução**: Criação de componente `ContractAssignDialog` isolado e atualização do `UserDetailsSheet` para exibir contratos em tempo real.
+* **ContractAssignDialog**: Modal reutilizável com select de ofertas, validação e mutation
+* **UserDetailsSheet**: Exibição de "Contratos Ativos" com snapshot (nome, preço, vídeos, status, validade)
+* **Data Flow**: `useClientContracts(user.id)` buscando dados reais do banco
+* **UX**: Estados de loading, empty state, badges coloridos por status
+* *Implementação*: Ver `docs/implementations/039-integracao-completa-vinculo-contratos-usuarios.md`.
+
 ---
 
 ## Fluxo de Dados

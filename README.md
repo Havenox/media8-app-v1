@@ -19,6 +19,7 @@ Este projeto demonstra a aplicação prática de conceitos avançados de Engenha
 * **Balance FIFO**: Algoritmo inteligente de consumo de saldo que prioriza créditos antigos para beneficiar o cliente.
 * **Clean Architecture**: Backend segregado em camadas (Domain, Application, API, Infra) facilitando testes e manutenção.
 * **Integration Testing Suite**: Suíte de testes E2E com WebApplicationFactory validando auth, RBAC e fluxos de negócio. [Ler Case Study](docs/implementations/035-testes-integracao-blindagem-backend.md).
+* **Unit Testing with Vitest**: Suíte de testes unitários para services e hooks do frontend, garantindo 100% de cobertura da engine de Offers/Contracts. [Ler Case Study](docs/implementations/037-testes-unitarios-frontend.md).
 
 ### ⚡ Performance e UX
 *   **Virtualização (Infinite Scroll)**: Componentes UI otimizados para listar milhares de registros sem travar o DOM. [Ler Case Study](docs/implementations/010-refatoracao-infinite-scroll-generico.md).
