@@ -108,6 +108,15 @@ Focado em **Segurança** e **Integridade de Dados**.
 * **Impacto**: Admins criam ofertas com regras dinâmicas sem deploy; histórico de clientes protegido via Snapshot.
 * *Implementação*: Ver `docs/implementations/034-refatoracao-dominio-offers-clientcontracts.md`.
 
+### 6. Integration Testing Suite - Épico 3.5
+**Problema**: Após a refatoração de domínio, era necessário garantir blindagem contra regressões sem depender de testes manuais via Postman/Swagger.
+**Solução**: Criação da projeto `Media8.IntegrationTests` usando `WebApplicationFactory` com seed automático de banco em memória.
+* **CustomWebApplicationFactory**: Injeta o `DbSeeder` automaticamente, populando usuários padrão e configurações.
+* **Credenciais Reais**: Uso de `admin@admin.com` / `SenhaAdmin` e enums em português (`Assinatura`, `Pacote`).
+* **IDs Previsíveis + Slugs Únicos**: Combinação de GUIDs fixos para usuários e dinâmicos para evitar conflitos.
+* **Cobertura**: 10 testes automatizados validando Auth, RBAC, Criação de Ofertas e Contração com Snapshot.
+* *Implementação*: Ver `docs/implementations/035-testes-integracao-blindagem-backend.md`.
+
 ---
 
 ## Fluxo de Dados

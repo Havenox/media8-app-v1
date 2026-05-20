@@ -15,9 +15,10 @@ Construído com obsessão por **Performance**, **Segurança** e **Arquitetura Es
 Este projeto demonstra a aplicação prática de conceitos avançados de Engenharia de Software para resolver problemas reais de negócio.
 
 ### 🛡️ Arquitetura e Integridade
-*   **Snapshot Pattern**: Implementação de contratos imutáveis. O sistema preserva o estado histórico das vendas (preço, termos) independente de mudanças futuras no catálogo. [Ler Case Study](docs/implementations/016-arquitetura-snapshot-contratos.md).
-*   **Balance FIFO**: Algoritmo inteligente de consumo de saldo que prioriza créditos antigos para beneficiar o cliente.
-*   **Clean Architecture**: Backend segregado em camadas (Domain, Application, API, Infra) facilitando testes e manutenção.
+* **Snapshot Pattern**: Implementação de contratos imutáveis. O sistema preserva o estado histórico das vendas (preço, termos) independente de mudanças futuras no catálogo. [Ler Case Study](docs/implementations/016-arquitetura-snapshot-contratos.md).
+* **Balance FIFO**: Algoritmo inteligente de consumo de saldo que prioriza créditos antigos para beneficiar o cliente.
+* **Clean Architecture**: Backend segregado em camadas (Domain, Application, API, Infra) facilitando testes e manutenção.
+* **Integration Testing Suite**: Suíte de testes E2E com WebApplicationFactory validando auth, RBAC e fluxos de negócio. [Ler Case Study](docs/implementations/035-testes-integracao-blindagem-backend.md).
 
 ### ⚡ Performance e UX
 *   **Virtualização (Infinite Scroll)**: Componentes UI otimizados para listar milhares de registros sem travar o DOM. [Ler Case Study](docs/implementations/010-refatoracao-infinite-scroll-generico.md).
