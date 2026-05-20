@@ -133,7 +133,9 @@ const NewOrderPage: React.FC = () => {
     if (preSelectedService && availableServices.length > 0 && !watchedServiceType) {
       // Find matching service in available services
       const matchingService = availableServices.find((balance) => {
-        const key = `${balance.serviceType}::${balance.planName || 'default'}`;
+        // Priority: snapshot from contract > planName > default
+        const snapshotName = balance.lots?.[0]?.contract?.snapshotOfferName || balance.planName;
+        const key = `${balance.serviceType}::${snapshotName || 'default'}`;
         return key === preSelectedService;
       });
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useServiceBalances } from '@/hooks/useServiceBalances';
 import { UnifiedServiceBalance } from '@/types/services';
+import { ClientContract } from '@/types/offers';
 import { InfiniteScroll } from '@/components/ui/infinite-scroll';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

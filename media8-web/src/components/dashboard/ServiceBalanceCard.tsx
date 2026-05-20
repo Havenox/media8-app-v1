@@ -132,8 +132,11 @@ export const ServiceBalanceCard: React.FC<ServiceBalanceCardProps> = ({
   const urgency = urgencyConfig[urgencyLevel];
   const UrgencyIcon = urgency.icon;
 
-  // Build the unique service key for pre-selection (LEGACY - will be refactored)
-  const serviceKey = `${balance.serviceType}::${balance.planName || 'default'}`;
+  // Build the unique service key for pre-selection
+  // Priority: snapshot from contract > planName > default
+  const firstLot = balance.lots?.[0];
+  const snapshotName = firstLot?.contract?.snapshotOfferName || balance.planName;
+  const serviceKey = `${balance.serviceType}::${snapshotName || 'default'}`;
 
   // Extensible menu actions
   const menuActions: CardMenuAction[] = [
@@ -195,12 +198,14 @@ export const ServiceBalanceCard: React.FC<ServiceBalanceCardProps> = ({
       };
     }
     
-    // Pacotes/Avulsos - handle expiry text with 0 days case
-    const getExpiryText = () => {
-      if (balance.daysUntilExpiry === undefined) return balance.planName || 'Sem validade';
-      if (balance.daysUntilExpiry === 0) return 'Expira hoje';
-      return `Expira em ${balance.daysUntilExpiry} ${balance.daysUntilExpiry === 1 ? 'dia' : 'dias'}`;
-    };
+  // Pacotes/Avulsos - handle expiry text with 0 days case
+  const getExpiryText = () => {
+    // Priority: snapshot from contract > planName
+    const snapshotName = balance.lots?.[0]?.contract?.snapshotOfferName || balance.planName;
+    if (balance.daysUntilExpiry === undefined) return snapshotName || 'Sem validade';
+    if (balance.daysUntilExpiry === 0) return 'Expira hoje';
+    return `Expira em ${balance.daysUntilExpiry} ${balance.daysUntilExpiry === 1 ? 'dia' : 'dias'}`;
+  };
 
     if (balance.isZeroed) {
       return {
@@ -278,19 +283,19 @@ export const ServiceBalanceCard: React.FC<ServiceBalanceCardProps> = ({
                       </p>
                     )}
                     
-                    {/* Badges */}
-                    <div className="flex items-center gap-2 mt-1">
-                      {statusInfo.badge && (
-                        <Badge variant={statusInfo.badgeVariant} className="text-xs">
-                          {statusInfo.badge}
-                        </Badge>
-                      )}
-                      {balance.planName && !balance.isZeroed && (
-                        <Badge variant="secondary" className="text-xs">
-                          {balance.planName}
-                        </Badge>
-                      )}
-                    </div>
+          {/* Badges */}
+          <div className="flex items-center gap-2 mt-1">
+            {statusInfo.badge && (
+              <Badge variant={statusInfo.badgeVariant} className="text-xs">
+                {statusInfo.badge}
+              </Badge>
+            )}
+            {!balance.isZeroed && (
+              <Badge variant="secondary" className="text-xs">
+                {balance.lots?.[0]?.contract?.snapshotOfferName || balance.planName}
+              </Badge>
+            )}
+          </div>
                   </div>
                 </div>
 

@@ -44,15 +44,19 @@ const ServicesPage: React.FC = () => {
 
     let result = [...services];
 
-    // Search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        (s) =>
-          s.name.toLowerCase().includes(query) ||
-          s.planName?.toLowerCase().includes(query)
+  // Search filter
+  if (searchQuery) {
+    const query = searchQuery.toLowerCase();
+    result = result.filter((s) => {
+      // Get snapshot name from first lot's contract
+      const snapshotName = s.lots[0]?.contract?.snapshotOfferName || '';
+      return (
+        s.name.toLowerCase().includes(query) ||
+        s.planName?.toLowerCase().includes(query) ||
+        snapshotName.toLowerCase().includes(query)
       );
-    }
+    });
+  }
 
     // Status filter
     if (statusFilter !== 'all') {
