@@ -112,16 +112,18 @@ const urgencyConfig: Record<UrgencyLevel, {
   },
 };
 
-export const ServiceBalanceCard: React.FC<ServiceBalanceCardProps> = ({ 
-  balance, 
-  index = 0 
+export const ServiceBalanceCard: React.FC<ServiceBalanceCardProps> = ({
+  balance,
+  index = 0
 }) => {
-  const navigate = useNavigate();
-  const [isHovered, setIsHovered] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  
-  const Icon = categoryIcons[balance.category];
-  const colors = categoryColors[balance.category];
+const navigate = useNavigate();
+const [isHovered, setIsHovered] = useState(false);
+const [menuOpen, setMenuOpen] = useState(false);
+
+// Defensive: ensure valid category with fallback to 'avulso'
+const safeCategory: ServiceCategory = balance.category in categoryIcons ? balance.category : 'avulso';
+const Icon = categoryIcons[safeCategory];
+const colors = categoryColors[safeCategory];
   
   // Determinar nível de urgência
   const daysRemaining = balance.isSubscription 
