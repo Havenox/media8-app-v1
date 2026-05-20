@@ -5,6 +5,10 @@
 // ==========================================
 // Fase 0: Migração para Catálogo Dinâmico (VideoFormat)
 // ==========================================
+// Fase 3: Migração para Offers/ClientContracts (Snapshot Pattern)
+// ==========================================
+
+import { ClientContract } from './offers';
 
 export type ServiceCategory = 'reels' | 'youtube' | 'pacote' | 'avulso';
 
@@ -16,40 +20,42 @@ export type ServiceCategory = 'reels' | 'youtube' | 'pacote' | 'avulso';
 
 // Legacy interface - mantida para compatibilidade (LEGADO)
 export interface ServiceBalance {
-  id: string;
-  userId: string;
-  serviceType: string; // LEGACY - usar videoFormatId
-  category: ServiceCategory;
-  name: string;
-  quantity: number;
-  expiresAt?: string;
-  renewsAt?: string;
-  planName?: string;
-  createdAt: string;
+id: string;
+userId: string;
+serviceType: string; // LEGACY - usar videoFormatId
+category: ServiceCategory;
+name: string;
+quantity: number;
+expiresAt?: string;
+renewsAt?: string;
+planName?: string;
+createdAt: string;
 }
 
 // NOVO: Interface para representar um lote individual (FIFO)
 // Fase 0: Adicionado videoFormatId como FK dinâmica
+// Fase 3: Adicionado contract para referenciar ClientContract
 export interface ServiceBalanceLot {
-  id: string;
-  userId: string;
-  serviceType: string; // LEGACY - usar videoFormatId
-  category: ServiceCategory;
-  quantity: number; // Quantidade original do lote
-  remainingQuantity: number; // Quanto ainda resta neste lote
-  purchasedAt: string; // Data da compra
-  expiresAt?: string; // Data de expiração (null = sem validade)
-  renewsAt?: string; // Para assinaturas
-  source: 'purchase' | 'subscription' | 'promo' | 'gift';
-  planName?: string;
-  videoFormatId?: string; // FK dinâmica para VideoFormat (Fase 0)
+id: string;
+userId: string;
+serviceType: string; // LEGACY - usar videoFormatId
+category: ServiceCategory;
+quantity: number; // Quantidade original do lote
+remainingQuantity: number; // Quanto ainda resta neste lote
+purchasedAt: string; // Data da compra
+expiresAt?: string; // Data de expiração (null = sem validade)
+renewsAt?: string; // Para assinaturas
+source: 'purchase' | 'subscription' | 'promo' | 'gift';
+planName?: string;
+videoFormatId?: string; // FK dinâmica para VideoFormat (Fase 0)
+contract?: ClientContract; // FK para ClientContract (Fase 3)
 }
 
-// NOVO: Interface para representar um lote individual (FIFO)
-export interface ServiceBalanceLot {
-  id: string;
-  userId: string;
-  serviceType: ServiceType;
+
+
+// NOVO: Interface agregada para exibição no UI
+export interface ServiceBalanceAggregated {
+serviceType: string;
   category: ServiceCategory;
   quantity: number;           // Quantidade original do lote
   remainingQuantity: number;  // Quanto ainda resta neste lote
