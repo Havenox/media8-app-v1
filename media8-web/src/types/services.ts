@@ -240,3 +240,27 @@ export const getServiceConfig = (type: ServiceType): ServiceConfig => {
 export const isDynamicDeadline = (type: ServiceType): boolean => {
   return serviceConfigs[type]?.deadlineType === 'dynamic';
 };
+
+// ==========================================
+// EDITING STYLES TYPES (Fase 0)
+// ==========================================
+
+export interface EditingStyle {
+  id: string;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateEditingStyleRequest {
+  name: string;
+  description?: string;
+}
+
+export interface UpdateEditingStyleRequest {
+  name?: string;
+  description?: string;
+  isActive?: boolean;
+}
