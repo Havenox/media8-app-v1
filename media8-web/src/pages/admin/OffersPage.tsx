@@ -52,6 +52,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
 import { useVideoFormats } from '@/hooks/useVideoFormats';
+import { useEditingStyles } from '@/hooks/useEditingStyles';
 
 // Novos hooks - Offers
 import {
@@ -79,6 +80,8 @@ interface NewOfferState {
   disclaimer: string;
   badge: string;
   isPublic: boolean;
+  videoFormatId?: string;
+  editingStyleId?: string;
 }
 
 const initialOfferState: NewOfferState = {
@@ -96,13 +99,16 @@ const initialOfferState: NewOfferState = {
   disclaimer: '',
   badge: '',
   isPublic: true,
+  videoFormatId: undefined,
+  editingStyleId: undefined,
 };
 
 const OffersPage: React.FC = () => {
   const { user: currentUser } = useAuth();
 
-  // Video Formats
+  // Video Formats & Editing Styles
   const { data: videoFormats = [], isLoading: isLoadingFormats } = useVideoFormats();
+  const { data: editingStyles = [], isLoading: isLoadingStyles } = useEditingStyles();
 
   // State
   const [searchTerm, setSearchTerm] = useState('');
@@ -148,26 +154,28 @@ const OffersPage: React.FC = () => {
     setNewOffer({ ...newOffer, features: newFeatures });
   };
 
-  const handleEditOffer = (offer: Offer) => {
-    setNewOffer({
-      name: offer.name,
-      slug: offer.slug,
-      contractType: offer.contractType,
-      price: offer.price,
-      videoQuantity: offer.videoQuantity,
-      maxDurationSeconds: offer.maxDurationSeconds,
-      validityDays: offer.validityDays || 0,
-      loyaltyMonths: offer.loyaltyMonths,
-      deliveryDays: offer.deliveryDays,
-      description: offer.description || '',
-      features: offer.features,
-      disclaimer: offer.disclaimer || '',
-      badge: offer.badge || '',
-      isPublic: offer.isPublic,
-    });
-    setSelectedOffer(offer);
-    setIsDialogOpen(true);
-  };
+const handleEditOffer = (offer: Offer) => {
+  setNewOffer({
+    name: offer.name,
+    slug: offer.slug,
+    contractType: offer.contractType,
+    price: offer.price,
+    videoQuantity: offer.videoQuantity,
+    maxDurationSeconds: offer.maxDurationSeconds,
+    validityDays: offer.validityDays || 0,
+    loyaltyMonths: offer.loyaltyMonths,
+    deliveryDays: offer.deliveryDays,
+    description: offer.description || '',
+    features: offer.features,
+    disclaimer: offer.disclaimer || '',
+    badge: offer.badge || '',
+    isPublic: offer.isPublic,
+    videoFormatId: offer.videoFormatId,
+    editingStyleId: offer.editingStyleId || undefined,
+  });
+  setSelectedOffer(offer);
+  setIsDialogOpen(true);
+};
 
   const handleCreateOffer = async () => {
     // Validation
@@ -192,22 +200,24 @@ const OffersPage: React.FC = () => {
       return;
     }
 
-    const offerData: CreateOfferRequest = {
-      name: newOffer.name,
-      slug: newOffer.slug,
-      contractType: newOffer.contractType,
-      price: newOffer.price,
-      videoQuantity: newOffer.videoQuantity,
-      maxDurationSeconds: newOffer.maxDurationSeconds,
-      validityDays: newOffer.validityDays || undefined,
-      loyaltyMonths: newOffer.loyaltyMonths,
-      deliveryDays: newOffer.deliveryDays,
-      description: newOffer.description || undefined,
-      features: newOffer.features.filter((f) => f.trim()),
-      disclaimer: newOffer.disclaimer || undefined,
-      badge: newOffer.badge || undefined,
-      isPublic: newOffer.isPublic,
-    };
+const offerData: CreateOfferRequest = {
+  name: newOffer.name,
+  slug: newOffer.slug,
+  contractType: newOffer.contractType,
+  price: newOffer.price,
+  videoQuantity: newOffer.videoQuantity,
+  maxDurationSeconds: newOffer.maxDurationSeconds,
+  validityDays: newOffer.validityDays || undefined,
+  loyaltyMonths: newOffer.loyaltyMonths,
+  deliveryDays: newOffer.deliveryDays,
+  description: newOffer.description || undefined,
+  features: newOffer.features.filter((f) => f.trim()),
+  disclaimer: newOffer.disclaimer || undefined,
+  badge: newOffer.badge || undefined,
+  isPublic: newOffer.isPublic,
+  videoFormatId: newOffer.videoFormatId || undefined,
+  editingStyleId: newOffer.editingStyleId || undefined,
+};
 
     if (selectedOffer) {
       updateOfferMutation.mutate({ id: selectedOffer.id, data: offerData });
@@ -511,48 +521,104 @@ const OffersPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Duração e Validade */}
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label>Duração Máx (seg) *</Label>
-                <Input
-                  type="number"
-                  value={newOffer.maxDurationSeconds}
-                  onChange={(e) =>
-                    setNewOffer({
-                      ...newOffer,
-                      maxDurationSeconds: parseInt(e.target.value) || 0,
-                    })
-                  }
-                />
-              </div>
-              <div>
-                <Label>Validade (dias)</Label>
-                <Input
-                  type="number"
-                  value={newOffer.validityDays}
-                  onChange={(e) =>
-                    setNewOffer({
-                      ...newOffer,
-                      validityDays: parseInt(e.target.value) || 0,
-                    })
-                  }
-                />
-              </div>
-              <div>
-                <Label>Prazo de Entrega (dias)</Label>
-                <Input
-                  type="number"
-                  value={newOffer.deliveryDays}
-                  onChange={(e) =>
-                    setNewOffer({
-                      ...newOffer,
-                      deliveryDays: parseInt(e.target.value) || 0,
-                    })
-                  }
-                />
-              </div>
-            </div>
+{/* Formato de Vídeo e Estilo de Edição */}
+<div className="grid grid-cols-2 gap-4">
+  <div>
+    <Label>Formato de Vídeo *</Label>
+    <Select
+      value={newOffer.videoFormatId || ''}
+      onValueChange={(value) =>
+        setNewOffer({ ...newOffer, videoFormatId: value || undefined })
+      }
+    >
+      <SelectTrigger>
+        <SelectValue placeholder="Selecione um formato" />
+      </SelectTrigger>
+      <SelectContent>
+        {isLoadingFormats ? (
+          <div className="flex items-center justify-center py-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+          </div>
+        ) : (
+          videoFormats.map((format) => (
+            <SelectItem key={format.id} value={format.id}>
+              {format.name}
+            </SelectItem>
+          ))
+        )}
+      </SelectContent>
+    </Select>
+  </div>
+  <div>
+    <Label>Estilo de Edição (opcional)</Label>
+    <Select
+      value={newOffer.editingStyleId || ''}
+      onValueChange={(value) =>
+        setNewOffer({ ...newOffer, editingStyleId: value || undefined })
+      }
+    >
+      <SelectTrigger>
+        <SelectValue placeholder="Selecione um estilo" />
+      </SelectTrigger>
+      <SelectContent>
+        {isLoadingStyles ? (
+          <div className="flex items-center justify-center py-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+          </div>
+        ) : (
+          editingStyles.map((style) => (
+            <SelectItem key={style.id} value={style.id}>
+              {style.name}
+            </SelectItem>
+          ))
+        )}
+      </SelectContent>
+    </Select>
+  </div>
+</div>
+
+{/* Duração e Validade */}
+<div className="grid grid-cols-3 gap-4">
+  <div>
+    <Label>Duração Máx (seg) *</Label>
+    <Input
+      type="number"
+      value={newOffer.maxDurationSeconds}
+      onChange={(e) =>
+        setNewOffer({
+          ...newOffer,
+          maxDurationSeconds: parseInt(e.target.value) || 0,
+        })
+      }
+    />
+  </div>
+  <div>
+    <Label>Validade (dias)</Label>
+    <Input
+      type="number"
+      value={newOffer.validityDays}
+      onChange={(e) =>
+        setNewOffer({
+          ...newOffer,
+          validityDays: parseInt(e.target.value) || 0,
+        })
+      }
+    />
+  </div>
+  <div>
+    <Label>Prazo de Entrega (dias)</Label>
+    <Input
+      type="number"
+      value={newOffer.deliveryDays}
+      onChange={(e) =>
+        setNewOffer({
+          ...newOffer,
+          deliveryDays: parseInt(e.target.value) || 0,
+        })
+      }
+    />
+  </div>
+</div>
 
             {/* Fidelidade */}
             <div>
