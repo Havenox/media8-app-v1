@@ -47,8 +47,7 @@ import { InfiniteScroll } from '@/components/ui/infinite-scroll';
 import { useDebounce } from '@/hooks/useDebounce';
 
 // usePackages removed - migrated to offers/contracts
-// import { useAssignPackage } from '@/hooks/usePackageAssignments';
-// import { PackageSelect } from '@/components/packages/PackageSelect';
+import { ContractAssignDialog } from '@/components/contracts/ContractAssignDialog';
 import { toast } from 'sonner';
 
 const UsersPage: React.FC = () => {
@@ -62,11 +61,10 @@ const UsersPage: React.FC = () => {
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   
-  // Selection state
-  const [selectedClient, setSelectedClient] = useState<UserType | null>(null);
-  const [selectedUserForEdit, setSelectedUserForEdit] = useState<UserType | null>(null);
-  const [selectedPackageId, setSelectedPackageId] = useState<string>('');
-  const [selectedUserForDetails, setSelectedUserForDetails] = useState<UserType | null>(null);
+// Selection state
+const [selectedClient, setSelectedClient] = useState<UserType | null>(null);
+const [selectedUserForEdit, setSelectedUserForEdit] = useState<UserType | null>(null);
+const [selectedUserForDetails, setSelectedUserForDetails] = useState<UserType | null>(null);
 
   // Forms state
   const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'Client' as UserRole });
@@ -86,11 +84,11 @@ const UsersPage: React.FC = () => {
     return data?.pages.flatMap(page => page) ?? [];
   }, [data]);
 
-  // Packages hook removed (lazy loaded in Component)
-  const createUserMutation = useCreateUser();
-  const deleteUserMutation = useDeleteUser();
-  const updateUserMutation = useUpdateUser();
-  const assignPackageMutation = useAssignPackage();
+// Packages hook removed - migrated to offers/contracts
+const createUserMutation = useCreateUser();
+const deleteUserMutation = useDeleteUser();
+const updateUserMutation = useUpdateUser();
+// assignPackageMutation removed - use ContractAssignDialog instead
 
 
   // Filter users in memory (Search only) - Ideally this should be backend search
@@ -174,30 +172,7 @@ const UsersPage: React.FC = () => {
     */
   };
 
-  const handleAssignPackage = async () => {
-    if (!selectedClient || !selectedPackageId || !currentUser) return;
-    
-    try {
-      await assignPackageMutation.mutateAsync({
-        data: {
-          packageId: selectedPackageId,
-          clientId: selectedClient.id,
-        },
-        assignedBy: currentUser.id,
-      });
-      setIsAssignDialogOpen(false);
-      setSelectedClient(null);
-      setSelectedPackageId('');
-    } catch (error) {
-      // Error handled in hook
-    }
-  };
 
-  const openAssignDialog = (user: UserType) => {
-    setSelectedClient(user);
-    setSelectedPackageId('');
-    setIsAssignDialogOpen(true);
-  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -437,25 +412,14 @@ const UsersPage: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Assign Package Dialog (Reused logic) */}
-      <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
-        {/* ... Reuse existing dialog content logic matching previous file ... */}
-        <DialogContent>
-          <DialogHeader><DialogTitle>Atribuir Pacote</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-4">
-             <Label>Pacote</Label>
-             <PackageSelect 
-                value={selectedPackageId} 
-                onChange={setSelectedPackageId}
-                placeholder="Busque um pacote por nome..." 
-             />
-          </div>
-          <DialogFooter>
-             <Button variant="outline" onClick={() => setIsAssignDialogOpen(false)}>Cancelar</Button>
-             <Button variant="premium" onClick={handleAssignPackage} disabled={!selectedPackageId}>Atribuir</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+{/* Contract Assign Dialog - New Implementation */}
+{selectedClient && (
+  <ContractAssignDialog
+    clientId={selectedClient.id}
+    isOpen={isAssignDialogOpen}
+    onClose={() => setIsAssignDialogOpen(false)}
+  />
+)}
 
       {/* User Details Sheet */}
       {selectedUserForDetails && (
@@ -467,10 +431,11 @@ const UsersPage: React.FC = () => {
             setSelectedUserForDetails(null);
             openEditDialog(user);
           }}
-          onAssignPackage={(user) => {
-            setSelectedUserForDetails(null);
-            openAssignDialog(user);
-          }}
+onAssignContract={(user) => {
+setSelectedUserForDetails(null);
+setSelectedClient(user);
+// Dialog is now controlled by ContractAssignDialog component
+}}
           onDelete={handleDeleteUser}
           isDeleting={false} // Disabled
         />
