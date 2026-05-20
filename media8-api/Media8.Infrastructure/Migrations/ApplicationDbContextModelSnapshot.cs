@@ -23,12 +23,72 @@ namespace Media8.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "app_role", new[] { "client", "editor", "admin" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "assignment_status", new[] { "active", "expired", "cancelled" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "contract_type", new[] { "avulso", "pacote", "assinatura" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "lot_source", new[] { "purchase", "subscription", "promo", "gift" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "notification_type", new[] { "info", "success", "warning", "order" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "order_status", new[] { "pending", "in_progress", "in_review", "changes_requested", "approved" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "package_category", new[] { "assinatura", "pacote", "avulso" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "timeline_action_type", new[] { "status_change", "comment", "version_upload" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Media8.Domain.Entities.ClientContract", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ActivatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("AssignedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("OfferId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SnapshotOfferName")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<decimal?>("SnapshotPrice")
+                        .HasColumnType("numeric");
+
+                    b.Property<int?>("SnapshotValidityDays")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("SnapshotVideoQuantity")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedBy");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("OfferId");
+
+                    b.ToTable("ClientContracts", (string)null);
+                });
 
             modelBuilder.Entity("Media8.Domain.Entities.EditingStyle", b =>
                 {
@@ -59,7 +119,7 @@ namespace Media8.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("editing_styles", (string)null);
+                    b.ToTable("EditingStyles", (string)null);
                 });
 
             modelBuilder.Entity("Media8.Domain.Entities.Notification", b =>
@@ -95,7 +155,89 @@ namespace Media8.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
+                });
+
+            modelBuilder.Entity("Media8.Domain.Entities.Offer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Badge")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ContractType")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DeliveryDays")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Disclaimer")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("EditingStyleId")
+                        .HasColumnType("uuid");
+
+                    b.PrimitiveCollection<List<string>>("Features")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
+                    b.Property<bool>("IsPublic")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("LoyaltyMonths")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MaxDurationSeconds")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("ValidityDays")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("VideoFormatId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("VideoQuantity")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EditingStyleId");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.HasIndex("VideoFormatId");
+
+                    b.ToTable("Offers", (string)null);
                 });
 
             modelBuilder.Entity("Media8.Domain.Entities.Order", b =>
@@ -148,7 +290,7 @@ namespace Media8.Infrastructure.Migrations
 
                     b.HasIndex("VideoFormatId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("Media8.Domain.Entities.OrderTimeline", b =>
@@ -179,7 +321,7 @@ namespace Media8.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("OrderTimelines");
+                    b.ToTable("OrderTimelines", (string)null);
                 });
 
             modelBuilder.Entity("Media8.Domain.Entities.Package", b =>
@@ -244,7 +386,7 @@ namespace Media8.Infrastructure.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("Packages");
+                    b.ToTable("Packages", (string)null);
                 });
 
             modelBuilder.Entity("Media8.Domain.Entities.PackageAssignment", b =>
@@ -300,7 +442,7 @@ namespace Media8.Infrastructure.Migrations
 
                     b.HasIndex("PackageId");
 
-                    b.ToTable("PackageAssignments");
+                    b.ToTable("PackageAssignments", (string)null);
                 });
 
             modelBuilder.Entity("Media8.Domain.Entities.Profile", b =>
@@ -342,7 +484,7 @@ namespace Media8.Infrastructure.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Profiles");
+                    b.ToTable("Profiles", (string)null);
                 });
 
             modelBuilder.Entity("Media8.Domain.Entities.ServiceBalanceLot", b =>
@@ -352,6 +494,9 @@ namespace Media8.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("AssignmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ClientContractId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
@@ -385,11 +530,13 @@ namespace Media8.Infrastructure.Migrations
 
                     b.HasIndex("AssignmentId");
 
+                    b.HasIndex("ClientContractId");
+
                     b.HasIndex("UserId");
 
                     b.HasIndex("VideoFormatId");
 
-                    b.ToTable("ServiceBalanceLots");
+                    b.ToTable("ServiceBalanceLots", (string)null);
                 });
 
             modelBuilder.Entity("Media8.Domain.Entities.User", b =>
@@ -417,7 +564,7 @@ namespace Media8.Infrastructure.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Media8.Domain.Entities.UserRole", b =>
@@ -440,7 +587,7 @@ namespace Media8.Infrastructure.Migrations
                     b.HasIndex("UserId", "Role")
                         .IsUnique();
 
-                    b.ToTable("UserRoles");
+                    b.ToTable("UserRoles", (string)null);
                 });
 
             modelBuilder.Entity("Media8.Domain.Entities.VideoFormat", b =>
@@ -468,6 +615,9 @@ namespace Media8.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<Guid?>("OfferId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -480,10 +630,12 @@ namespace Media8.Infrastructure.Migrations
 
                     b.HasIndex("EditingStyleId");
 
+                    b.HasIndex("OfferId");
+
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("video_formats", (string)null);
+                    b.ToTable("VideoFormats", (string)null);
                 });
 
             modelBuilder.Entity("PackageVideoFormat", b =>
@@ -498,7 +650,34 @@ namespace Media8.Infrastructure.Migrations
 
                     b.HasIndex("SupportedFormatsId");
 
-                    b.ToTable("package_video_formats", (string)null);
+                    b.ToTable("PackageVideoFormats", (string)null);
+                });
+
+            modelBuilder.Entity("Media8.Domain.Entities.ClientContract", b =>
+                {
+                    b.HasOne("Media8.Domain.Entities.User", "Assigner")
+                        .WithMany()
+                        .HasForeignKey("AssignedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Media8.Domain.Entities.User", "Client")
+                        .WithMany("Contracts")
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Media8.Domain.Entities.Offer", "Offer")
+                        .WithMany("Contracts")
+                        .HasForeignKey("OfferId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Assigner");
+
+                    b.Navigation("Client");
+
+                    b.Navigation("Offer");
                 });
 
             modelBuilder.Entity("Media8.Domain.Entities.Notification", b =>
@@ -510,6 +689,23 @@ namespace Media8.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Media8.Domain.Entities.Offer", b =>
+                {
+                    b.HasOne("Media8.Domain.Entities.EditingStyle", "EditingStyle")
+                        .WithMany()
+                        .HasForeignKey("EditingStyleId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Media8.Domain.Entities.VideoFormat", "VideoFormat")
+                        .WithMany()
+                        .HasForeignKey("VideoFormatId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("EditingStyle");
+
+                    b.Navigation("VideoFormat");
                 });
 
             modelBuilder.Entity("Media8.Domain.Entities.Order", b =>
@@ -602,6 +798,10 @@ namespace Media8.Infrastructure.Migrations
                         .HasForeignKey("AssignmentId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Media8.Domain.Entities.ClientContract", null)
+                        .WithMany("ServiceBalanceLots")
+                        .HasForeignKey("ClientContractId");
+
                     b.HasOne("Media8.Domain.Entities.User", "User")
                         .WithMany("ServiceBalanceLots")
                         .HasForeignKey("UserId")
@@ -639,6 +839,10 @@ namespace Media8.Infrastructure.Migrations
                         .HasForeignKey("EditingStyleId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Media8.Domain.Entities.Offer", null)
+                        .WithMany("SupportedFormats")
+                        .HasForeignKey("OfferId");
+
                     b.Navigation("EditingStyle");
                 });
 
@@ -657,9 +861,21 @@ namespace Media8.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Media8.Domain.Entities.ClientContract", b =>
+                {
+                    b.Navigation("ServiceBalanceLots");
+                });
+
             modelBuilder.Entity("Media8.Domain.Entities.EditingStyle", b =>
                 {
                     b.Navigation("VideoFormats");
+                });
+
+            modelBuilder.Entity("Media8.Domain.Entities.Offer", b =>
+                {
+                    b.Navigation("Contracts");
+
+                    b.Navigation("SupportedFormats");
                 });
 
             modelBuilder.Entity("Media8.Domain.Entities.Order", b =>
@@ -682,6 +898,8 @@ namespace Media8.Infrastructure.Migrations
                     b.Navigation("Assignments");
 
                     b.Navigation("ClientOrders");
+
+                    b.Navigation("Contracts");
 
                     b.Navigation("EditorOrders");
 

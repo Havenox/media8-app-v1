@@ -44,22 +44,49 @@ public class ApplicationDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-    // Map Enums to PostgreSQL Enums
-    modelBuilder.HasPostgresEnum<AppRole>();
-    modelBuilder.HasPostgresEnum<PackageCategory>();
-    modelBuilder.HasPostgresEnum<OrderStatus>();
-    modelBuilder.HasPostgresEnum<TimelineActionType>();
-    modelBuilder.HasPostgresEnum<AssignmentStatus>();
-    modelBuilder.HasPostgresEnum<LotSource>();
-    modelBuilder.HasPostgresEnum<NotificationType>();
-    // ComplexityLevel enum removed - now dynamic via EditingStyle entity
+        // Map Enums to PostgreSQL Enums
+        modelBuilder.HasPostgresEnum<AppRole>();
+        modelBuilder.HasPostgresEnum<PackageCategory>();
+        modelBuilder.HasPostgresEnum<OrderStatus>();
+        modelBuilder.HasPostgresEnum<TimelineActionType>();
+        modelBuilder.HasPostgresEnum<AssignmentStatus>();
+        modelBuilder.HasPostgresEnum<LotSource>();
+        modelBuilder.HasPostgresEnum<NotificationType>();
+        modelBuilder.HasPostgresEnum<ContractType>();
+
+        // ==========================================
+        // PASCALCASE TABLE MAPPING (Strict Standard)
+        // ==========================================
+        
+        // User & Auth
+        modelBuilder.Entity<User>().ToTable("Users");
+        modelBuilder.Entity<Profile>().ToTable("Profiles");
+        modelBuilder.Entity<UserRole>().ToTable("UserRoles");
+
+        // Offers & Contracts
+        modelBuilder.Entity<Offer>().ToTable("Offers");
+        modelBuilder.Entity<ClientContract>().ToTable("ClientContracts");
+        modelBuilder.Entity<Package>().ToTable("Packages"); // Legacy
+        modelBuilder.Entity<PackageAssignment>().ToTable("PackageAssignments"); // Legacy
+
+        // Video & Editing
+        modelBuilder.Entity<VideoFormat>().ToTable("VideoFormats");
+        modelBuilder.Entity<EditingStyle>().ToTable("EditingStyles");
+
+        // Orders & Timeline
+        modelBuilder.Entity<Order>().ToTable("Orders");
+        modelBuilder.Entity<OrderTimeline>().ToTable("OrderTimelines");
+
+        // Other
+        modelBuilder.Entity<ServiceBalanceLot>().ToTable("ServiceBalanceLots");
+        modelBuilder.Entity<Notification>().ToTable("Notifications");
 
         // Configurations
 
         // User
         modelBuilder.Entity<User>()
-        .HasIndex(u => u.Email)
-        .IsUnique();
+            .HasIndex(u => u.Email)
+            .IsUnique();
 
         // Profile (1:1 with User)
         modelBuilder.Entity<Profile>()
@@ -114,101 +141,94 @@ public class ApplicationDbContext : DbContext
         .HasForeignKey(sl => sl.AssignmentId)
         .OnDelete(DeleteBehavior.SetNull);
 
-    // VideoFormat Configuration
-    modelBuilder.Entity<VideoFormat>(entity =>
-    {
-        entity.ToTable("video_formats");
-        entity.HasKey(v => v.Id);
-        entity.HasIndex(v => v.Slug).IsUnique();
-        entity.Property(v => v.Name).IsRequired().HasMaxLength(100);
-        entity.Property(v => v.Slug).IsRequired().HasMaxLength(100);
-        entity.Property(v => v.MaxDurationSeconds).IsRequired();
-        entity.Property(v => v.EditingStyleId).IsRequired(false); // Optional for now
-        entity.Property(v => v.IsActive).HasDefaultValue(true);
-        
-        // Relationship to EditingStyle
-        entity.HasOne(v => v.EditingStyle)
-            .WithMany(es => es.VideoFormats)
-            .HasForeignKey(v => v.EditingStyleId)
-            .OnDelete(DeleteBehavior.SetNull);
-    });
+        // VideoFormat Configuration
+        modelBuilder.Entity<VideoFormat>(entity =>
+        {
+            entity.ToTable("VideoFormats");
+            entity.HasKey(v => v.Id);
+            entity.HasIndex(v => v.Slug).IsUnique();
+            entity.Property(v => v.Name).IsRequired().HasMaxLength(100);
+            entity.Property(v => v.Slug).IsRequired().HasMaxLength(100);
+            entity.Property(v => v.MaxDurationSeconds).IsRequired();
+            entity.Property(v => v.EditingStyleId).IsRequired(false);
+            entity.Property(v => v.IsActive).HasDefaultValue(true);
 
-    // EditingStyle Configuration
-    modelBuilder.Entity<EditingStyle>(entity =>
-    {
-        entity.ToTable("editing_styles");
-        entity.HasKey(es => es.Id);
-        entity.Property(es => es.Name).IsRequired().HasMaxLength(100);
-        entity.Property(es => es.Description).HasMaxLength(500);
-        entity.Property(es => es.IsActive).HasDefaultValue(true);
-    });
+            entity.HasOne(v => v.EditingStyle)
+                .WithMany(es => es.VideoFormats)
+                .HasForeignKey(v => v.EditingStyleId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
 
-    // Package - VideoFormat Many-to-Many relationship
-    modelBuilder.Entity<Package>()
-        .HasMany(p => p.SupportedFormats)
-        .WithMany(v => v.Packages)
-        .UsingEntity(j => j
-            .ToTable("package_video_formats")
-            .HasData()
-        );
+        // EditingStyle Configuration
+        modelBuilder.Entity<EditingStyle>(entity =>
+        {
+            entity.ToTable("EditingStyles");
+            entity.HasKey(es => es.Id);
+            entity.Property(es => es.Name).IsRequired().HasMaxLength(100);
+            entity.Property(es => es.Description).HasMaxLength(500);
+            entity.Property(es => es.IsActive).HasDefaultValue(true);
+        });
 
-    // Offer Configuration (parallel to Package)
-    modelBuilder.Entity<Offer>(entity =>
-    {
-        entity.ToTable("offers");
-        entity.HasKey(o => o.Id);
-        entity.HasIndex(o => o.Slug).IsUnique();
-        entity.Property(o => o.Name).IsRequired().HasMaxLength(100);
-        entity.Property(o => o.Slug).IsRequired().HasMaxLength(100);
-        entity.Property(o => o.ContractType).IsRequired();
-        entity.Property(o => o.Price).IsRequired();
-        entity.Property(o => o.VideoQuantity).IsRequired();
-        entity.Property(o => o.MaxDurationSeconds).IsRequired();
-        entity.Property(o => o.IsPublic).HasDefaultValue(true);
-        
-        // Relationships
-        entity.HasOne(o => o.VideoFormat)
-            .WithMany()
-            .HasForeignKey(o => o.VideoFormatId)
-            .OnDelete(DeleteBehavior.SetNull);
-            
-        entity.HasOne(o => o.EditingStyle)
-            .WithMany()
-            .HasForeignKey(o => o.EditingStyleId)
-            .OnDelete(DeleteBehavior.SetNull);
-    });
+        // Package - VideoFormat Many-to-Many (Legacy)
+        modelBuilder.Entity<Package>()
+            .HasMany(p => p.SupportedFormats)
+            .WithMany(v => v.Packages)
+            .UsingEntity(j => j
+                .ToTable("PackageVideoFormats")
+            );
 
-    // ClientContract Configuration (parallel to PackageAssignment)
-    modelBuilder.Entity<ClientContract>(entity =>
-    {
-        entity.ToTable("client_contracts");
-        entity.HasKey(cc => cc.Id);
-        entity.Property(cc => cc.OfferId).IsRequired();
-        entity.Property(cc => cc.ClientId).IsRequired();
-        entity.Property(cc => cc.AssignedBy).IsRequired();
-        entity.Property(cc => cc.Status).HasDefaultValue(AssignmentStatus.Active);
-        
-        // Snapshot properties
-        entity.Property(cc => cc.SnapshotOfferName).HasMaxLength(255);
-        
-        // Relationships
-        entity.HasOne(cc => cc.Offer)
-            .WithMany(o => o.Contracts)
-            .HasForeignKey(cc => cc.OfferId)
-            .OnDelete(DeleteBehavior.Restrict);
-            
-        entity.HasOne(cc => cc.Client)
-            .WithMany(u => u.Contracts)
-            .HasForeignKey(cc => cc.ClientId)
-            .OnDelete(DeleteBehavior.Restrict);
-            
+        // Offer Configuration
+        modelBuilder.Entity<Offer>(entity =>
+        {
+            entity.ToTable("Offers");
+            entity.HasKey(o => o.Id);
+            entity.HasIndex(o => o.Slug).IsUnique();
+            entity.Property(o => o.Name).IsRequired().HasMaxLength(100);
+            entity.Property(o => o.Slug).IsRequired().HasMaxLength(100);
+            entity.Property(o => o.ContractType).IsRequired();
+            entity.Property(o => o.Price).IsRequired();
+            entity.Property(o => o.VideoQuantity).IsRequired();
+            entity.Property(o => o.MaxDurationSeconds).IsRequired();
+            entity.Property(o => o.IsPublic).HasDefaultValue(true);
+
+            entity.HasOne(o => o.VideoFormat)
+                .WithMany()
+                .HasForeignKey(o => o.VideoFormatId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(o => o.EditingStyle)
+                .WithMany()
+                .HasForeignKey(o => o.EditingStyleId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // ClientContract Configuration
+        modelBuilder.Entity<ClientContract>(entity =>
+        {
+            entity.ToTable("ClientContracts");
+            entity.HasKey(cc => cc.Id);
+            entity.Property(cc => cc.OfferId).IsRequired();
+            entity.Property(cc => cc.ClientId).IsRequired();
+            entity.Property(cc => cc.AssignedBy).IsRequired();
+            entity.Property(cc => cc.Status).HasDefaultValue(AssignmentStatus.Active);
+            entity.Property(cc => cc.SnapshotOfferName).HasMaxLength(255);
+
+            entity.HasOne(cc => cc.Offer)
+                .WithMany(o => o.Contracts)
+                .HasForeignKey(cc => cc.OfferId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(cc => cc.Client)
+                .WithMany(u => u.Contracts)
+                .HasForeignKey(cc => cc.ClientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
         entity.HasOne(cc => cc.Assigner)
             .WithMany()
             .HasForeignKey(cc => cc.AssignedBy)
             .OnDelete(DeleteBehavior.Restrict);
     });
 
-    // Enforce DateOnly conversion if needed (Postgres 6+ handles it natively, but good to be safe)
-    // Npgsql 6.0+ maps DateOnly to 'date' automatically.
-    }
+    // Enforce DateOnly conversion if needed
+}
 }

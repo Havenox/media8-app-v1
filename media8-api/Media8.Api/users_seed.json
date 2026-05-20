@@ -1,23 +1,20 @@
 [
-{
-"Name": "Admin User",
-"Email": "admin@media8.com",
-"Password": "Admin123!",
-"Role": "Admin",
-"Phone": "+1111100001"
-},
-{
-"Name": "Editor User",
-"Email": "editor@media8.com",
-"Password": "Editor123!",
-"Role": "Editor",
-"Phone": "+1111100002"
-},
-{
-"Name": "Client User",
-"Email": "client@media8.com",
-"Password": "Client123!",
-"Role": "Client",
-"Phone": "+1111100003"
-}
+  {
+    "Email": "admin@admin.com",
+    "Password": "SenhaAdmin",
+    "Name": "Administrador",
+    "Role": "Admin"
+  },
+  {
+    "Email": "cliente@cliente.com",
+    "Password": "SenhaCliente",
+    "Name": "Cliente Teste",
+    "Role": "Client"
+  },
+  {
+    "Email": "editor@editor.com",
+    "Password": "SenhaEditor",
+    "Name": "Editor Chefe",
+    "Role": "Editor"
+  }
 ]

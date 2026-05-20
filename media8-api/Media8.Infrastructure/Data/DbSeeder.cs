@@ -14,70 +14,72 @@ public class DbSeeder
         _context = context;
     }
 
-public async Task SeedAsync()
-{
-var passwordHasher = new PasswordHasher();
-
-    // ==========================================
-    // 1. Seed EditingStyles first (dynamic complexity)
-    // ==========================================
-    if (!_context.EditingStyles.Any())
+    public async Task SeedAsync()
     {
-        var editingStyles = new List<EditingStyle>
+        var passwordHasher = new PasswordHasher();
+
+        // ==========================================
+        // 1. Seed EditingStyles (dynamic complexity)
+        // ==========================================
+        if (!_context.EditingStyles.Any())
         {
-            new EditingStyle { Name = "Simples", Description = "Edição básica, cortes simples e transições diretas" },
-            new EditingStyle { Name = "Profissional", Description = "Edição avançada com efeitos, motion e color grading" },
-            new EditingStyle { Name = "Viral", Description = "Edição complexa com VFX, transições dinâmicas e trilha sonora" }
-        };
+            var editingStyles = new List<EditingStyle>
+            {
+                new EditingStyle { Name = "Simples", Description = "Edição básica, cortes simples e transições diretas" },
+                new EditingStyle { Name = "Profissional", Description = "Edição avançada com efeitos, motion e color grading" },
+                new EditingStyle { Name = "Viral", Description = "Edição complexa com VFX, transições dinâmicas e trilha sonora" }
+            };
 
-        await _context.EditingStyles.AddRangeAsync(editingStyles);
-        await _context.SaveChangesAsync();
-    }
+            await _context.EditingStyles.AddRangeAsync(editingStyles);
+            await _context.SaveChangesAsync();
+        }
 
-    // ==========================================
-    // 2. Seed VideoFormats (data-driven, sem Tier fixo)
-    // ==========================================
-    if (!_context.VideoFormats.Any())
-    {
-        var videoFormats = new List<VideoFormat>
+        // ==========================================
+        // 2. Seed VideoFormats (data-driven)
+        // ==========================================
+        if (!_context.VideoFormats.Any())
         {
-            new VideoFormat { Name = "Reels Standard", Slug = "reels-standard", MaxDurationSeconds = 60 },
-            new VideoFormat { Name = "Reels Premium", Slug = "reels-premium", MaxDurationSeconds = 90 },
-            new VideoFormat { Name = "YouTube Curto", Slug = "youtube-curto", MaxDurationSeconds = 180 },
-            new VideoFormat { Name = "YouTube Médio", Slug = "youtube-medio", MaxDurationSeconds = 600 },
-            new VideoFormat { Name = "YouTube Longo", Slug = "youtube-longo", MaxDurationSeconds = 1800 },
-            new VideoFormat { Name = "Pacote Reels", Slug = "pacote-reels", MaxDurationSeconds = 60 },
-            new VideoFormat { Name = "Avulso", Slug = "avulso", MaxDurationSeconds = 120 }
-        };
+            var videoFormats = new List<VideoFormat>
+            {
+                new VideoFormat { Name = "Reels Standard", Slug = "reels-standard", MaxDurationSeconds = 60 },
+                new VideoFormat { Name = "Reels Premium", Slug = "reels-premium", MaxDurationSeconds = 90 },
+                new VideoFormat { Name = "YouTube Curto", Slug = "youtube-curto", MaxDurationSeconds = 180 },
+                new VideoFormat { Name = "YouTube Médio", Slug = "youtube-medio", MaxDurationSeconds = 600 },
+                new VideoFormat { Name = "YouTube Longo", Slug = "youtube-longo", MaxDurationSeconds = 1800 },
+                new VideoFormat { Name = "Pacote Reels", Slug = "pacote-reels", MaxDurationSeconds = 60 },
+                new VideoFormat { Name = "Avulso", Slug = "avulso", MaxDurationSeconds = 120 }
+            };
 
-        await _context.VideoFormats.AddRangeAsync(videoFormats);
-        await _context.SaveChangesAsync();
+            await _context.VideoFormats.AddRangeAsync(videoFormats);
+            await _context.SaveChangesAsync();
+        }
+
+        // ==========================================
+        // 3. Seed Standard Test Users ONLY
+        // ==========================================
+        var adminId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+        var clientId = Guid.Parse("00000000-0000-0000-0000-000000000002");
+        var editorId = Guid.Parse("00000000-0000-0000-0000-000000000003");
+
+        if (!await _context.Users.AnyAsync())
+        {
+            var usersToSeed = new List<User>();
+
+            // Admin User
+            await EnsureUser(usersToSeed, adminId, "Administrador", "admin@admin.com", AppRole.Admin, passwordHasher.Hash("SenhaAdmin"));
+
+            // Client User
+            await EnsureUser(usersToSeed, clientId, "Cliente Teste", "cliente@cliente.com", AppRole.Client, passwordHasher.Hash("SenhaCliente"));
+
+            // Editor User
+            await EnsureUser(usersToSeed, editorId, "Editor Chefe", "editor@editor.com", AppRole.Editor, passwordHasher.Hash("SenhaEditor"));
+
+            await _context.Users.AddRangeAsync(usersToSeed);
+            await _context.SaveChangesAsync();
+        }
+
+        // No Packages or Orders seeding - clean schema
     }
-
-// ==========================================
-// 2. Seed Users (always ensure they exist)
-// ==========================================
-var clientCarlosId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-var clientAnaId = Guid.Parse("00000000-0000-0000-0000-000000000002");
-var editorRobertoId = Guid.Parse("00000000-0000-0000-0000-000000000003");
-var adminId = Guid.Parse("00000000-0000-0000-0000-000000000004");
-
-// Check if users need to be seeded
-if (!await _context.Users.AnyAsync())
-{
-var usersToSeed = new List<User>();
-await EnsureUser(usersToSeed, clientCarlosId, "Carlos Silva", "carlos@media8.com", AppRole.Client, passwordHasher.Hash("123456"));
-await EnsureUser(usersToSeed, clientAnaId, "Ana Souza", "ana@media8.com", AppRole.Client, passwordHasher.Hash("123456"));
-await EnsureUser(usersToSeed, editorRobertoId, "Roberto Editor", "roberto@media8.com", AppRole.Editor, passwordHasher.Hash("123456"));
-await EnsureUser(usersToSeed, adminId, "Admin Chefe", "admin@media8.com", AppRole.Admin, passwordHasher.Hash("123456"));
-
-await _context.Users.AddRangeAsync(usersToSeed);
-await _context.SaveChangesAsync();
-}
-
-// Packages and Orders seeding removed for clean migration
-// They will be created via API calls
-}
 
     private async Task EnsureUser(List<User> usersToAdd, Guid id, string name, string email, AppRole role, string passwordHash)
     {
