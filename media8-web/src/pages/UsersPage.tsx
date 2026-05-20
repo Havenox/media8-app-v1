@@ -46,9 +46,9 @@ import { useInfiniteUsers, useCreateUser, useDeleteUser, useUpdateUser, useUserS
 import { InfiniteScroll } from '@/components/ui/infinite-scroll';
 import { useDebounce } from '@/hooks/useDebounce';
 
-// usePackages removed
-import { useAssignPackage } from '@/hooks/usePackageAssignments';
-import { PackageSelect } from '@/components/packages/PackageSelect';
+// usePackages removed - migrated to offers/contracts
+// import { useAssignPackage } from '@/hooks/usePackageAssignments';
+// import { PackageSelect } from '@/components/packages/PackageSelect';
 import { toast } from 'sonner';
 
 const UsersPage: React.FC = () => {

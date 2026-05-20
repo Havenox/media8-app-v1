@@ -52,16 +52,18 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Package as PackageType, PackageCategory, CreatePackageRequest } from '@/types/packages';
 import { useAuth } from '@/contexts/AuthContext';
 import { useVideoFormats } from '@/hooks/useVideoFormats';
 
-// Hooks
-import { usePackages, useCreatePackage, useUpdatePackage, useTogglePackageStatus, useDeletePackage } from '@/hooks/usePackages';
+// Hooks - Migrated to offers/contracts
+// import { usePackages, useCreatePackage, useUpdatePackage, useTogglePackageStatus, useDeletePackage } from '@/hooks/usePackages';
 // useClients removed
-import { useAssignPackage } from '@/hooks/usePackageAssignments';
-import { DeletePackageDialog } from '@/components/packages/DeletePackageDialog';
+// import { useAssignPackage } from '@/hooks/usePackageAssignments';
+// import { DeletePackageDialog } from '@/components/packages/DeletePackageDialog';
 import { UserSelect } from '@/components/users/UserSelect';
+
+// Legacy type imports - to be removed after migration
+import { PackageCategory } from '@/types/packages';
 
 interface NewPackageState {
   name: string;
