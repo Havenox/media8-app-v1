@@ -1,0 +1,70 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace Media8.Application.DTOs.Offers;
+
+/// <summary>
+/// Requisição para criação de um contrato de cliente (atribuição de oferta)
+/// </summary>
+public class CreateClientContractRequest
+{
+    /// <summary>
+    /// ID da oferta contratada
+    /// </summary>
+    [Required(ErrorMessage = "O ID da oferta é obrigatório.")]
+    public Guid OfferId { get; set; }
+
+    /// <summary>
+    /// ID do cliente que está contratando
+    /// </summary>
+    [Required(ErrorMessage = "O ID do cliente é obrigatório.")]
+    public Guid ClientId { get; set; }
+
+    /// <summary>
+    /// ID do usuário que está atribuindo o contrato (admin)
+    /// </summary>
+    [Required(ErrorMessage = "O ID do usuário que atribui é obrigatório.")]
+    public Guid AssignedByUserId { get; set; }
+}
+
+/// <summary>
+/// Requisição para atualização de contrato (ex: alteração de status)
+/// </summary>
+public class UpdateClientContractRequest
+{
+    /// <summary>
+    /// Status do contrato
+    /// </summary>
+    public Domain.Enums.AssignmentStatus? Status { get; set; }
+
+    /// <summary>
+    /// Data de expiração (opcional, para ajustes manuais)
+    /// </summary>
+    public DateTime? ExpiresAt { get; set; }
+}
+
+/// <summary>
+/// Resposta detalhada do contrato com snapshot imutável
+/// </summary>
+public class ClientContractResponse
+{
+    public Guid Id { get; set; }
+    public Guid OfferId { get; set; }
+    public Guid ClientId { get; set; }
+    public Guid AssignedBy { get; set; }
+
+    // Snapshot Imutável (cópia dos dados da oferta no momento da contratação)
+    public string? SnapshotOfferName { get; set; }
+    public int? SnapshotVideoQuantity { get; set; }
+    public decimal? SnapshotPrice { get; set; }
+    public int? SnapshotValidityDays { get; set; }
+
+    public DateTime AssignedAt { get; set; }
+    public DateTime ActivatedAt { get; set; }
+    public DateTime? ExpiresAt { get; set; }
+    public Domain.Enums.AssignmentStatus Status { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+
+    // Navegação (opcional no response)
+    public OfferResponse? Offer { get; set; }
+}
