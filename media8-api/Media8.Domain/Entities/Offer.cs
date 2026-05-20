@@ -21,9 +21,14 @@ public class Offer
     public string Slug { get; set; } = string.Empty;
 
     /// <summary>
-    /// Categoria da oferta (assinatura, pacote, avulso)
+    /// Categoria da oferta (legado - usar ContractType)
     /// </summary>
     public PackageCategory Category { get; set; }
+
+    /// <summary>
+    /// Tipo de contrato que governa regras de expiração e renovação
+    /// </summary>
+    public ContractType ContractType { get; set; }
 
     /// <summary>
     /// Preço da oferta

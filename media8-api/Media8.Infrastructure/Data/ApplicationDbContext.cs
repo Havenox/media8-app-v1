@@ -160,6 +160,7 @@ public class ApplicationDbContext : DbContext
         entity.HasIndex(o => o.Slug).IsUnique();
         entity.Property(o => o.Name).IsRequired().HasMaxLength(100);
         entity.Property(o => o.Slug).IsRequired().HasMaxLength(100);
+        entity.Property(o => o.ContractType).IsRequired();
         entity.Property(o => o.Price).IsRequired();
         entity.Property(o => o.VideoQuantity).IsRequired();
         entity.Property(o => o.MaxDurationSeconds).IsRequired();
