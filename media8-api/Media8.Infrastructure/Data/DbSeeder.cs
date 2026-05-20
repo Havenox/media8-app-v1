@@ -18,25 +18,41 @@ public async Task SeedAsync()
 {
 var passwordHasher = new PasswordHasher();
 
-// ==========================================
-// 1. Seed VideoFormats first (data-driven)
-// ==========================================
-if (!_context.VideoFormats.Any())
-{
-var videoFormats = new List<VideoFormat>
-{
-new VideoFormat { Name = "Reels Standard", Slug = "reels-standard", MaxDurationSeconds = 60, Tier = ComplexityLevel.Standard },
-new VideoFormat { Name = "Reels Premium", Slug = "reels-premium", MaxDurationSeconds = 90, Tier = ComplexityLevel.Premium },
-new VideoFormat { Name = "YouTube Curto", Slug = "youtube-curto", MaxDurationSeconds = 180, Tier = ComplexityLevel.Standard },
-new VideoFormat { Name = "YouTube Médio", Slug = "youtube-medio", MaxDurationSeconds = 600, Tier = ComplexityLevel.Premium },
-new VideoFormat { Name = "YouTube Longo", Slug = "youtube-longo", MaxDurationSeconds = 1800, Tier = ComplexityLevel.GodMode },
-new VideoFormat { Name = "Pacote Reels", Slug = "pacote-reels", MaxDurationSeconds = 60, Tier = ComplexityLevel.Standard },
-new VideoFormat { Name = "Avulso", Slug = "avulso", MaxDurationSeconds = 120, Tier = ComplexityLevel.Standard }
-};
+    // ==========================================
+    // 1. Seed EditingStyles first (dynamic complexity)
+    // ==========================================
+    if (!_context.EditingStyles.Any())
+    {
+        var editingStyles = new List<EditingStyle>
+        {
+            new EditingStyle { Name = "Simples", Description = "Edição básica, cortes simples e transições diretas" },
+            new EditingStyle { Name = "Profissional", Description = "Edição avançada com efeitos, motion e color grading" },
+            new EditingStyle { Name = "Viral", Description = "Edição complexa com VFX, transições dinâmicas e trilha sonora" }
+        };
 
-await _context.VideoFormats.AddRangeAsync(videoFormats);
-await _context.SaveChangesAsync();
-}
+        await _context.EditingStyles.AddRangeAsync(editingStyles);
+        await _context.SaveChangesAsync();
+    }
+
+    // ==========================================
+    // 2. Seed VideoFormats (data-driven, sem Tier fixo)
+    // ==========================================
+    if (!_context.VideoFormats.Any())
+    {
+        var videoFormats = new List<VideoFormat>
+        {
+            new VideoFormat { Name = "Reels Standard", Slug = "reels-standard", MaxDurationSeconds = 60 },
+            new VideoFormat { Name = "Reels Premium", Slug = "reels-premium", MaxDurationSeconds = 90 },
+            new VideoFormat { Name = "YouTube Curto", Slug = "youtube-curto", MaxDurationSeconds = 180 },
+            new VideoFormat { Name = "YouTube Médio", Slug = "youtube-medio", MaxDurationSeconds = 600 },
+            new VideoFormat { Name = "YouTube Longo", Slug = "youtube-longo", MaxDurationSeconds = 1800 },
+            new VideoFormat { Name = "Pacote Reels", Slug = "pacote-reels", MaxDurationSeconds = 60 },
+            new VideoFormat { Name = "Avulso", Slug = "avulso", MaxDurationSeconds = 120 }
+        };
+
+        await _context.VideoFormats.AddRangeAsync(videoFormats);
+        await _context.SaveChangesAsync();
+    }
 
 // ==========================================
 // 2. Seed Users (always ensure they exist)

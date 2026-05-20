@@ -19,25 +19,30 @@ public class ApplicationDbContext : DbContext
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderTimeline> OrderTimelines { get; set; }
     public DbSet<Notification> Notifications { get; set; }
-    
+
     /// <summary>
     /// Entidade VideoFormat para catálogo dinâmico de formatos de vídeo
     /// </summary>
     public DbSet<VideoFormat> VideoFormats => Set<VideoFormat>();
 
+    /// <summary>
+    /// Entidade EditingStyle para estilos de edição dinâmicos
+    /// </summary>
+    public DbSet<EditingStyle> EditingStyles => Set<EditingStyle>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Map Enums to PostgreSQL Enums
-        modelBuilder.HasPostgresEnum<AppRole>();
-        modelBuilder.HasPostgresEnum<PackageCategory>();
-        modelBuilder.HasPostgresEnum<OrderStatus>();
-        modelBuilder.HasPostgresEnum<TimelineActionType>();
-        modelBuilder.HasPostgresEnum<AssignmentStatus>();
-        modelBuilder.HasPostgresEnum<LotSource>();
-        modelBuilder.HasPostgresEnum<NotificationType>();
-        modelBuilder.HasPostgresEnum<ComplexityLevel>();
+    // Map Enums to PostgreSQL Enums
+    modelBuilder.HasPostgresEnum<AppRole>();
+    modelBuilder.HasPostgresEnum<PackageCategory>();
+    modelBuilder.HasPostgresEnum<OrderStatus>();
+    modelBuilder.HasPostgresEnum<TimelineActionType>();
+    modelBuilder.HasPostgresEnum<AssignmentStatus>();
+    modelBuilder.HasPostgresEnum<LotSource>();
+    modelBuilder.HasPostgresEnum<NotificationType>();
+    // ComplexityLevel enum removed - now dynamic via EditingStyle entity
 
         // Configurations
 
@@ -99,26 +104,42 @@ public class ApplicationDbContext : DbContext
         .HasForeignKey(sl => sl.AssignmentId)
         .OnDelete(DeleteBehavior.SetNull);
 
-        // VideoFormat Configuration
-        modelBuilder.Entity<VideoFormat>(entity =>
-        {
-            entity.ToTable("video_formats");
-            entity.HasKey(v => v.Id);
-            entity.HasIndex(v => v.Slug).IsUnique();
-            entity.Property(v => v.Name).IsRequired().HasMaxLength(100);
-            entity.Property(v => v.Slug).IsRequired().HasMaxLength(100);
-            entity.Property(v => v.MaxDurationSeconds).IsRequired();
-            entity.Property(v => v.Tier).IsRequired();
-            entity.Property(v => v.IsActive).HasDefaultValue(true);
-        });
+    // VideoFormat Configuration
+    modelBuilder.Entity<VideoFormat>(entity =>
+    {
+        entity.ToTable("video_formats");
+        entity.HasKey(v => v.Id);
+        entity.HasIndex(v => v.Slug).IsUnique();
+        entity.Property(v => v.Name).IsRequired().HasMaxLength(100);
+        entity.Property(v => v.Slug).IsRequired().HasMaxLength(100);
+        entity.Property(v => v.MaxDurationSeconds).IsRequired();
+        entity.Property(v => v.EditingStyleId).IsRequired(false); // Optional for now
+        entity.Property(v => v.IsActive).HasDefaultValue(true);
+        
+        // Relationship to EditingStyle
+        entity.HasOne(v => v.EditingStyle)
+            .WithMany(es => es.VideoFormats)
+            .HasForeignKey(v => v.EditingStyleId)
+            .OnDelete(DeleteBehavior.SetNull);
+    });
 
-        // Package - VideoFormat Many-to-Many relationship
-        modelBuilder.Entity<Package>()
+    // EditingStyle Configuration
+    modelBuilder.Entity<EditingStyle>(entity =>
+    {
+        entity.ToTable("editing_styles");
+        entity.HasKey(es => es.Id);
+        entity.Property(es => es.Name).IsRequired().HasMaxLength(100);
+        entity.Property(es => es.Description).HasMaxLength(500);
+        entity.Property(es => es.IsActive).HasDefaultValue(true);
+    });
+
+    // Package - VideoFormat Many-to-Many relationship
+    modelBuilder.Entity<Package>()
         .HasMany(p => p.SupportedFormats)
         .WithMany(v => v.Packages)
         .UsingEntity(j => j
-        .ToTable("package_video_formats")
-        .HasData()
+            .ToTable("package_video_formats")
+            .HasData()
         );
 
         // Enforce DateOnly conversion if needed (Postgres 6+ handles it natively, but good to be safe)

@@ -19,27 +19,27 @@ public class VideoFormatsController : ControllerBase
         _context = context;
     }
 
-    /// <summary>
-    /// Lista todos os formatos de vídeo ativos disponíveis no sistema
-    /// </summary>
-    [HttpGet]
-    [AllowAnonymous]
-    public async Task<ActionResult<List<VideoFormatResponse>>> GetActiveFormats()
-    {
-        var formats = await _context.VideoFormats
-            .Where(vf => vf.IsActive)
-            .Select(vf => new VideoFormatResponse
-            {
-                Id = vf.Id,
-                Name = vf.Name,
-                Slug = vf.Slug,
-                MaxDurationSeconds = vf.MaxDurationSeconds,
-                Tier = vf.Tier.ToString()
-            })
-            .ToListAsync();
+  /// <summary>
+  /// Lista todos os formatos de vídeo ativos disponíveis no sistema
+  /// </summary>
+  [HttpGet]
+  [AllowAnonymous]
+  public async Task<ActionResult<List<VideoFormatResponse>>> GetActiveFormats()
+  {
+    var formats = await _context.VideoFormats
+      .Where(vf => vf.IsActive)
+      .Select(vf => new VideoFormatResponse
+      {
+        Id = vf.Id,
+        Name = vf.Name,
+        Slug = vf.Slug,
+        MaxDurationSeconds = vf.MaxDurationSeconds,
+        EditingStyleId = vf.EditingStyleId
+      })
+      .ToListAsync();
 
-        return Ok(formats);
-    }
+    return Ok(formats);
+  }
 
   /// <summary>
   /// Busca um formato de vídeo específico por ID
@@ -56,7 +56,7 @@ public class VideoFormatsController : ControllerBase
         Name = vf.Name,
         Slug = vf.Slug,
         MaxDurationSeconds = vf.MaxDurationSeconds,
-        Tier = vf.Tier.ToString()
+        EditingStyleId = vf.EditingStyleId
       })
       .FirstOrDefaultAsync();
 
@@ -84,7 +84,7 @@ public class VideoFormatsController : ControllerBase
       Name = request.Name,
       Slug = request.Slug,
       MaxDurationSeconds = request.MaxDurationSeconds,
-      Tier = request.Tier,
+      EditingStyleId = request.EditingStyleId,
       IsActive = true,
       CreatedAt = DateTime.UtcNow,
       UpdatedAt = DateTime.UtcNow
@@ -99,7 +99,7 @@ public class VideoFormatsController : ControllerBase
       Name = format.Name,
       Slug = format.Slug,
       MaxDurationSeconds = format.MaxDurationSeconds,
-      Tier = format.Tier.ToString()
+      EditingStyleId = format.EditingStyleId
     };
 
     return CreatedAtAction(nameof(GetFormatById), new { id = format.Id }, response);
@@ -134,8 +134,8 @@ public class VideoFormatsController : ControllerBase
     if (request.MaxDurationSeconds.HasValue)
       format.MaxDurationSeconds = request.MaxDurationSeconds.Value;
 
-    if (request.Tier.HasValue)
-      format.Tier = request.Tier.Value;
+    if (request.EditingStyleId.HasValue)
+      format.EditingStyleId = request.EditingStyleId.Value;
 
     if (request.IsActive.HasValue)
       format.IsActive = request.IsActive.Value;
@@ -150,7 +150,7 @@ public class VideoFormatsController : ControllerBase
       Name = format.Name,
       Slug = format.Slug,
       MaxDurationSeconds = format.MaxDurationSeconds,
-      Tier = format.Tier.ToString()
+      EditingStyleId = format.EditingStyleId
     };
 
     return Ok(response);
@@ -182,5 +182,5 @@ public class VideoFormatResponse
     public string Name { get; set; } = string.Empty;
     public string Slug { get; set; } = string.Empty;
     public int MaxDurationSeconds { get; set; }
-    public string Tier { get; set; } = string.Empty;
+    public Guid? EditingStyleId { get; set; }
 }

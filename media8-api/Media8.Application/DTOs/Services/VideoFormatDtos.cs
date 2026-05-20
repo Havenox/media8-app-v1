@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Media8.Domain.Entities;
 
 namespace Media8.Application.DTOs.Services;
 
@@ -30,10 +29,9 @@ public class CreateVideoFormatRequest
     public int MaxDurationSeconds { get; set; }
 
     /// <summary>
-    /// Nível de complexidade do formato
+    /// ID do estilo de edição associado (antigo Tier)
     /// </summary>
-    [Required(ErrorMessage = "O nível de complexidade (tier) é obrigatório.")]
-    public ComplexityLevel Tier { get; set; }
+    public Guid? EditingStyleId { get; set; }
 }
 
 /// <summary>
@@ -61,9 +59,9 @@ public class UpdateVideoFormatRequest
     public int? MaxDurationSeconds { get; set; }
 
     /// <summary>
-    /// Nível de complexidade do formato
+    /// ID do estilo de edição associado (antigo Tier)
     /// </summary>
-    public ComplexityLevel? Tier { get; set; }
+    public Guid? EditingStyleId { get; set; }
 
     /// <summary>
     /// Indica se o formato está ativo e disponível para contratação
