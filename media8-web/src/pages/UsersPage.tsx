@@ -434,7 +434,7 @@ const updateUserMutation = useUpdateUser();
 onAssignContract={(user) => {
 setSelectedUserForDetails(null);
 setSelectedClient(user);
-// Dialog is now controlled by ContractAssignDialog component
+setIsAssignDialogOpen(true);
 }}
           onDelete={handleDeleteUser}
           isDeleting={false} // Disabled

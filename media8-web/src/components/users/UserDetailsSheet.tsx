@@ -31,23 +31,23 @@ import { User as UserType } from '@/types/api';
 import { ServiceBalanceList } from '@/components/dashboard/ServiceBalanceList';
 
 interface UserDetailsSheetProps {
-  user: UserType | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onEdit: (user: UserType) => void;
-  onAssignPackage: (user: UserType) => void;
-  onDelete: (userId: string) => void;
-  isDeleting?: boolean;
+user: UserType | null;
+open: boolean;
+onOpenChange: (open: boolean) => void;
+onEdit: (user: UserType) => void;
+onAssignContract: (user: UserType) => void;
+onDelete: (userId: string) => void;
+isDeleting?: boolean;
 }
 
 const UserDetailsSheet: React.FC<UserDetailsSheetProps> = ({
-  user,
-  open,
-  onOpenChange,
-  onEdit,
-  onAssignPackage,
-  onDelete,
-  isDeleting = false,
+user,
+open,
+onOpenChange,
+onEdit,
+onAssignContract,
+onDelete,
+isDeleting = false,
 }) => {
   if (!user) return null;
 
@@ -136,16 +136,16 @@ const UserDetailsSheet: React.FC<UserDetailsSheetProps> = ({
             <Edit className="h-4 w-4 mr-2" />
             Editar
           </Button>
-          {user.role === 'Client' && (
-            <Button 
-              variant="premium" 
-              className="flex-1"
-              onClick={() => onAssignPackage(user)}
-            >
-              <Package className="h-4 w-4 mr-2" />
-              Atribuir
-            </Button>
-          )}
+{user.role === 'Client' && (
+<Button
+variant="premium"
+className="flex-1"
+onClick={() => onAssignContract(user)}
+>
+<Package className="h-4 w-4 mr-2" />
+Atribuir
+</Button>
+)}
           <Button 
             variant="destructive" 
             size="icon"
