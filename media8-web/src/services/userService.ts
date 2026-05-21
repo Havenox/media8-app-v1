@@ -85,8 +85,8 @@ const changePasswordAPI = async (data: any): Promise<void> => {
 // ==========================================
 
 export const userService = {
-  async getAll(page?: number, pageSize?: number, role?: UserRole, search?: string): Promise<User[]> {
-    return getAllAPI(page, pageSize, role, search);
+  async getAll(page = 1, pageSize = 20, role?: UserRole, search?: string, showInactive = false): Promise<User[]> {
+    return getAllAPI(page, pageSize, role, search, showInactive);
   },
 
   async getById(id: string): Promise<User | null> {
