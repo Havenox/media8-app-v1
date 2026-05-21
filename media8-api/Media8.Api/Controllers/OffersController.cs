@@ -23,79 +23,81 @@ public class OffersController : ControllerBase
         _context = context;
     }
 
-    /// <summary>
-    /// Lista todas as ofertas disponíveis (ativas e inativas)
-    /// </summary>
-    [HttpGet]
-    [AllowAnonymous]
-    public async Task<ActionResult<List<OfferResponse>>> GetAllOffers()
-    {
-        var offers = await _context.Offers
-            .OrderBy(o => o.Name)
-            .Select(o => new OfferResponse
-            {
-                Id = o.Id,
-                Name = o.Name,
-                Slug = o.Slug,
-                ContractType = o.ContractType,
-                Price = o.Price,
-                VideoQuantity = o.VideoQuantity,
-                MaxDurationSeconds = o.MaxDurationSeconds,
-                ValidityDays = o.ValidityDays,
-                LoyaltyMonths = o.LoyaltyMonths,
-                DeliveryDays = o.DeliveryDays,
-                VideoFormatId = o.VideoFormatId,
-                EditingStyleId = o.EditingStyleId,
-                Description = o.Description,
-                Features = o.Features,
-                Disclaimer = o.Disclaimer,
-                Badge = o.Badge,
-                IsPublic = o.IsPublic,
-                CreatedAt = o.CreatedAt,
-                UpdatedAt = o.UpdatedAt
-            })
-            .ToListAsync();
+/// <summary>
+/// Lista todas as ofertas disponíveis (ativas e inativas)
+/// </summary>
+[HttpGet]
+[AllowAnonymous]
+public async Task<ActionResult<List<OfferResponse>>> GetAllOffers()
+{
+var offers = await _context.Offers
+.OrderBy(o => o.Name)
+.Select(o => new OfferResponse
+{
+Id = o.Id,
+Name = o.Name,
+Slug = o.Slug,
+ContractType = o.ContractType,
+Price = o.Price,
+VideoQuantity = o.VideoQuantity,
+MaxDurationSeconds = o.MaxDurationSeconds,
+ValidityDays = o.ValidityDays,
+LoyaltyMonths = o.LoyaltyMonths,
+DeliveryDays = o.DeliveryDays,
+VideoFormatId = o.VideoFormatId,
+EditingStyleId = o.EditingStyleId,
+Description = o.Description,
+Features = o.Features,
+Disclaimer = o.Disclaimer,
+Badge = o.Badge,
+IsPublic = o.IsPublic,
+CreatedAt = o.CreatedAt,
+UpdatedAt = o.UpdatedAt,
+CanDeletePermanently = !_context.ClientContracts.Any(c => c.OfferId == o.Id)
+})
+.ToListAsync();
 
-        return Ok(offers);
-    }
+return Ok(offers);
+}
 
-    /// <summary>
-    /// Busca uma oferta específica por ID
-    /// </summary>
-    [HttpGet("{id:guid}")]
-    [AllowAnonymous]
-    public async Task<ActionResult<OfferResponse>> GetOfferById(Guid id)
-    {
-        var offer = await _context.Offers
-            .Where(o => o.Id == id)
-            .Select(o => new OfferResponse
-            {
-                Id = o.Id,
-                Name = o.Name,
-                Slug = o.Slug,
-                ContractType = o.ContractType,
-                Price = o.Price,
-                VideoQuantity = o.VideoQuantity,
-                MaxDurationSeconds = o.MaxDurationSeconds,
-                ValidityDays = o.ValidityDays,
-                LoyaltyMonths = o.LoyaltyMonths,
-                DeliveryDays = o.DeliveryDays,
-                VideoFormatId = o.VideoFormatId,
-                EditingStyleId = o.EditingStyleId,
-                Description = o.Description,
-                Features = o.Features,
-                Disclaimer = o.Disclaimer,
-                Badge = o.Badge,
-                IsPublic = o.IsPublic,
-                CreatedAt = o.CreatedAt,
-                UpdatedAt = o.UpdatedAt
-            })
-            .FirstOrDefaultAsync();
+/// <summary>
+/// Busca uma oferta específica por ID
+/// </summary>
+[HttpGet("{id:guid}")]
+[AllowAnonymous]
+public async Task<ActionResult<OfferResponse>> GetOfferById(Guid id)
+{
+var offer = await _context.Offers
+.Where(o => o.Id == id)
+.Select(o => new OfferResponse
+{
+Id = o.Id,
+Name = o.Name,
+Slug = o.Slug,
+ContractType = o.ContractType,
+Price = o.Price,
+VideoQuantity = o.VideoQuantity,
+MaxDurationSeconds = o.MaxDurationSeconds,
+ValidityDays = o.ValidityDays,
+LoyaltyMonths = o.LoyaltyMonths,
+DeliveryDays = o.DeliveryDays,
+VideoFormatId = o.VideoFormatId,
+EditingStyleId = o.EditingStyleId,
+Description = o.Description,
+Features = o.Features,
+Disclaimer = o.Disclaimer,
+Badge = o.Badge,
+IsPublic = o.IsPublic,
+CreatedAt = o.CreatedAt,
+UpdatedAt = o.UpdatedAt,
+CanDeletePermanently = !_context.ClientContracts.Any(c => c.OfferId == o.Id)
+})
+.FirstOrDefaultAsync();
 
-        if (offer == null) return NotFound();
+if (offer == null) return NotFound();
 
-        return Ok(offer);
-    }
+return Ok(offer);
+}
 
     /// <summary>
     /// Cria uma nova oferta comercial (Apenas Admin)
@@ -264,22 +266,56 @@ public class OffersController : ControllerBase
         return Ok(response);
     }
 
-    /// <summary>
-    /// Remove logicamente (desativa) uma oferta do catálogo comercial (Apenas Admin)
-    /// </summary>
-    [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult> DeleteOffer(Guid id)
-    {
-        var offer = await _context.Offers.FindAsync(id);
-        if (offer == null) return NotFound();
+/// <summary>
+/// Remove uma oferta do catálogo comercial (Apenas Admin)
+/// Realiza Hard Delete se não houver contratos vinculados, caso contrário faz Soft Delete (arquivamento)
+/// </summary>
+[HttpDelete("{id:guid}")]
+[Authorize(Roles = "Admin")]
+public async Task<ActionResult<DeleteOfferResponse>> DeleteOffer(Guid id)
+{
+var offer = await _context.Offers.FindAsync(id);
+if (offer == null) return NotFound();
 
-        // Soft delete: apenas desativa a visibilidade
-        offer.IsPublic = false;
-        offer.UpdatedAt = DateTime.UtcNow;
+// Verifica se há contratos vinculados
+var hasContracts = await _context.ClientContracts.AnyAsync(c => c.OfferId == id);
 
-        await _context.SaveChangesAsync();
+if (hasContracts)
+{
+// Soft Delete: arquiva a oferta (não pode deletar fisicamente)
+offer.IsPublic = false;
+offer.UpdatedAt = DateTime.UtcNow;
+await _context.SaveChangesAsync();
 
-        return NoContent();
-    }
+return Ok(new DeleteOfferResponse 
+{ 
+Success = true, 
+Message = "Oferta arquivada (possui contratos vinculados).", 
+DeletedPhysically = false 
+});
+}
+else
+{
+// Hard Delete: remove fisicamente do banco
+_context.Offers.Remove(offer);
+await _context.SaveChangesAsync();
+
+return Ok(new DeleteOfferResponse 
+{ 
+Success = true, 
+Message = "Oferta excluída permanentemente.", 
+DeletedPhysically = true 
+});
+}
+}
+
+/// <summary>
+/// Resposta de deleção de oferta
+/// </summary>
+public class DeleteOfferResponse
+{
+public bool Success { get; set; }
+public string Message { get; set; } = string.Empty;
+public bool DeletedPhysically { get; set; }
+}
 }

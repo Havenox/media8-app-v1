@@ -50,6 +50,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useVideoFormats } from '@/hooks/useVideoFormats';
 import { useEditingStyles } from '@/hooks/useEditingStyles';
@@ -110,14 +111,17 @@ const OffersPage: React.FC = () => {
   const { data: videoFormats = [], isLoading: isLoadingFormats } = useVideoFormats();
   const { data: editingStyles = [], isLoading: isLoadingStyles } = useEditingStyles();
 
-  // State
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<ContractType | 'all'>('all');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newOffer, setNewOffer] = useState<NewOfferState>(initialOfferState);
-  const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [offerToDelete, setOfferToDelete] = useState<Offer | null>(null);
+// State
+const [searchTerm, setSearchTerm] = useState('');
+const [categoryFilter, setCategoryFilter] = useState<ContractType | 'all'>('all');
+const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
+const [isDialogOpen, setIsDialogOpen] = useState(false);
+const [newOffer, setNewOffer] = useState<NewOfferState>(initialOfferState);
+const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
+const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+const [offerToDelete, setOfferToDelete] = useState<Offer | null>(null);
+const [deleteCountdown, setDeleteCountdown] = useState<number>(5);
+const [isDeleteCounting, setIsDeleteCounting] = useState(false);
 
   // Hooks
   const { data: offers = [], isLoading: isLoadingOffers } = useOffers();
@@ -125,15 +129,25 @@ const OffersPage: React.FC = () => {
   const updateOfferMutation = useUpdateOffer();
   const deleteOfferMutation = useDeleteOffer();
 
-  // Filter offers
-  const filteredOffers = useMemo(() => {
-    return offers.filter((offer) => {
-      const matchesSearch = offer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        offer.slug.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = categoryFilter === 'all' || offer.contractType === categoryFilter;
-      return matchesSearch && matchesCategory;
-    });
-  }, [offers, searchTerm, categoryFilter]);
+// Filter offers by tab, search, and category
+const filteredOffers = useMemo(() => {
+// First filter by active/archived tab
+const tabFiltered = offers.filter((offer) => {
+if (activeTab === 'active') {
+return offer.isPublic;
+} else {
+return !offer.isPublic;
+}
+});
+
+// Then filter by search and category
+return tabFiltered.filter((offer) => {
+const matchesSearch = offer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+offer.slug.toLowerCase().includes(searchTerm.toLowerCase());
+const matchesCategory = categoryFilter === 'all' || offer.contractType === categoryFilter;
+return matchesSearch && matchesCategory;
+});
+}, [offers, searchTerm, categoryFilter, activeTab]);
 
   // Feature list management
   const addFeature = () => {
@@ -230,13 +244,44 @@ const offerData: CreateOfferRequest = {
     setNewOffer(initialOfferState);
   };
 
-  const handleDeleteOffer = () => {
-    if (offerToDelete) {
-      deleteOfferMutation.mutate(offerToDelete.id);
-      setIsDeleteDialogOpen(false);
-      setOfferToDelete(null);
-    }
-  };
+const handleDeleteOffer = () => {
+if (offerToDelete) {
+deleteOfferMutation.mutate(offerToDelete.id);
+setIsDeleteDialogOpen(false);
+setOfferToDelete(null);
+setIsDeleteCounting(false);
+setDeleteCountdown(5);
+}
+};
+
+const startDeleteCountdown = () => {
+setIsDeleteCounting(true);
+setDeleteCountdown(5);
+
+const timer = setInterval(() => {
+setDeleteCountdown((prev) => {
+if (prev <= 1) {
+clearInterval(timer);
+// Executa a deleção após 5 segundos
+handleDeleteOffer();
+return 0;
+}
+return prev - 1;
+});
+}, 1000);
+};
+
+const cancelDeleteCountdown = () => {
+setIsDeleteCounting(false);
+setDeleteCountdown(5);
+};
+
+const handleRestoreOffer = (offer: Offer) => {
+updateOfferMutation.mutate({
+id: offer.id,
+data: { isPublic: true },
+});
+};
 
   const openCreateDialog = () => {
     setNewOffer(initialOfferState);
@@ -271,54 +316,66 @@ const offerData: CreateOfferRequest = {
     }
   };
 
-  return (
-    <div className="container mx-auto p-6">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Catálogo de Ofertas</h1>
-          <p className="text-muted-foreground">
-            Gerencie as ofertas comerciais e pacotes de edição de vídeo
-          </p>
-        </div>
-        <Button onClick={openCreateDialog}>
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Oferta
-        </Button>
-      </div>
+return (
+<div className="container mx-auto p-6">
+{/* Header */}
+<div className="flex justify-between items-center mb-6">
+<div>
+<h1 className="text-3xl font-bold mb-2">Catálogo de Ofertas</h1>
+<p className="text-muted-foreground">
+Gerencie as ofertas comerciais e pacotes de edição de vídeo
+</p>
+</div>
+<Button onClick={openCreateDialog}>
+<Plus className="w-4 h-4 mr-2" />
+Nova Oferta
+</Button>
+</div>
 
-      {/* Filters */}
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  placeholder="Buscar por nome ou slug..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <Select
-              value={categoryFilter}
-              onValueChange={(value: any) => setCategoryFilter(value)}
-            >
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Filtrar por tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os tipos</SelectItem>
-                <SelectItem value="Avulso">Avulso</SelectItem>
-                <SelectItem value="Pacote">Pacote</SelectItem>
-                <SelectItem value="Assinatura">Assinatura</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+{/* Tabs */}
+<Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
+<TabsList>
+<TabsTrigger value="active">
+Ativos ({offers.filter(o => o.isPublic).length})
+</TabsTrigger>
+<TabsTrigger value="archived">
+Arquivados ({offers.filter(o => !o.isPublic).length})
+</TabsTrigger>
+</TabsList>
+</Tabs>
+
+{/* Filters */}
+<Card className="mb-6">
+<CardContent className="pt-6">
+<div className="flex gap-4">
+<div className="flex-1">
+<div className="relative">
+<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+<Input
+placeholder="Buscar por nome ou slug..."
+value={searchTerm}
+onChange={(e) => setSearchTerm(e.target.value)}
+className="pl-10"
+/>
+</div>
+</div>
+<Select
+value={categoryFilter}
+onValueChange={(value: any) => setCategoryFilter(value)}
+>
+<SelectTrigger className="w-[200px]">
+<SelectValue placeholder="Filtrar por tipo" />
+</SelectTrigger>
+<SelectContent>
+<SelectItem value="all">Todos os tipos</SelectItem>
+<SelectItem value="Avulso">Avulso</SelectItem>
+<SelectItem value="Pacote">Pacote</SelectItem>
+<SelectItem value="Assinatura">Assinatura</SelectItem>
+</SelectContent>
+</Select>
+</div>
+</CardContent>
+</Card>
 
       {/* Offers Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -685,26 +742,104 @@ const offerData: CreateOfferRequest = {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Excluir Oferta</DialogTitle>
-            <DialogDescription>
-              Tem certeza que deseja excluir esta oferta? Esta ação não pode ser
-              desfeita.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteOffer}>
-              Excluir
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+{/* Restore Confirmation Dialog */}
+<Dialog open={!!selectedOffer && !selectedOffer.isPublic} onOpenChange={(open) => !open && setSelectedOffer(null)}>
+<DialogContent>
+<DialogHeader>
+<DialogTitle>Reativar Oferta</DialogTitle>
+<DialogDescription>
+Tem certeza que deseja reativar a oferta "{selectedOffer?.name}"? Ela voltará a ser visível no catálogo.
+</DialogDescription>
+</DialogHeader>
+<DialogFooter>
+<Button
+variant="outline"
+onClick={() => setSelectedOffer(null)}
+>
+Cancelar
+</Button>
+<Button
+variant="default"
+onClick={() => {
+if (selectedOffer) {
+handleRestoreOffer(selectedOffer);
+setSelectedOffer(null);
+}
+}}
+>
+Reativar
+</Button>
+</DialogFooter>
+</DialogContent>
+</Dialog>
+
+{/* Delete Confirmation Dialog with Timer */}
+<Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+<DialogContent>
+<DialogHeader>
+<DialogTitle>
+{offerToDelete?.canDeletePermanently
+? 'Excluir Permanentemente'
+: 'Arquivar Oferta'}
+</DialogTitle>
+<DialogDescription>
+{offerToDelete?.canDeletePermanently
+? `Tem certeza que deseja excluir permanentemente "${offerToDelete.name}"? Esta ação é irreversível.`
+: `A oferta "${offerToDelete?.name}" possui contratos vinculados e será apenas arquivada.`}
+</DialogDescription>
+</DialogHeader>
+<DialogFooter className="flex-col gap-2">
+{offerToDelete?.canDeletePermanently ? (
+<>
+{isDeleteCounting ? (
+<div className="w-full space-y-2">
+<p className="text-sm text-destructive font-medium">
+Confirmando exclusão em {deleteCountdown}s...
+</p>
+<div className="w-full bg-gray-200 rounded-full h-2">
+<div
+className="bg-destructive h-2 rounded-full transition-all"
+style={{ width: `${(deleteCountdown / 5) * 100}%` }}
+/>
+</div>
+<Button
+variant="outline"
+className="w-full mt-2"
+onClick={cancelDeleteCountdown}
+>
+Cancelar Exclusão
+</Button>
+</div>
+) : (
+<Button
+variant="destructive"
+onClick={startDeleteCountdown}
+disabled={isDeleteCounting}
+>
+Iniciar Exclusão (5s)
+</Button>
+)}
+</>
+) : (
+<Button
+variant="destructive"
+onClick={handleDeleteOffer}
+>
+Arquivar Oferta
+</Button>
+)}
+<Button
+variant="outline"
+onClick={() => {
+setIsDeleteDialogOpen(false);
+cancelDeleteCountdown();
+}}
+>
+Cancelar
+</Button>
+</DialogFooter>
+</DialogContent>
+</Dialog>
     </div>
   );
 };

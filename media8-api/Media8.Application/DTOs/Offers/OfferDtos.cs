@@ -207,23 +207,28 @@ public class UpdateOfferRequest
 /// </summary>
 public class OfferResponse
 {
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Slug { get; set; } = string.Empty;
-    public ContractType ContractType { get; set; }
-    public decimal Price { get; set; }
-    public int VideoQuantity { get; set; }
-    public int MaxDurationSeconds { get; set; }
-    public int? ValidityDays { get; set; }
-    public int LoyaltyMonths { get; set; }
-    public int DeliveryDays { get; set; }
-    public Guid? VideoFormatId { get; set; }
-    public Guid? EditingStyleId { get; set; }
-    public string? Description { get; set; }
-    public List<string> Features { get; set; } = new List<string>();
-    public string? Disclaimer { get; set; }
-    public string? Badge { get; set; }
-    public bool IsPublic { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
+public Guid Id { get; set; }
+public string Name { get; set; } = string.Empty;
+public string Slug { get; set; } = string.Empty;
+public ContractType ContractType { get; set; }
+public decimal Price { get; set; }
+public int VideoQuantity { get; set; }
+public int MaxDurationSeconds { get; set; }
+public int? ValidityDays { get; set; }
+public int LoyaltyMonths { get; set; }
+public int DeliveryDays { get; set; }
+public Guid? VideoFormatId { get; set; }
+public Guid? EditingStyleId { get; set; }
+public string? Description { get; set; }
+public List<string> Features { get; set; } = new List<string>();
+public string? Disclaimer { get; set; }
+public string? Badge { get; set; }
+public bool IsPublic { get; set; }
+public DateTime CreatedAt { get; set; }
+public DateTime UpdatedAt { get; set; }
+
+/// <summary>
+/// Indica se a oferta pode ser deletada permanentemente (sem contratos vinculados)
+/// </summary>
+public bool CanDeletePermanently { get; set; }
 }
