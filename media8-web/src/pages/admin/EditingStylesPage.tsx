@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   Palette,
@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   X,
   Loader2,
+  RotateCcw,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -42,6 +43,8 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from 'sonner';
 
 import {
   useEditingStyles,
@@ -76,6 +79,13 @@ const EditingStylesPage: React.FC = () => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState<EditingStyle | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [styleToDelete, setStyleToDelete] = useState<EditingStyle | null>(null);
+  const [deleteCountdown, setDeleteCountdown] = useState<number>(5);
+  const [isDeleteCounting, setIsDeleteCounting] = useState(false);
+  const [isRestoreDialogOpen, setIsRestoreDialogOpen] = useState(false);
+  const [styleToRestore, setStyleToRestore] = useState<EditingStyle | null>(null);
 
   const {
     register: registerForm,
@@ -86,12 +96,22 @@ const EditingStylesPage: React.FC = () => {
     resolver: zodResolver(formSchema),
   });
 
-  // Filter styles by search term
-  const filteredStyles = editingStyles.filter(
-    (style) =>
-      style.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      style.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter styles by tab and search term
+  const filteredStyles = useMemo(() => {
+    const tabFiltered = editingStyles.filter((style) => {
+      if (activeTab === 'active') {
+        return style.isActive;
+      } else {
+        return !style.isActive;
+      }
+    });
+
+    return tabFiltered.filter(
+      (style) =>
+        style.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        style.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [editingStyles, activeTab, searchTerm]);
 
   // Handle Create
   const handleCreate = (data: FormData) => {
@@ -127,10 +147,54 @@ const EditingStylesPage: React.FC = () => {
     reset();
   };
 
-  // Handle Delete
-  const handleDelete = (style: EditingStyle) => {
-    if (window.confirm(`Tem certeza que deseja desativar o estilo "${style.name}"?`)) {
-      deleteMutation.mutate(style.id);
+  // Handle Soft Delete (arquiva)
+  const handleSoftDelete = (style: EditingStyle) => {
+    setStyleToDelete(style);
+    setIsDeleteDialogOpen(true);
+  };
+
+  // Handle Permanent Delete with timer
+  const startDeleteCountdown = () => {
+    setIsDeleteCounting(true);
+    setDeleteCountdown(5);
+
+    const timer = setInterval(() => {
+      setDeleteCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          if (styleToDelete) {
+            deleteMutation.mutate(styleToDelete.id);
+          }
+          setIsDeleteDialogOpen(false);
+          setStyleToDelete(null);
+          setIsDeleteCounting(false);
+          setDeleteCountdown(5);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const cancelDeleteCountdown = () => {
+    setIsDeleteCounting(false);
+    setDeleteCountdown(5);
+  };
+
+  // Handle Restore (reactivate)
+  const handleRestore = (style: EditingStyle) => {
+    setStyleToRestore(style);
+    setIsRestoreDialogOpen(true);
+  };
+
+  const confirmRestore = () => {
+    if (styleToRestore) {
+      updateMutation.mutate({
+        id: styleToRestore.id,
+        data: { isActive: true },
+      });
+      setIsRestoreDialogOpen(false);
+      setStyleToRestore(null);
     }
   };
 
@@ -220,6 +284,18 @@ const EditingStylesPage: React.FC = () => {
         </Dialog>
       </div>
 
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
+        <TabsList>
+          <TabsTrigger value="active">
+            Ativos ({editingStyles.filter((s) => s.isActive).length})
+          </TabsTrigger>
+          <TabsTrigger value="archived">
+            Arquivados ({editingStyles.filter((s) => !s.isActive).length})
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       {/* Search */}
       <div className="flex items-center gap-2">
         <div className="relative flex-1 max-w-md">
@@ -255,59 +331,181 @@ const EditingStylesPage: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredStyles.map((style) => (
-              <TableRow key={style.id}>
-                <TableCell className="font-medium">{style.name}</TableCell>
-                <TableCell className="max-w-xs truncate">
-                  {style.description || '—'}
-                </TableCell>
-                <TableCell>
-                  {style.isActive ? (
-                    <Badge variant="success" className="gap-1">
-                      <CheckCircle2 className="h-3 w-3" />
-                      Ativo
-                    </Badge>
-                  ) : (
-                    <Badge variant="secondary" className="gap-1">
-                      <X className="h-3 w-3" />
-                      Inativo
-                    </Badge>
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => handleEdit(style)}>
-                        <Edit className="h-4 w-4 mr-2" />
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleDelete(style)}
-                        className="text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Excluir
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                  <p className="text-sm text-muted-foreground mt-2">Carregando estilos...</p>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : filteredStyles.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-8">
+                  <Palette className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-muted-foreground">
+                    {searchTerm ? 'Nenhum estilo encontrado.' : 'Nenhum estilo cadastrado.'}
+                  </p>
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredStyles.map((style) => (
+                <TableRow key={style.id}>
+                  <TableCell className="font-medium">{style.name}</TableCell>
+                  <TableCell className="max-w-xs truncate">
+                    {style.description || '—'}
+                  </TableCell>
+                  <TableCell>
+                    {style.isActive ? (
+                      <Badge variant="success" className="gap-1">
+                        <CheckCircle2 className="h-3 w-3" />
+                        Ativo
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="gap-1">
+                        <X className="h-3 w-3" />
+                        Inativo
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => handleEdit(style)}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        {style.isActive ? (
+                          <DropdownMenuItem
+                            onClick={() => handleSoftDelete(style)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Arquivar
+                          </DropdownMenuItem>
+                        ) : (
+                          <>
+                            <DropdownMenuItem onClick={() => handleRestore(style)}>
+                              <RotateCcw className="h-4 w-4 mr-2" />
+                              Reativar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleSoftDelete(style)}
+                              className="text-destructive"
+                              disabled={!style.canDeletePermanently}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              {style.canDeletePermanently ? 'Excluir Definitivamente' : 'Não pode excluir'}
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
 
-      {/* Loading state */}
-      {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      )}
+      {/* Restore Confirmation Dialog */}
+      <Dialog open={isRestoreDialogOpen} onOpenChange={setIsRestoreDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reativar Estilo</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja reativar o estilo "{styleToRestore?.name}"? Ele voltará a ser visível no catálogo.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsRestoreDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button variant="default" onClick={confirmRestore}>
+              Reativar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog with Timer */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {styleToDelete?.canDeletePermanently
+                ? 'Excluir Permanentemente'
+                : 'Arquivar Estilo'}
+            </DialogTitle>
+            <DialogDescription>
+              {styleToDelete?.canDeletePermanently
+                ? `Tem certeza que deseja excluir permanentemente "${styleToDelete.name}"? Esta ação é irreversível.`
+                : `O estilo "${styleToDelete?.name}" possui ofertas vinculadas e será apenas arquivado.`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col gap-2">
+            {styleToDelete?.canDeletePermanently ? (
+              <>
+                {isDeleteCounting ? (
+                  <div className="w-full space-y-2">
+                    <p className="text-sm text-destructive font-medium">
+                      Confirmando exclusão em {deleteCountdown}s...
+                    </p>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-destructive h-2 rounded-full transition-all"
+                        style={{ width: `${(deleteCountdown / 5) * 100}%` }}
+                      />
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="w-full mt-2"
+                      onClick={cancelDeleteCountdown}
+                    >
+                      Cancelar Exclusão
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="destructive"
+                    onClick={startDeleteCountdown}
+                    disabled={isDeleteCounting}
+                  >
+                    Iniciar Exclusão (5s)
+                  </Button>
+                )}
+              </>
+            ) : (
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (styleToDelete) {
+                    deleteMutation.mutate(styleToDelete.id);
+                    setIsDeleteDialogOpen(false);
+                    setStyleToDelete(null);
+                  }
+                }}
+              >
+                Arquivar Estilo
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                cancelDeleteCountdown();
+              }}
+            >
+              Cancelar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 };

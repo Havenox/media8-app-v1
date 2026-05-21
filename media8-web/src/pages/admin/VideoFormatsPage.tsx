@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   Film,
@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   X,
   Loader2,
+  RotateCcw,
 } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -51,6 +52,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from 'sonner';
 
 import { useVideoFormats, useCreateVideoFormat, useUpdateVideoFormat, useDeleteVideoFormat } from '@/hooks/useVideoFormats';
 import { VideoFormat } from '@/types/api';
@@ -82,9 +85,9 @@ const getTierBadgeVariant = (tier: string) => {
 };
 
 const formatDuration = (seconds: number) => {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
+const mins = Math.floor(seconds / 60);
+const secs = seconds % 60;
+return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
 // ==========================================
@@ -101,6 +104,13 @@ const VideoFormatsPage: React.FC = () => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<VideoFormat | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [formatToDelete, setFormatToDelete] = useState<VideoFormat | null>(null);
+  const [deleteCountdown, setDeleteCountdown] = useState<number>(5);
+  const [isDeleteCounting, setIsDeleteCounting] = useState(false);
+  const [isRestoreDialogOpen, setIsRestoreDialogOpen] = useState(false);
+  const [formatToRestore, setFormatToRestore] = useState<VideoFormat | null>(null);
 
   const {
     register: registerForm,
@@ -113,11 +123,22 @@ const VideoFormatsPage: React.FC = () => {
     resolver: zodResolver(formSchema),
   });
 
-  // Filter formats by search term
-  const filteredFormats = videoFormats.filter((format) =>
-    format.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    format.slug.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter formats by tab and search term
+  const filteredFormats = useMemo(() => {
+    const tabFiltered = videoFormats.filter((format) => {
+      if (activeTab === 'active') {
+        return format.isActive;
+      } else {
+        return !format.isActive;
+      }
+    });
+
+    return tabFiltered.filter(
+      (format) =>
+        format.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        format.slug.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [videoFormats, activeTab, searchTerm]);
 
   // Handle Create
   const handleCreate = (data: FormData) => {
@@ -157,10 +178,54 @@ const VideoFormatsPage: React.FC = () => {
     reset();
   };
 
-  // Handle Delete
-  const handleDelete = (format: VideoFormat) => {
-    if (window.confirm(`Tem certeza que deseja desativar o formato "${format.name}"?`)) {
-      deleteMutation.mutate(format.id);
+  // Handle Delete (soft delete - arquiva)
+  const handleSoftDelete = (format: VideoFormat) => {
+    setFormatToDelete(format);
+    setIsDeleteDialogOpen(true);
+  };
+
+  // Handle Permanent Delete with timer
+  const startDeleteCountdown = () => {
+    setIsDeleteCounting(true);
+    setDeleteCountdown(5);
+
+    const timer = setInterval(() => {
+      setDeleteCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          if (formatToDelete) {
+            deleteMutation.mutate(formatToDelete.id);
+          }
+          setIsDeleteDialogOpen(false);
+          setFormatToDelete(null);
+          setIsDeleteCounting(false);
+          setDeleteCountdown(5);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const cancelDeleteCountdown = () => {
+    setIsDeleteCounting(false);
+    setDeleteCountdown(5);
+  };
+
+  // Handle Restore (reactivate)
+  const handleRestore = (format: VideoFormat) => {
+    setFormatToRestore(format);
+    setIsRestoreDialogOpen(true);
+  };
+
+  const confirmRestore = () => {
+    if (formatToRestore) {
+      updateMutation.mutate({
+        id: formatToRestore.id,
+        data: { isActive: true },
+      });
+      setIsRestoreDialogOpen(false);
+      setFormatToRestore(null);
     }
   };
 
@@ -281,6 +346,18 @@ const VideoFormatsPage: React.FC = () => {
         </Dialog>
       </div>
 
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
+        <TabsList>
+          <TabsTrigger value="active">
+            Ativos ({videoFormats.filter((f) => f.isActive).length})
+          </TabsTrigger>
+          <TabsTrigger value="archived">
+            Arquivados ({videoFormats.filter((f) => !f.isActive).length})
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       {/* Search Bar */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -361,13 +438,30 @@ const VideoFormatsPage: React.FC = () => {
                           <Edit className="h-4 w-4 mr-2" />
                           Editar
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleDelete(format)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Excluir
-                        </DropdownMenuItem>
+                        {format.isActive ? (
+                          <DropdownMenuItem
+                            onClick={() => handleSoftDelete(format)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Arquivar
+                          </DropdownMenuItem>
+                        ) : (
+                          <>
+                            <DropdownMenuItem onClick={() => handleRestore(format)}>
+                              <RotateCcw className="h-4 w-4 mr-2" />
+                              Reativar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleSoftDelete(format)}
+                              className="text-destructive"
+                              disabled={!format.canDeletePermanently}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              {format.canDeletePermanently ? 'Excluir Definitivamente' : 'Não pode excluir'}
+                            </DropdownMenuItem>
+                          </>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -462,6 +556,100 @@ const VideoFormatsPage: React.FC = () => {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Restore Confirmation Dialog */}
+      <Dialog open={isRestoreDialogOpen} onOpenChange={setIsRestoreDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reativar Formato</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja reativar o formato "{formatToRestore?.name}"? Ele voltará a ser visível no catálogo.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsRestoreDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button variant="default" onClick={confirmRestore}>
+              Reativar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog with Timer */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {formatToDelete?.canDeletePermanently
+                ? 'Excluir Permanentemente'
+                : 'Arquivar Formato'}
+            </DialogTitle>
+            <DialogDescription>
+              {formatToDelete?.canDeletePermanently
+                ? `Tem certeza que deseja excluir permanentemente "${formatToDelete.name}"? Esta ação é irreversível.`
+                : `O formato "${formatToDelete?.name}" possui contratos vinculados e será apenas arquivado.`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col gap-2">
+            {formatToDelete?.canDeletePermanently ? (
+              <>
+                {isDeleteCounting ? (
+                  <div className="w-full space-y-2">
+                    <p className="text-sm text-destructive font-medium">
+                      Confirmando exclusão em {deleteCountdown}s...
+                    </p>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-destructive h-2 rounded-full transition-all"
+                        style={{ width: `${(deleteCountdown / 5) * 100}%` }}
+                      />
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="w-full mt-2"
+                      onClick={cancelDeleteCountdown}
+                    >
+                      Cancelar Exclusão
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="destructive"
+                    onClick={startDeleteCountdown}
+                    disabled={isDeleteCounting}
+                  >
+                    Iniciar Exclusão (5s)
+                  </Button>
+                )}
+              </>
+            ) : (
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (formatToDelete) {
+                    deleteMutation.mutate(formatToDelete.id);
+                    setIsDeleteDialogOpen(false);
+                    setFormatToDelete(null);
+                  }
+                }}
+              >
+                Arquivar Formato
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                cancelDeleteCountdown();
+              }}
+            >
+              Cancelar
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </motion.div>

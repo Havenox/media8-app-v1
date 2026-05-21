@@ -246,12 +246,13 @@ export const isDynamicDeadline = (type: ServiceType): boolean => {
 // ==========================================
 
 export interface EditingStyle {
-  id: string;
-  name: string;
-  description?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+id: string;
+name: string;
+description?: string;
+isActive: boolean;
+createdAt: string;
+updatedAt: string;
+canDeletePermanently?: boolean;
 }
 
 export interface CreateEditingStyleRequest {

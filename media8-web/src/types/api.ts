@@ -22,11 +22,14 @@ export type TimelineActionType =
 export type VideoFormatTier = 'Standard' | 'Premium' | 'GodMode';
 
 export interface VideoFormat {
-  id: string;
-  name: string;
-  slug: string;
-  maxDurationSeconds: number;
-  tier: VideoFormatTier;
+id: string;
+name: string;
+slug: string;
+maxDurationSeconds: number;
+tier: VideoFormatTier;
+editingStyleId?: string;
+isActive: boolean;
+canDeletePermanently?: boolean;
 }
 
 // User
