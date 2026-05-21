@@ -234,18 +234,21 @@ Saldos e Serviços
       Atribuir
     </Button>
   )}
-  <Button
-    variant="destructive"
-    size="icon"
-    onClick={() => setIsArchiveDialogOpen(true)}
-    disabled={isDeleting}
-  >
-    {isDeleting ? (
-      <Loader2 className="h-4 w-4 animate-spin" />
-    ) : (
-      <Archive className="h-4 w-4" />
-    )}
-  </Button>
+        <Button
+          variant="destructive"
+          size="icon"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsArchiveDialogOpen(true);
+          }}
+          disabled={isDeleting}
+        >
+          {isDeleting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Archive className="h-4 w-4" />
+          )}
+        </Button>
 </SheetFooter>
 
 {/* Archive User AlertDialog */}
