@@ -51,9 +51,9 @@ const updateAPI = async (id: string, data: Partial<User>): Promise<User> => {
   return response.data;
 };
 
-const deleteAPI = async (id: string): Promise<void> => {
-  // Deletion is disabled in this version
-  throw new Error("Funcionalidade temporariamente desabilitada");
+const deleteAPI = async (id: string): Promise<{ success: boolean; message: string; deletedPhysically: boolean }> => {
+  const response = await api.delete(`/users/${id}`);
+  return response.data;
 };
 
 // ... existing auth methods ...

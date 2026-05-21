@@ -37,6 +37,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UserRole, User as UserType } from '@/types/api';
 import { useAuth } from '@/contexts/AuthContext';
 import UserDetailsSheet from '@/components/users/UserDetailsSheet';
@@ -55,16 +56,19 @@ const UsersPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 500);
   const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
-  
+  const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
+
   // Modals state
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  
-// Selection state
-const [selectedClient, setSelectedClient] = useState<UserType | null>(null);
-const [selectedUserForEdit, setSelectedUserForEdit] = useState<UserType | null>(null);
-const [selectedUserForDetails, setSelectedUserForDetails] = useState<UserType | null>(null);
+  const [isRestoreDialogOpen, setIsRestoreDialogOpen] = useState(false);
+
+  // Selection state
+  const [selectedClient, setSelectedClient] = useState<UserType | null>(null);
+  const [selectedUserForEdit, setSelectedUserForEdit] = useState<UserType | null>(null);
+  const [selectedUserForDetails, setSelectedUserForDetails] = useState<UserType | null>(null);
+  const [userToRestore, setUserToRestore] = useState<UserType | null>(null);
 
   // Forms state
   const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'Client' as UserRole });
@@ -163,14 +167,30 @@ const updateUserMutation = useUpdateUser();
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!window.confirm("Esta ação está temporariamente desabilitada pelo sistema.")) return;
-    /* 
-    try {
-      await deleteUserMutation.mutateAsync(userId);
-    } catch (error) { ... } 
-    */
-  };
+const handleDeleteUser = async (userId: string) => {
+  if (!window.confirm("Esta ação está temporariamente desabilitada pelo sistema.")) return;
+  /*
+  try {
+    await deleteUserMutation.mutateAsync(userId);
+  } catch (error) { ... }
+  */
+};
+
+const handleRestoreUser = async () => {
+  if (!userToRestore) return;
+  
+  try {
+    await updateUserMutation.mutateAsync({
+      id: userToRestore.id,
+      data: { /* campos necessários para reativação */ }
+    });
+    setIsRestoreDialogOpen(false);
+    setUserToRestore(null);
+    toast.success('Usuário reativado com sucesso!');
+  } catch (error) {
+    toast.error('Erro ao reativar usuário');
+  }
+};
 
 
 
