@@ -135,6 +135,15 @@ Focado em **Segurança** e **Integridade de Dados**.
 * **UX**: Estados de loading, empty state, badges coloridos por status
 * *Implementação*: Ver `docs/implementations/039-integracao-completa-vinculo-contratos-usuarios.md`.
 
+### 9. Conditional Deletion Pattern - Épico 4.0
+**Problema**: Entidades como Ofertas, Formatos e Estilos eram apenas desativadas (Soft Delete), acumulando "lixo" no banco, mas excluí-las fisicamente poderia quebrar integridade relacional se houvessem dependências.
+**Solução**: Implementado padrão de **Deleção Condicional** com verificação de dependências e UI com abas "Ativos/Arquivados".
+* **Backend**: Verifica `ClientContracts` e `ServiceBalanceLots` antes de deletar. Sem dependências = Hard Delete; Com dependências = Soft Delete (arquivamento).
+* **Frontend**: Timer visual de 5 segundos com barra de progresso para exclusões destrutivas, prevenindo cliques acidentais.
+* **DTO Shadowing Bug**: Durante implementação, classe DTO duplicada no controller causou erro CS0117. Solução: Remover declaração local e usar DTOs de `Media8.Application.DTOs.Services`.
+* **Impacto**: Banco limpo de registros órfãos, integridade preservada, UX com feedback claro.
+* *Implementação*: Ver `docs/implementations/048-abas-arquivamento-delecao-condicional-ofertas.md` e `docs/implementations/050-correcao-dto-duplicado-videoformats.md`.
+
 ---
 
 ## Fluxo de Dados
