@@ -14,6 +14,11 @@ RUN dotnet publish "Media8.Api.csproj" -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
+
+# Install system dependencies required for .NET Core runtime
+# Fixes libgssapi-krb5-2 dependency for Kerberos authentication
+RUN apt-get update && apt-get install -y libgssapi-krb5-2 && rm -rf /var/lib/apt/lists/*
+
 EXPOSE 80
 EXPOSE 443
 COPY --from=publish /app/publish .
