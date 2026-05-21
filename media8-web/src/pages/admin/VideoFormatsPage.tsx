@@ -178,13 +178,13 @@ const VideoFormatsPage: React.FC = () => {
     reset();
   };
 
-  // Handle Delete (soft delete - arquiva)
+  // Handle Soft Delete (arquiva - aba Ativos)
   const handleSoftDelete = (format: VideoFormat) => {
     setFormatToDelete(format);
     setIsDeleteDialogOpen(true);
   };
 
-  // Handle Permanent Delete with timer
+  // Handle Permanent Delete with timer (aba Arquivados)
   const startDeleteCountdown = () => {
     setIsDeleteCounting(true);
     setDeleteCountdown(5);
@@ -194,7 +194,7 @@ const VideoFormatsPage: React.FC = () => {
         if (prev <= 1) {
           clearInterval(timer);
           if (formatToDelete) {
-            deleteMutation.mutate(formatToDelete.id);
+            deleteMutation.mutate({ id: formatToDelete.id, permanent: true });
           }
           setIsDeleteDialogOpen(false);
           setFormatToDelete(null);
@@ -579,19 +579,55 @@ const VideoFormatsPage: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog with Timer */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      {/* Delete Confirmation Dialog - Active Tab (Archive Only) */}
+      <Dialog open={isDeleteDialogOpen && activeTab === 'active'} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Arquivar Formato</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja mover o formato "{formatToDelete?.name}" para os arquivados?
+              Ele não será mais visível no catálogo ativo.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col gap-2">
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (formatToDelete) {
+                  deleteMutation.mutate({ id: formatToDelete.id, permanent: false });
+                  setIsDeleteDialogOpen(false);
+                  setFormatToDelete(null);
+                }
+              }}
+            >
+              Arquivar Formato
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                cancelDeleteCountdown();
+              }}
+            >
+              Cancelar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog - Archived Tab (With Timer for Permanent Delete) */}
+      <Dialog open={isDeleteDialogOpen && activeTab === 'archived'} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
               {formatToDelete?.canDeletePermanently
                 ? 'Excluir Permanentemente'
-                : 'Arquivar Formato'}
+                : 'Não é possível excluir'}
             </DialogTitle>
             <DialogDescription>
               {formatToDelete?.canDeletePermanently
                 ? `Tem certeza que deseja excluir permanentemente "${formatToDelete.name}"? Esta ação é irreversível.`
-                : `O formato "${formatToDelete?.name}" possui contratos vinculados e será apenas arquivado.`}
+                : `O formato "${formatToDelete?.name}" possui ofertas ou saldos vinculados e não pode ser excluído permanentemente.`}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col gap-2">
@@ -629,15 +665,9 @@ const VideoFormatsPage: React.FC = () => {
             ) : (
               <Button
                 variant="destructive"
-                onClick={() => {
-                  if (formatToDelete) {
-                    deleteMutation.mutate(formatToDelete.id);
-                    setIsDeleteDialogOpen(false);
-                    setFormatToDelete(null);
-                  }
-                }}
+                disabled
               >
-                Arquivar Formato
+                Arquivado (não pode excluir)
               </Button>
             )}
             <Button

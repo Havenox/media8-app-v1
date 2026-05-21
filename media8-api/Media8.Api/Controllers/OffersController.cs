@@ -268,35 +268,47 @@ return Ok(offer);
 
 /// <summary>
 /// Remove uma oferta do catálogo comercial (Apenas Admin)
-/// Realiza Hard Delete se não houver contratos vinculados, caso contrário faz Soft Delete (arquivamento)
+/// Se permanent=false (padrão): apenas arquiva (Soft Delete)
+/// Se permanent=true: tenta Hard Delete (se não houver contratos)
 /// </summary>
 [HttpDelete("{id:guid}")]
 [Authorize(Roles = "Admin")]
-public async Task<ActionResult<DeleteOfferResponse>> DeleteOffer(Guid id)
+public async Task<ActionResult<DeleteOfferResponse>> DeleteOffer(Guid id, [FromQuery] bool permanent = false)
 {
-var offer = await _context.Offers.FindAsync(id);
-if (offer == null) return NotFound();
+  var offer = await _context.Offers.FindAsync(id);
+  if (offer == null) return NotFound();
 
-// Verifica se há contratos vinculados
-var hasContracts = await _context.ClientContracts.AnyAsync(c => c.OfferId == id);
+  // Se permanent=false (padrão), apenas arquiva
+  if (!permanent)
+  {
+    offer.IsPublic = false;
+    offer.UpdatedAt = DateTime.UtcNow;
+    await _context.SaveChangesAsync();
 
-if (hasContracts)
-{
-// Soft Delete: arquiva a oferta (não pode deletar fisicamente)
-offer.IsPublic = false;
-offer.UpdatedAt = DateTime.UtcNow;
-await _context.SaveChangesAsync();
+    return Ok(new DeleteOfferResponse
+    {
+      Success = true,
+      Message = "Oferta arquivada com sucesso.",
+      DeletedPhysically = false
+    });
+  }
 
-return Ok(new DeleteOfferResponse 
-{ 
-Success = true, 
-Message = "Oferta arquivada (possui contratos vinculados).", 
-DeletedPhysically = false 
-});
-}
-else
-{
-// Hard Delete: remove fisicamente do banco
+  // Se permanent=true, verifica se pode deletar fisicamente
+  var hasContracts = await _context.ClientContracts.AnyAsync(c => c.OfferId == id);
+
+  if (hasContracts)
+  {
+    // Não pode deletar fisicamente, retorna erro
+    return BadRequest(new DeleteOfferResponse
+    {
+      Success = false,
+      Message = "Não é possível excluir permanentemente: a oferta possui contratos vinculados.",
+      DeletedPhysically = false
+    });
+  }
+  else
+  {
+    // Hard Delete: remove fisicamente do banco
 _context.Offers.Remove(offer);
 await _context.SaveChangesAsync();
 

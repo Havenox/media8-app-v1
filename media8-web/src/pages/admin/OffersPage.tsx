@@ -244,31 +244,31 @@ const offerData: CreateOfferRequest = {
     setNewOffer(initialOfferState);
   };
 
-const handleDeleteOffer = () => {
-if (offerToDelete) {
-deleteOfferMutation.mutate(offerToDelete.id);
-setIsDeleteDialogOpen(false);
-setOfferToDelete(null);
-setIsDeleteCounting(false);
-setDeleteCountdown(5);
-}
+const handleDeleteOffer = (permanent = false) => {
+  if (offerToDelete) {
+    deleteOfferMutation.mutate({ id: offerToDelete.id, permanent });
+    setIsDeleteDialogOpen(false);
+    setOfferToDelete(null);
+    setIsDeleteCounting(false);
+    setDeleteCountdown(5);
+  }
 };
 
 const startDeleteCountdown = () => {
-setIsDeleteCounting(true);
-setDeleteCountdown(5);
+  setIsDeleteCounting(true);
+  setDeleteCountdown(5);
 
-const timer = setInterval(() => {
-setDeleteCountdown((prev) => {
-if (prev <= 1) {
-clearInterval(timer);
-// Executa a deleção após 5 segundos
-handleDeleteOffer();
-return 0;
-}
-return prev - 1;
-});
-}, 1000);
+  const timer = setInterval(() => {
+    setDeleteCountdown((prev) => {
+      if (prev <= 1) {
+        clearInterval(timer);
+        // Executa a deleção permanente após 5 segundos
+        handleDeleteOffer(true);
+        return 0;
+      }
+      return prev - 1;
+    });
+  }, 1000);
 };
 
 const cancelDeleteCountdown = () => {
@@ -773,72 +773,103 @@ Reativar
 </DialogContent>
 </Dialog>
 
-{/* Delete Confirmation Dialog with Timer */}
-<Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-<DialogContent>
-<DialogHeader>
-<DialogTitle>
-{offerToDelete?.canDeletePermanently
-? 'Excluir Permanentemente'
-: 'Arquivar Oferta'}
-</DialogTitle>
-<DialogDescription>
-{offerToDelete?.canDeletePermanently
-? `Tem certeza que deseja excluir permanentemente "${offerToDelete.name}"? Esta ação é irreversível.`
-: `A oferta "${offerToDelete?.name}" possui contratos vinculados e será apenas arquivada.`}
-</DialogDescription>
-</DialogHeader>
-<DialogFooter className="flex-col gap-2">
-{offerToDelete?.canDeletePermanently ? (
-<>
-{isDeleteCounting ? (
-<div className="w-full space-y-2">
-<p className="text-sm text-destructive font-medium">
-Confirmando exclusão em {deleteCountdown}s...
-</p>
-<div className="w-full bg-gray-200 rounded-full h-2">
-<div
-className="bg-destructive h-2 rounded-full transition-all"
-style={{ width: `${(deleteCountdown / 5) * 100}%` }}
-/>
-</div>
-<Button
-variant="outline"
-className="w-full mt-2"
-onClick={cancelDeleteCountdown}
->
-Cancelar Exclusão
-</Button>
-</div>
-) : (
-<Button
-variant="destructive"
-onClick={startDeleteCountdown}
-disabled={isDeleteCounting}
->
-Iniciar Exclusão (5s)
-</Button>
-)}
-</>
-) : (
-<Button
-variant="destructive"
-onClick={handleDeleteOffer}
->
-Arquivar Oferta
-</Button>
-)}
-<Button
-variant="outline"
-onClick={() => {
-setIsDeleteDialogOpen(false);
-cancelDeleteCountdown();
-}}
->
-Cancelar
-</Button>
-</DialogFooter>
-</DialogContent>
+{/* Delete Confirmation Dialog - Active Tab (Archive Only) */}
+<Dialog open={isDeleteDialogOpen && activeTab === 'active'} onOpenChange={setIsDeleteDialogOpen}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Arquivar Oferta</DialogTitle>
+      <DialogDescription>
+        Tem certeza que deseja mover a oferta "{offerToDelete?.name}" para os arquivados?
+        Ela não será mais visível no catálogo ativo.
+      </DialogDescription>
+    </DialogHeader>
+    <DialogFooter className="flex-col gap-2">
+      <Button
+        variant="destructive"
+        onClick={() => handleDeleteOffer(false)}
+      >
+        Arquivar Oferta
+      </Button>
+      <Button
+        variant="outline"
+        onClick={() => {
+          setIsDeleteDialogOpen(false);
+          cancelDeleteCountdown();
+        }}
+      >
+        Cancelar
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
+{/* Delete Confirmation Dialog - Archived Tab (With Timer for Permanent Delete) */}
+<Dialog open={isDeleteDialogOpen && activeTab === 'archived'} onOpenChange={setIsDeleteDialogOpen}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>
+        {offerToDelete?.canDeletePermanently
+          ? 'Excluir Permanentemente'
+          : 'Não é possível excluir'}
+      </DialogTitle>
+      <DialogDescription>
+        {offerToDelete?.canDeletePermanently
+          ? `Tem certeza que deseja excluir permanentemente "${offerToDelete.name}"? Esta ação é irreversível.`
+          : `A oferta "${offerToDelete?.name}" possui contratos vinculados e não pode ser excluída permanentemente.`}
+      </DialogDescription>
+    </DialogHeader>
+    <DialogFooter className="flex-col gap-2">
+      {offerToDelete?.canDeletePermanently ? (
+        <>
+          {isDeleteCounting ? (
+            <div className="w-full space-y-2">
+              <p className="text-sm text-destructive font-medium">
+                Confirmando exclusão em {deleteCountdown}s...
+              </p>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-destructive h-2 rounded-full transition-all"
+                  style={{ width: `${(deleteCountdown / 5) * 100}%` }}
+                />
+              </div>
+              <Button
+                variant="outline"
+                className="w-full mt-2"
+                onClick={cancelDeleteCountdown}
+              >
+                Cancelar Exclusão
+              </Button>
+            </div>
+          ) : (
+            <Button
+              variant="destructive"
+              onClick={startDeleteCountdown}
+              disabled={isDeleteCounting}
+            >
+              Iniciar Exclusão (5s)
+            </Button>
+          )}
+        </>
+      ) : (
+        <Button
+          variant="destructive"
+          onClick={() => handleDeleteOffer(false)}
+          disabled
+        >
+          Arquivada (não pode excluir)
+        </Button>
+      )}
+      <Button
+        variant="outline"
+        onClick={() => {
+          setIsDeleteDialogOpen(false);
+          cancelDeleteCountdown();
+        }}
+      >
+        Cancelar
+      </Button>
+    </DialogFooter>
+  </DialogContent>
 </Dialog>
     </div>
   );

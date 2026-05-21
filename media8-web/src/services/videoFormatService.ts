@@ -44,8 +44,9 @@ const updateAPI = async (id: string, data: UpdateVideoFormatRequest): Promise<Vi
   return response.data;
 };
 
-const deleteAPI = async (id: string): Promise<void> => {
-  await api.delete(`/video-formats/${id}`);
+const deleteAPI = async (id: string, permanent = false): Promise<void> => {
+  const params = new URLSearchParams({ permanent: permanent.toString() });
+  await api.delete(`/video-formats/${id}?${params.toString()}`);
 };
 
 // ==========================================
@@ -69,8 +70,8 @@ export const videoFormatService = {
     return updateAPI(id, data);
   },
 
-  async delete(id: string): Promise<void> {
-    return deleteAPI(id);
+  async delete(id: string, permanent = false): Promise<void> {
+    return deleteAPI(id, permanent);
   },
 };
 

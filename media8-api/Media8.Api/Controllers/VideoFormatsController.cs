@@ -164,36 +164,48 @@ return Ok(format);
 
 /// <summary>
 /// Remove um formato de vídeo (Apenas Admin)
-/// Realiza Hard Delete se não houver ofertas ou saldos vinculados, caso contrário faz Soft Delete (arquivamento)
+/// Se permanent=false (padrão): apenas arquiva (Soft Delete)
+/// Se permanent=true: tenta Hard Delete (se não houver ofertas ou saldos)
 /// </summary>
 [HttpDelete("{id:guid}")]
 [Authorize(Roles = "Admin")]
-public async Task<ActionResult<DeleteVideoFormatResponse>> DeleteVideoFormat(Guid id)
+public async Task<ActionResult<DeleteVideoFormatResponse>> DeleteVideoFormat(Guid id, [FromQuery] bool permanent = false)
 {
-var format = await _context.VideoFormats.FindAsync(id);
-if (format == null) return NotFound();
+  var format = await _context.VideoFormats.FindAsync(id);
+  if (format == null) return NotFound();
 
-// Verifica se há ofertas ou saldos vinculados
-var hasOffers = await _context.Offers.AnyAsync(o => o.VideoFormatId == id);
-var hasBalanceLots = await _context.ServiceBalanceLots.AnyAsync(l => l.VideoFormatId == id);
+  // Se permanent=false (padrão), apenas arquiva
+  if (!permanent)
+  {
+    format.IsActive = false;
+    format.UpdatedAt = DateTime.UtcNow;
+    await _context.SaveChangesAsync();
 
-if (hasOffers || hasBalanceLots)
-{
-// Soft Delete: arquiva o formato
-format.IsActive = false;
-format.UpdatedAt = DateTime.UtcNow;
-await _context.SaveChangesAsync();
+    return Ok(new DeleteVideoFormatResponse
+    {
+      Success = true,
+      Message = "Formato arquivado com sucesso.",
+      DeletedPhysically = false
+    });
+  }
 
-return Ok(new DeleteVideoFormatResponse
-{
-Success = true,
-Message = "Formato arquivado (possui ofertas ou saldos vinculados).",
-DeletedPhysically = false
-});
-}
-else
-{
-// Hard Delete: remove fisicamente
+  // Se permanent=true, verifica se pode deletar fisicamente
+  var hasOffers = await _context.Offers.AnyAsync(o => o.VideoFormatId == id);
+  var hasBalanceLots = await _context.ServiceBalanceLots.AnyAsync(l => l.VideoFormatId == id);
+
+  if (hasOffers || hasBalanceLots)
+  {
+    // Não pode deletar fisicamente
+    return BadRequest(new DeleteVideoFormatResponse
+    {
+      Success = false,
+      Message = "Não é possível excluir permanentemente: o formato possui ofertas ou saldos vinculados.",
+      DeletedPhysically = false
+    });
+  }
+  else
+  {
+    // Hard Delete: remove fisicamente
 _context.VideoFormats.Remove(format);
 await _context.SaveChangesAsync();
 

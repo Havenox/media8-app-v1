@@ -82,13 +82,13 @@ export const useUpdateOffer = () => {
 };
 
 /**
- * Delete an offer
- */
+* Delete an offer
+*/
 export const useDeleteOffer = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => offerService.delete(id),
+    mutationFn: ({ id, permanent = false }: { id: string; permanent?: boolean }) => offerService.delete(id, permanent),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: offerKeys.all });
       toast.success('Oferta removida com sucesso!');

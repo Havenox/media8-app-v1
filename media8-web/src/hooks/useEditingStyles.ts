@@ -84,13 +84,13 @@ export const useUpdateEditingStyle = () => {
 };
 
 /**
- * Delete (soft delete) an editing style (Admin only)
- */
+* Delete (soft delete) an editing style (Admin only)
+*/
 export const useDeleteEditingStyle = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => editingStyleService.delete(id),
+    mutationFn: ({ id, permanent = false }: { id: string; permanent?: boolean }) => editingStyleService.delete(id, permanent),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: editingStyleKeys.all });
       toast.success('Estilo removido com sucesso!');

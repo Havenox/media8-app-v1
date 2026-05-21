@@ -160,45 +160,57 @@ return Ok(editingStyle);
 
 /// <summary>
 /// Remove um estilo de edição (Apenas Admin)
-/// Realiza Hard Delete se não houver ofertas vinculadas, caso contrário faz Soft Delete (arquivamento)
+/// Se permanent=false (padrão): apenas arquiva (Soft Delete)
+/// Se permanent=true: tenta Hard Delete (se não houver ofertas)
 /// </summary>
 [HttpDelete("{id:guid}")]
 [Authorize(Roles = "Admin")]
-public async Task<ActionResult<DeleteEditingStyleResponse>> DeleteEditingStyle(Guid id)
+public async Task<ActionResult<DeleteEditingStyleResponse>> DeleteEditingStyle(Guid id, [FromQuery] bool permanent = false)
 {
-var editingStyle = await _context.EditingStyles.FindAsync(id);
-if (editingStyle == null) return NotFound();
+  var editingStyle = await _context.EditingStyles.FindAsync(id);
+  if (editingStyle == null) return NotFound();
 
-// Verifica se há ofertas vinculadas
-var hasOffers = await _context.Offers.AnyAsync(o => o.EditingStyleId == id);
+  // Se permanent=false (padrão), apenas arquiva
+  if (!permanent)
+  {
+    editingStyle.IsActive = false;
+    editingStyle.UpdatedAt = DateTime.UtcNow;
+    await _context.SaveChangesAsync();
 
-if (hasOffers)
-{
-// Soft Delete: arquiva o estilo
-editingStyle.IsActive = false;
-editingStyle.UpdatedAt = DateTime.UtcNow;
-await _context.SaveChangesAsync();
+    return Ok(new DeleteEditingStyleResponse
+    {
+      Success = true,
+      Message = "Estilo arquivado com sucesso.",
+      DeletedPhysically = false
+    });
+  }
 
-return Ok(new DeleteEditingStyleResponse
-{
-Success = true,
-Message = "Estilo arquivado (possui ofertas vinculadas).",
-DeletedPhysically = false
-});
-}
-else
-{
-// Hard Delete: remove fisicamente
-_context.EditingStyles.Remove(editingStyle);
-await _context.SaveChangesAsync();
+  // Se permanent=true, verifica se pode deletar fisicamente
+  var hasOffers = await _context.Offers.AnyAsync(o => o.EditingStyleId == id);
 
-return Ok(new DeleteEditingStyleResponse
-{
-Success = true,
-Message = "Estilo excluído permanentemente.",
-DeletedPhysically = true
-});
-}
+  if (hasOffers)
+  {
+    // Não pode deletar fisicamente
+    return BadRequest(new DeleteEditingStyleResponse
+    {
+      Success = false,
+      Message = "Não é possível excluir permanentemente: o estilo possui ofertas vinculadas.",
+      DeletedPhysically = false
+    });
+  }
+  else
+  {
+    // Hard Delete: remove fisicamente
+    _context.EditingStyles.Remove(editingStyle);
+    await _context.SaveChangesAsync();
+
+    return Ok(new DeleteEditingStyleResponse
+    {
+      Success = true,
+      Message = "Estilo excluído permanentemente.",
+      DeletedPhysically = true
+    });
+  }
 }
 
 public class DeleteEditingStyleResponse

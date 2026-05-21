@@ -34,8 +34,9 @@ const updateAPI = async (id: string, data: UpdateOfferRequest): Promise<OfferRes
   return response.data;
 };
 
-const deleteAPI = async (id: string): Promise<void> => {
-  await api.delete(`/offers/${id}`);
+const deleteAPI = async (id: string, permanent = false): Promise<void> => {
+  const params = new URLSearchParams({ permanent: permanent.toString() });
+  await api.delete(`/offers/${id}?${params.toString()}`);
 };
 
 // ==========================================
@@ -59,8 +60,8 @@ export const offerService = {
     return updateAPI(id, data);
   },
 
-  async delete(id: string): Promise<void> {
-    return deleteAPI(id);
+  async delete(id: string, permanent = false): Promise<void> {
+    return deleteAPI(id, permanent);
   },
 };
 

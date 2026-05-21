@@ -83,13 +83,13 @@ export const useUpdateVideoFormat = () => {
 };
 
 /**
- * Delete (soft delete) a video format (Admin only)
- */
+* Delete (soft delete) a video format (Admin only)
+*/
 export const useDeleteVideoFormat = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => videoFormatService.delete(id),
+    mutationFn: ({ id, permanent = false }: { id: string; permanent?: boolean }) => videoFormatService.delete(id, permanent),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: videoFormatKeys.all });
       toast.success('Formato removido com sucesso!');
