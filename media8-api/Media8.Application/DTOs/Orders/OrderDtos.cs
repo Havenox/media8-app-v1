@@ -4,15 +4,21 @@ namespace Media8.Application.DTOs.Orders;
 
 public class CreateOrderRequest
 {
-    public string Title { get; set; } = string.Empty;
-    public string Briefing { get; set; } = string.Empty;
-    public string SourceFilesUrl { get; set; } = string.Empty;
-    
-    /// <summary>
-    /// ID do formato de vídeo dinâmico
-    /// </summary>
-    public Guid VideoFormatId { get; set; }
-    public DateOnly Deadline { get; set; }
+public string Title { get; set; } = string.Empty;
+public string Briefing { get; set; } = string.Empty;
+public string SourceFilesUrl { get; set; } = string.Empty;
+
+/// <summary>
+/// ID do formato de vídeo dinâmico
+/// </summary>
+public Guid VideoFormatId { get; set; }
+
+/// <summary>
+/// ID do lote de saldo (ServiceBalanceLot) que financiará este pedido
+/// </summary>
+public Guid ServiceBalanceLotId { get; set; }
+
+public DateOnly Deadline { get; set; }
 }
 
 public class UpdateOrderRequest

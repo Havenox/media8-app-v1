@@ -6,27 +6,35 @@ using Microsoft.Extensions.Logging;
 
 namespace Media8.Application.Services;
 
-public class OrderService : IOrderService
-{
-private readonly IRepository<Order> _orderRepository;
-private readonly IRepository<User> _userRepository;
-private readonly IRepository<ServiceBalanceLot> _balanceRepository;
-private readonly ILogger<OrderService> _logger;
-
-public OrderService(
+public class OrderService(
 IRepository<Order> orderRepository,
 IRepository<User> userRepository,
 IRepository<ServiceBalanceLot> balanceRepository,
-ILogger<OrderService> logger)
+ILogger<OrderService> logger) : IOrderService
 {
-_orderRepository = orderRepository;
-_userRepository = userRepository;
-_balanceRepository = balanceRepository;
-_logger = logger;
+private readonly IRepository<Order> _orderRepository = orderRepository;
+private readonly IRepository<User> _userRepository = userRepository;
+private readonly IRepository<ServiceBalanceLot> _balanceRepository = balanceRepository;
+private readonly ILogger<OrderService> _logger = logger;
+
+public async Task<OrderResponse> CreateAsync(CreateOrderRequest request, Guid userId, Guid serviceBalanceLotId)
+{
+var balanceLot = await _balanceRepository.GetByIdAsync(serviceBalanceLotId)
+  ?? throw new InvalidOperationException("Lote de saldo não encontrado.");
+
+if (balanceLot.RemainingQuantity <= 0)
+{
+throw new InvalidOperationException("Saldo insuficiente.");
 }
 
-public async Task<OrderResponse> CreateAsync(CreateOrderRequest request, Guid userId)
-{
+balanceLot.RemainingQuantity -= 1;
+await _balanceRepository.UpdateAsync(balanceLot);
+
+_logger.LogInformation(
+"💳 Pedido criado: 1 crédito debitado do lote {BalanceLotId}. Saldo restante: {Remaining}",
+serviceBalanceLotId,
+balanceLot.RemainingQuantity);
+
 var order = new Order
 {
 ClientId = userId,
@@ -35,10 +43,14 @@ Briefing = request.Briefing,
 SourceFilesUrl = request.SourceFilesUrl,
 VideoFormatId = request.VideoFormatId,
 Deadline = request.Deadline,
+ServiceBalanceLotId = serviceBalanceLotId,
+AssignmentId = balanceLot.AssignmentId,
 Status = OrderStatus.Draft
 };
 
 await _orderRepository.AddAsync(order);
+
+_logger.LogInformation("✅ Pedido {OrderId} criado com sucesso.", order.Id);
 
 return MapToResponse(order);
 }
