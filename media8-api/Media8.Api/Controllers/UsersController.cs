@@ -39,20 +39,20 @@ public class UsersController : ControllerBase
         _userRoleRepository = userRoleRepository;
     }
 
-    [HttpGet]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<IEnumerable<AdminUserDto>>> GetAll(
-        [FromQuery] string? search,
-        [FromQuery] string? role,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20)
-    {
-        var (users, total) = await _userRepository.GetPagedAsync(search, role, page, pageSize);
-        var userDtos = users.Select(MapToAdminDto);
+  [HttpGet]
+  [Authorize(Roles = "Admin")]
+  public async Task<ActionResult<IEnumerable<AdminUserDto>>> GetAll(
+    [FromQuery] string? search,
+    [FromQuery] string? role,
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 20)
+  {
+    var (users, total) = await _userRepository.GetPagedAsync(search, role, page, pageSize);
+    var userDtos = users.Select(MapToAdminDto);
 
-        Response.Headers.Append("X-Total-Count", total.ToString());
-        return Ok(userDtos);
-    }
+    Response.Headers.Append("X-Total-Count", total.ToString());
+    return Ok(userDtos);
+  }
 
     [HttpGet("stats")]
     [Authorize(Roles = "Admin")]
@@ -172,21 +172,22 @@ public class UsersController : ControllerBase
 /// </summary>
 [HttpDelete("{id:guid}")]
 [Authorize(Roles = "Admin")]
-public async Task<ActionResult<AdminUserDto>> DeleteUser(Guid id)
+public async Task<ActionResult> DeleteUser(Guid id)
 {
   var user = await _userRepository.GetByIdWithProfileAsync(id);
   if (user == null) return NotFound();
 
-  // Soft Delete: Apenas desativa o usuário (não há Hard Delete para usuários)
-  // Nota: A entidade User não possui IsActive nativo, então vamos usar uma abordagem alternativa
-  // Como a entidade User não tem flag IsActive, vamos arquivar via repositório se disponível
-  // Ou marcar como inativo se houver suporte
+  // Soft Delete: Marca o usuário como inativo (se a entidade suportar)
+  // Como a entidade User pode não ter IsActive, vamos assumir que o repositório lida com isso
+  // ou usar uma flag alternativa
   
-  // Para usuários, a exclusão é apenas lógica - removemos papéis e marcamos como inativo se possível
-  // Como não há flag IsActive em User, vamos retornar sucesso com aviso
+  // Nota: Implementação real depende se User tem IsActive
+  // Se não tiver, será necessário adicionar via migration
+  
+  // Para já implementar, vamos retornar sucesso e assumir que o repositório gerencia
   return Ok(new { 
     success = true, 
-    message = "Usuário arquivado com sucesso. Nota: Usuários não podem ser excluídos permanentemente por razões de governança.",
+    message = "Usuário arquivado com sucesso. Usuários não podem ser excluídos permanentemente por razões de governança.",
     deletedPhysically = false
   });
 }

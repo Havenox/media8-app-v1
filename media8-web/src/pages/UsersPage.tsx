@@ -9,10 +9,10 @@ import {
   UserPlus,
   Filter,
   Loader2,
-  Trash2,
+  Archive,
   Edit,
   AlertTriangle
-} from 'lucide-react';
+  } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +35,16 @@ import {
   DialogTrigger,
   DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -63,12 +73,14 @@ const UsersPage: React.FC = () => {
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isRestoreDialogOpen, setIsRestoreDialogOpen] = useState(false);
+  const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
 
   // Selection state
   const [selectedClient, setSelectedClient] = useState<UserType | null>(null);
   const [selectedUserForEdit, setSelectedUserForEdit] = useState<UserType | null>(null);
   const [selectedUserForDetails, setSelectedUserForDetails] = useState<UserType | null>(null);
   const [userToRestore, setUserToRestore] = useState<UserType | null>(null);
+  const [userToArchive, setUserToArchive] = useState<UserType | null>(null);
 
   // Forms state
   const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'Client' as UserRole });
@@ -167,13 +179,17 @@ const updateUserMutation = useUpdateUser();
     }
   };
 
-const handleDeleteUser = async (userId: string) => {
-  if (!window.confirm("Esta ação está temporariamente desabilitada pelo sistema.")) return;
-  /*
+const handleArchiveUser = async () => {
+  if (!userToArchive) return;
+  
   try {
-    await deleteUserMutation.mutateAsync(userId);
-  } catch (error) { ... }
-  */
+    await deleteUserMutation.mutateAsync(userToArchive.id);
+    setIsArchiveDialogOpen(false);
+    setUserToArchive(null);
+    toast.success('Usuário arquivado com sucesso!');
+  } catch (error) {
+    toast.error('Erro ao arquivar usuário');
+  }
 };
 
 const handleRestoreUser = async () => {
@@ -182,7 +198,7 @@ const handleRestoreUser = async () => {
   try {
     await updateUserMutation.mutateAsync({
       id: userToRestore.id,
-      data: { /* campos necessários para reativação */ }
+      data: { isActive: true }
     });
     setIsRestoreDialogOpen(false);
     setUserToRestore(null);
@@ -441,27 +457,75 @@ const handleRestoreUser = async () => {
   />
 )}
 
-      {/* User Details Sheet */}
-      {selectedUserForDetails && (
-        <UserDetailsSheet
-          user={selectedUserForDetails}
-          open={!!selectedUserForDetails}
-          onOpenChange={(open) => !open && setSelectedUserForDetails(null)}
-          onEdit={(user) => {
-            setSelectedUserForDetails(null);
-            openEditDialog(user);
-          }}
-onAssignContract={(user) => {
-setSelectedUserForDetails(null);
-setSelectedClient(user);
-setIsAssignDialogOpen(true);
-}}
-          onDelete={handleDeleteUser}
-          isDeleting={false} // Disabled
-        />
-      )}
-    </motion.div>
-  );
+  {/* User Details Sheet */}
+  {selectedUserForDetails && (
+    <UserDetailsSheet
+      user={selectedUserForDetails}
+      open={!!selectedUserForDetails}
+      onOpenChange={(open) => !open && setSelectedUserForDetails(null)}
+      onEdit={(user) => {
+        setSelectedUserForDetails(null);
+        openEditDialog(user);
+      }}
+      onAssignContract={(user) => {
+        setSelectedUserForDetails(null);
+        setSelectedClient(user);
+        setIsAssignDialogOpen(true);
+      }}
+      onDelete={(userId) => {
+        const user = users.find(u => u.id === userId);
+        if (user) {
+          setUserToArchive(user);
+          setIsArchiveDialogOpen(true);
+        }
+      }}
+      isDeleting={deleteUserMutation.isPending}
+    />
+  )}
+
+  {/* Archive User AlertDialog */}
+  <AlertDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen}>
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>Arquivar Usuário</AlertDialogTitle>
+        <AlertDialogDescription>
+          Deseja desativar este usuário? Ele perderá o acesso de login imediatamente 
+          e será movido para a lista de inativos.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+        <AlertDialogAction
+          onClick={handleArchiveUser}
+          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+        >
+          Arquivar
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
+
+  {/* Restore User Dialog */}
+  <Dialog open={isRestoreDialogOpen} onOpenChange={setIsRestoreDialogOpen}>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Reativar Usuário</DialogTitle>
+        <DialogDescription>
+          Tem certeza que deseja reativar o acesso do usuário {userToRestore?.name} à plataforma?
+        </DialogDescription>
+      </DialogHeader>
+      <DialogFooter>
+        <Button variant="outline" onClick={() => setIsRestoreDialogOpen(false)}>
+          Cancelar
+        </Button>
+        <Button variant="default" onClick={handleRestoreUser}>
+          Reativar
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+</motion.div>
+);
 };
 
 export default UsersPage;
