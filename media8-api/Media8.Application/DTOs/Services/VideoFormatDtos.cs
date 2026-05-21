@@ -58,13 +58,31 @@ public class UpdateVideoFormatRequest
     [Range(15, 7200, ErrorMessage = "A duração máxima deve estar entre 15 e 7200 segundos (2 horas).")]
     public int? MaxDurationSeconds { get; set; }
 
-    /// <summary>
-    /// ID do estilo de edição associado (antigo Tier)
-    /// </summary>
-    public Guid? EditingStyleId { get; set; }
+/// <summary>
+/// ID do estilo de edição associado (antigo Tier)
+/// </summary>
+public Guid? EditingStyleId { get; set; }
 
-    /// <summary>
-    /// Indica se o formato está ativo e disponível para contratação
-    /// </summary>
-    public bool? IsActive { get; set; }
+/// <summary>
+/// Indica se o formato está ativo e disponível para contratação
+/// </summary>
+public bool? IsActive { get; set; }
+}
+
+/// <summary>
+/// Resposta padrão para retorno de dados de VideoFormat
+/// </summary>
+public class VideoFormatResponse
+{
+public Guid Id { get; set; }
+public string Name { get; set; } = string.Empty;
+public string Slug { get; set; } = string.Empty;
+public int MaxDurationSeconds { get; set; }
+public Guid? EditingStyleId { get; set; }
+public bool IsActive { get; set; }
+
+/// <summary>
+/// Indica se o formato pode ser deletado permanentemente (sem ofertas ou saldos vinculados)
+/// </summary>
+public bool CanDeletePermanently { get; set; }
 }

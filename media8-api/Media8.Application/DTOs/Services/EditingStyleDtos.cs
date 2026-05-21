@@ -49,10 +49,15 @@ public class UpdateEditingStyleRequest
 /// </summary>
 public class EditingStyleResponse
 {
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public bool IsActive { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
+public Guid Id { get; set; }
+public string Name { get; set; } = string.Empty;
+public string? Description { get; set; }
+public bool IsActive { get; set; }
+public DateTime CreatedAt { get; set; }
+public DateTime UpdatedAt { get; set; }
+
+/// <summary>
+/// Indica se o estilo pode ser deletado permanentemente (sem ofertas vinculadas)
+/// </summary>
+public bool CanDeletePermanently { get; set; }
 }

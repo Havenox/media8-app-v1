@@ -19,51 +19,57 @@ public class VideoFormatsController : ControllerBase
         _context = context;
     }
 
-  /// <summary>
-  /// Lista todos os formatos de vídeo ativos disponíveis no sistema
-  /// </summary>
-  [HttpGet]
-  [AllowAnonymous]
-  public async Task<ActionResult<List<VideoFormatResponse>>> GetActiveFormats()
-  {
-    var formats = await _context.VideoFormats
-      .Where(vf => vf.IsActive)
-      .Select(vf => new VideoFormatResponse
-      {
-        Id = vf.Id,
-        Name = vf.Name,
-        Slug = vf.Slug,
-        MaxDurationSeconds = vf.MaxDurationSeconds,
-        EditingStyleId = vf.EditingStyleId
-      })
-      .ToListAsync();
+/// <summary>
+/// Lista todos os formatos de vídeo (ativos e inativos)
+/// </summary>
+[HttpGet]
+[AllowAnonymous]
+public async Task<ActionResult<List<VideoFormatResponse>>> GetAllVideoFormats()
+{
+var formats = await _context.VideoFormats
+.OrderBy(vf => vf.Name)
+.Select(vf => new VideoFormatResponse
+{
+Id = vf.Id,
+Name = vf.Name,
+Slug = vf.Slug,
+MaxDurationSeconds = vf.MaxDurationSeconds,
+EditingStyleId = vf.EditingStyleId,
+IsActive = vf.IsActive,
+CanDeletePermanently = !_context.Offers.Any(o => o.VideoFormatId == vf.Id) &&
+!_context.ServiceBalanceLots.Any(l => l.VideoFormatId == vf.Id)
+})
+.ToListAsync();
 
-    return Ok(formats);
-  }
+return Ok(formats);
+}
 
-  /// <summary>
-  /// Busca um formato de vídeo específico por ID
-  /// </summary>
-  [HttpGet("{id:guid}")]
-  [AllowAnonymous]
-  public async Task<ActionResult<VideoFormatResponse>> GetFormatById(Guid id)
-  {
-    var format = await _context.VideoFormats
-      .Where(vf => vf.Id == id && vf.IsActive)
-      .Select(vf => new VideoFormatResponse
-      {
-        Id = vf.Id,
-        Name = vf.Name,
-        Slug = vf.Slug,
-        MaxDurationSeconds = vf.MaxDurationSeconds,
-        EditingStyleId = vf.EditingStyleId
-      })
-      .FirstOrDefaultAsync();
+/// <summary>
+/// Busca um formato de vídeo específico por ID
+/// </summary>
+[HttpGet("{id:guid}")]
+[AllowAnonymous]
+public async Task<ActionResult<VideoFormatResponse>> GetFormatById(Guid id)
+{
+var format = await _context.VideoFormats
+.Where(vf => vf.Id == id)
+.Select(vf => new VideoFormatResponse
+{
+Id = vf.Id,
+Name = vf.Name,
+Slug = vf.Slug,
+MaxDurationSeconds = vf.MaxDurationSeconds,
+EditingStyleId = vf.EditingStyleId,
+IsActive = vf.IsActive,
+CanDeletePermanently = !_context.Offers.Any(o => o.VideoFormatId == vf.Id) &&
+!_context.ServiceBalanceLots.Any(l => l.VideoFormatId == vf.Id)
+})
+.FirstOrDefaultAsync();
 
-    if (format == null) return NotFound();
+if (format == null) return NotFound();
 
-    return Ok(format);
-  }
+return Ok(format);
+}
 
   /// <summary>
   /// Cria um novo formato de vídeo (Apenas Admin)
@@ -156,24 +162,56 @@ public class VideoFormatsController : ControllerBase
     return Ok(response);
   }
 
-  /// <summary>
-  /// Remove (soft delete) um formato de vídeo (Apenas Admin)
-  /// </summary>
-  [HttpDelete("{id:guid}")]
-  [Authorize(Roles = "Admin")]
-  public async Task<ActionResult> DeleteVideoFormat(Guid id)
-  {
-    var format = await _context.VideoFormats.FindAsync(id);
-    if (format == null) return NotFound();
+/// <summary>
+/// Remove um formato de vídeo (Apenas Admin)
+/// Realiza Hard Delete se não houver ofertas ou saldos vinculados, caso contrário faz Soft Delete (arquivamento)
+/// </summary>
+[HttpDelete("{id:guid}")]
+[Authorize(Roles = "Admin")]
+public async Task<ActionResult<DeleteVideoFormatResponse>> DeleteVideoFormat(Guid id)
+{
+var format = await _context.VideoFormats.FindAsync(id);
+if (format == null) return NotFound();
 
-    // Soft delete: apenas desativa o formato
-    format.IsActive = false;
-    format.UpdatedAt = DateTime.UtcNow;
+// Verifica se há ofertas ou saldos vinculados
+var hasOffers = await _context.Offers.AnyAsync(o => o.VideoFormatId == id);
+var hasBalanceLots = await _context.ServiceBalanceLots.AnyAsync(l => l.VideoFormatId == id);
 
-    await _context.SaveChangesAsync();
+if (hasOffers || hasBalanceLots)
+{
+// Soft Delete: arquiva o formato
+format.IsActive = false;
+format.UpdatedAt = DateTime.UtcNow;
+await _context.SaveChangesAsync();
 
-    return NoContent();
-  }
+return Ok(new DeleteVideoFormatResponse
+{
+Success = true,
+Message = "Formato arquivado (possui ofertas ou saldos vinculados).",
+DeletedPhysically = false
+});
+}
+else
+{
+// Hard Delete: remove fisicamente
+_context.VideoFormats.Remove(format);
+await _context.SaveChangesAsync();
+
+return Ok(new DeleteVideoFormatResponse
+{
+Success = true,
+Message = "Formato excluído permanentemente.",
+DeletedPhysically = true
+});
+}
+}
+
+public class DeleteVideoFormatResponse
+{
+public bool Success { get; set; }
+public string Message { get; set; } = string.Empty;
+public bool DeletedPhysically { get; set; }
+}
 }
 
 public class VideoFormatResponse
