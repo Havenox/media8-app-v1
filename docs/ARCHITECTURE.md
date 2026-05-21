@@ -144,6 +144,15 @@ Focado em **Segurança** e **Integridade de Dados**.
 * **Impacto**: Banco limpo de registros órfãos, integridade preservada, UX com feedback claro.
 * *Implementação*: Ver `docs/implementations/048-abas-arquivamento-delecao-condicional-ofertas.md` e `docs/implementations/050-correcao-dto-duplicado-videoformats.md`.
 
+### 10. UI Consistency Pattern - Épico 4.1
+**Problema**: Após implementação do padrão de abas e timer em Ofertas, as páginas de Formatos e Estilos ainda usavam UI legada sem segregação de ativos/arquivados.
+**Solução**: Replicação do mesmo padrão de UX em todas as telas de catálogo do admin.
+* **VideoFormatsPage**: Abas Ativos/Arquivados, timer de 5s, reativação, verificação `canDeletePermanently`.
+* **EditingStylesPage**: Mesma arquitetura de formatos, com validação de dependências em Offers.
+* **Componentes Reutilizados**: `Tabs`, `Dialog`, `DropdownMenu` do shadcn/ui.
+* **Impacto**: UX consistente em todo admin, redução de curva de aprendizado, código mais manutenível.
+* *Implementação*: Ver `docs/implementations/051-unificacao-padrao-abas-timer-formatos-estilos.md`.
+
 ---
 
 ## Fluxo de Dados
