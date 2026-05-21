@@ -9,7 +9,7 @@ import { api } from '@/lib/api';
 // API FUNCTIONS
 // ==========================================
 
-const getAllAPI = async (page = 1, pageSize = 20, role?: UserRole, search?: string): Promise<User[]> => {
+const getAllAPI = async (page = 1, pageSize = 20, role?: UserRole, search?: string, showInactive = false): Promise<User[]> => {
   const query = new URLSearchParams({
     page: page.toString(),
     pageSize: pageSize.toString(),
@@ -21,6 +21,10 @@ const getAllAPI = async (page = 1, pageSize = 20, role?: UserRole, search?: stri
 
   if (search) {
     query.append('search', search);
+  }
+
+  if (showInactive) {
+    query.append('showInactive', 'true');
   }
 
   const response = await api.get(`/users?${query.toString()}`);

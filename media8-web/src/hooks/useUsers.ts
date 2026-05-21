@@ -33,12 +33,12 @@ export const useUserStats = () => {
 };
 
 /**
- * Fetch users with infinite scroll
- */
-export const useInfiniteUsers = (role?: UserRole, pageSize = 20, search?: string) => {
+* Fetch users with infinite scroll
+*/
+export const useInfiniteUsers = (role?: UserRole, pageSize = 20, search?: string, showInactive = false) => {
   return useInfiniteQuery({
-    queryKey: userKeys.infinite({ role, pageSize, search }),
-    queryFn: ({ pageParam = 1 }) => userService.getAll(pageParam, pageSize, role, search),
+    queryKey: userKeys.infinite({ role, pageSize, search, showInactive }),
+    queryFn: ({ pageParam = 1 }) => userService.getAll(pageParam, pageSize, role, search, showInactive),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => getNextPageParam(lastPage, allPages, pageSize),
   });

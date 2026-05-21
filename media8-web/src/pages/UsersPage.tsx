@@ -66,7 +66,7 @@ const UsersPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 500);
   const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
-  const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
+  const [showInactive, setShowInactive] = useState(false);
 
   // Modals state
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -87,13 +87,13 @@ const UsersPage: React.FC = () => {
   const [editUser, setEditUser] = useState({ name: '', email: '', role: 'Client' as UserRole, phone: '' });
 
   // Infinite Scroll Hook
-  const { 
-    data, 
-    fetchNextPage, 
-    hasNextPage, 
-    isFetchingNextPage, 
-    isLoading: isLoadingUsers 
-  } = useInfiniteUsers(roleFilter === 'all' ? undefined : roleFilter, 20, debouncedSearch);
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: isLoadingUsers
+  } = useInfiniteUsers(roleFilter === 'all' ? undefined : roleFilter, 20, debouncedSearch, showInactive);
 
   // Flatten users from pages
   const users = useMemo(() => {
@@ -278,6 +278,14 @@ const handleRestoreUser = async () => {
               <SelectItem value="Editor">Editor</SelectItem>
             </SelectContent>
           </Select>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowInactive(!showInactive)}
+            className={showInactive ? 'bg-muted' : ''}
+          >
+            {showInactive ? 'Ocultar inativos' : 'Exibir inativos'}
+          </Button>
         </div>
 
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -392,11 +400,30 @@ const handleRestoreUser = async () => {
                               )}
                             </div>
                           )}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
+              </div>
+            </div>
+          </div>
+          
+          {/* Botão de reativar quando showInactive estiver ativo */}
+          {showInactive && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                const user = users.find(u => u.id === user.id);
+                if (user) {
+                  setUserToRestore(user);
+                  setIsRestoreDialogOpen(true);
+                }
+              }}
+              className="ml-2"
+            >
+              Reativar
+            </Button>
+          )}
+        </motion.div>
+        ))}
 
                 {filteredUsers.length === 0 && !isLoadingUsers && (
                   <div className="text-center py-8 text-muted-foreground">Nenhum usuário encontrado.</div>
