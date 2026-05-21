@@ -221,7 +221,11 @@ return `${fieldLabels[field] || field}: ${error.message}`;
 toast.error('Preencha os campos obrigatórios:', {
 description: errorMessages.join('\n'),
 });
+return;
 }
+
+// Se validado com sucesso, prossegue com a submissão
+handleSubmit(onSubmit)(e);
 };
 
   // Get icon for a service
