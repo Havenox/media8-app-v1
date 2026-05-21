@@ -281,19 +281,20 @@ public async Task<ActionResult> ReactivateUser(Guid id)
         return Ok(MapToAdminDto(user));
     }
 
-    // Mapping Logic
-    private static AdminUserDto MapToAdminDto(User user)
-    {
-            var dto = new AdminUserDto
-            {
-                Id = user.Id,
-                Email = user.Email,
-                Name = user.Profile?.Name ?? "Unknown",
-                AvatarUrl = user.Profile?.AvatarUrl,
-                CreatedAt = user.CreatedAt,
-                Role = user.Roles.FirstOrDefault()?.Role.ToString() ?? "Client",
-                Roles = user.Roles.Select(r => r.Role.ToString()).ToList()
-            };
+// Mapping Logic
+private static AdminUserDto MapToAdminDto(User user)
+{
+  var dto = new AdminUserDto
+  {
+    Id = user.Id,
+    Email = user.Email,
+    Name = user.Profile?.Name ?? "Unknown",
+    AvatarUrl = user.Profile?.AvatarUrl,
+    CreatedAt = user.CreatedAt,
+    IsActive = user.IsActive,
+    Role = user.Roles.FirstOrDefault()?.Role.ToString() ?? "Client",
+    Roles = user.Roles.Select(r => r.Role.ToString()).ToList()
+  };
 
             // Map Active Contract (substituted Assignments)
             // Logic: Find active contract (Status = Active)

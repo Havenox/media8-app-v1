@@ -40,6 +40,7 @@ export interface User {
   role: UserRole;
   createdAt: string;
   updatedAt: string;
+  isActive: boolean;
   bio?: string;
   phone?: string;
   preferences?: string; // JSON string
