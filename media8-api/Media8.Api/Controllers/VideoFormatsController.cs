@@ -213,12 +213,3 @@ public string Message { get; set; } = string.Empty;
 public bool DeletedPhysically { get; set; }
 }
 }
-
-public class VideoFormatResponse
-{
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Slug { get; set; } = string.Empty;
-    public int MaxDurationSeconds { get; set; }
-    public Guid? EditingStyleId { get; set; }
-}
