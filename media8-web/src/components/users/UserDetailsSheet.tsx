@@ -1,16 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { 
-  Edit, 
-  Trash2, 
-  Package, 
-  Calendar, 
+import {
+  Edit,
+  Archive,
+  Package,
+  Calendar,
   AlertTriangle,
   Mail,
   Clock,
   Loader2
-} from 'lucide-react';
+  } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 import {
   Sheet,
@@ -42,17 +52,19 @@ isDeleting?: boolean;
 }
 
 const UserDetailsSheet: React.FC<UserDetailsSheetProps> = ({
-user,
-open,
-onOpenChange,
-onEdit,
-onAssignContract,
-onDelete,
-isDeleting = false,
+  user,
+  open,
+  onOpenChange,
+  onEdit,
+  onAssignContract,
+  onDelete,
+  isDeleting = false,
 }) => {
-if (!user) return null;
+  const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
+  
+  if (!user) return null;
 
-const { data: contracts = [], isLoading: isLoadingContracts } = useClientContracts(user.id);
+  const { data: contracts = [], isLoading: isLoadingContracts } = useClientContracts(user.id);
 
 const getInitials = (name: string) => {
 return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -203,41 +215,66 @@ Saldos e Serviços
 
         <Separator />
 
-        <SheetFooter className="pt-4 gap-2 sm:gap-2">
-          <Button 
-            variant="outline" 
-            className="flex-1"
-            onClick={() => onEdit(user)}
-          >
-            <Edit className="h-4 w-4 mr-2" />
-            Editar
-          </Button>
-{user.role === 'Client' && (
-<Button
-variant="premium"
-className="flex-1"
-onClick={() => onAssignContract(user)}
->
-<Package className="h-4 w-4 mr-2" />
-Atribuir
-</Button>
-)}
-          <Button 
-            variant="destructive" 
-            size="icon"
-            onClick={() => onDelete(user.id)}
-            disabled={isDeleting}
-          >
-            {isDeleting ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Trash2 className="h-4 w-4" />
-            )}
-          </Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
-  );
+<SheetFooter className="pt-4 gap-2 sm:gap-2">
+  <Button
+    variant="outline"
+    className="flex-1"
+    onClick={() => onEdit(user)}
+  >
+    <Edit className="h-4 w-4 mr-2" />
+    Editar
+  </Button>
+  {user.role === 'Client' && (
+    <Button
+      variant="premium"
+      className="flex-1"
+      onClick={() => onAssignContract(user)}
+    >
+      <Package className="h-4 w-4 mr-2" />
+      Atribuir
+    </Button>
+  )}
+  <Button
+    variant="destructive"
+    size="icon"
+    onClick={() => setIsArchiveDialogOpen(true)}
+    disabled={isDeleting}
+  >
+    {isDeleting ? (
+      <Loader2 className="h-4 w-4 animate-spin" />
+    ) : (
+      <Archive className="h-4 w-4" />
+    )}
+  </Button>
+</SheetFooter>
+
+{/* Archive User AlertDialog */}
+<AlertDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen}>
+  <AlertDialogContent>
+    <AlertDialogHeader>
+      <AlertDialogTitle>Arquivar Usuário</AlertDialogTitle>
+      <AlertDialogDescription>
+        Deseja desativar este usuário? Ele perderá o acesso de login imediatamente 
+        e será movido para a lista de inativos.
+      </AlertDialogDescription>
+    </AlertDialogHeader>
+    <AlertDialogFooter>
+      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+      <AlertDialogAction
+        onClick={() => {
+          onDelete(user.id);
+          setIsArchiveDialogOpen(false);
+        }}
+        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+      >
+        Arquivar
+      </AlertDialogAction>
+    </AlertDialogFooter>
+  </AlertDialogContent>
+</AlertDialog>
+</SheetContent>
+</Sheet>
+);
 };
 
 export default UserDetailsSheet;

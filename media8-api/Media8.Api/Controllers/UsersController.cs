@@ -39,20 +39,27 @@ public class UsersController : ControllerBase
         _userRoleRepository = userRoleRepository;
     }
 
-  [HttpGet]
-  [Authorize(Roles = "Admin")]
-  public async Task<ActionResult<IEnumerable<AdminUserDto>>> GetAll(
-    [FromQuery] string? search,
-    [FromQuery] string? role,
-    [FromQuery] int page = 1,
-    [FromQuery] int pageSize = 20)
-  {
-    var (users, total) = await _userRepository.GetPagedAsync(search, role, page, pageSize);
-    var userDtos = users.Select(MapToAdminDto);
+[HttpGet]
+[Authorize(Roles = "Admin")]
+public async Task<ActionResult<IEnumerable<AdminUserDto>>> GetAll(
+  [FromQuery] string? search,
+  [FromQuery] string? role,
+  [FromQuery] int page = 1,
+  [FromQuery] int pageSize = 20,
+  [FromQuery] bool showInactive = false)
+{
+  var (users, total) = await _userRepository.GetPagedAsync(search, role, page, pageSize);
+  
+  // Filtra usuários inativos se showInactive=false (padrão)
+  var filteredUsers = showInactive 
+    ? users 
+    : users.Where(u => u.IsActive);
+  
+  var userDtos = filteredUsers.Select(MapToAdminDto);
 
-    Response.Headers.Append("X-Total-Count", total.ToString());
-    return Ok(userDtos);
-  }
+  Response.Headers.Append("X-Total-Count", total.ToString());
+  return Ok(userDtos);
+}
 
     [HttpGet("stats")]
     [Authorize(Roles = "Admin")]
@@ -177,14 +184,12 @@ public async Task<ActionResult> DeleteUser(Guid id)
   var user = await _userRepository.GetByIdWithProfileAsync(id);
   if (user == null) return NotFound();
 
-  // Soft Delete: Marca o usuário como inativo (se a entidade suportar)
-  // Como a entidade User pode não ter IsActive, vamos assumir que o repositório lida com isso
-  // ou usar uma flag alternativa
+  // Soft Delete: Marca o usuário como inativo
+  user.IsActive = false;
+  user.UpdatedAt = DateTime.UtcNow;
   
-  // Nota: Implementação real depende se User tem IsActive
-  // Se não tiver, será necessário adicionar via migration
-  
-  // Para já implementar, vamos retornar sucesso e assumir que o repositório gerencia
+  await _userRepository.UpdateAsync(user);
+
   return Ok(new { 
     success = true, 
     message = "Usuário arquivado com sucesso. Usuários não podem ser excluídos permanentemente por razões de governança.",
