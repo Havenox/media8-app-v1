@@ -47,6 +47,7 @@ import { useAvailableServices } from '@/hooks/useServiceBalances';
 import { useCreateOrder, useAvailableBalances } from '@/hooks/useOrders';
 import { useVideoFormats } from '@/hooks/useVideoFormats';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 // Icon mapping for service categories
 const categoryIcons: Record<string, React.ElementType> = {
@@ -115,16 +116,18 @@ const { data: availableBalances = [], isLoading: isLoadingBalances } = useAvaila
     return videoFormats.find(vf => vf.id === selectedVideoFormatId) || null;
   }, [selectedVideoFormatId, videoFormats]);
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<OrderFormData>({
-    resolver: zodResolver(orderSchema),
-  });
+const {
+register,
+handleSubmit,
+control,
+setValue,
+watch,
+formState: { errors, isValid, isDirty },
+trigger,
+} = useForm<OrderFormData>({
+resolver: zodResolver(orderSchema),
+mode: 'onChange',
+});
 
   const watchedServiceType = watch('serviceType');
 
@@ -174,7 +177,10 @@ const { data: availableBalances = [], isLoading: isLoadingBalances } = useAvaila
   };
 
 const onSubmit = async (data: OrderFormData) => {
-if (!user?.id || !data.serviceBalanceLotId) return;
+if (!user?.id) {
+toast.error('Usuário não autenticado');
+return;
+}
 
 try {
 const selectedBalance = availableBalances.find(b => b.id === data.serviceBalanceLotId);
@@ -199,6 +205,25 @@ navigate('/orders');
 }
 };
 
+const handleFormSubmit = async (e: React.FormEvent) => {
+e.preventDefault();
+const isValidated = await trigger();
+if (!isValidated) {
+const errorMessages = Object.entries(errors).map(([field, error]) => {
+const fieldLabels: Record<string, string> = {
+serviceBalanceLotId: 'Saldo disponível',
+title: 'Título',
+briefing: 'Briefing',
+sourceFilesUrl: 'URL dos arquivos',
+};
+return `${fieldLabels[field] || field}: ${error.message}`;
+});
+toast.error('Preencha os campos obrigatórios:', {
+description: errorMessages.join('\n'),
+});
+}
+};
+
   // Get icon for a service
   const getServiceIcon = (category: string) => {
     const Icon = categoryIcons[category] || Video;
@@ -206,6 +231,8 @@ navigate('/orders');
   };
 
   const isLoading = createOrderMutation.isPending || isLoadingFormats || isLoadingBalances;
+
+const hasEmptyBalance = availableBalances.length === 0;
 
   return (
     <motion.div
@@ -242,7 +269,7 @@ Selecione o saldo disponível e preencha os detalhes do seu projeto.
 </CardDescription>
 </CardHeader>
 <CardContent>
-<form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+<form onSubmit={handleFormSubmit} className="space-y-6">
 {/* Service Balance Selection */}
 <div className="space-y-2">
 <Label className="flex items-center gap-2 text-base font-semibold">
@@ -252,6 +279,15 @@ Saldo Disponível
 <p className="text-sm text-muted-foreground mb-3">
 Selecione qual lote de saldo financiará este pedido
 </p>
+{hasEmptyBalance ? (
+<Alert className="border-warning/30 bg-warning/10">
+<AlertCircle className="h-4 w-4 text-warning" />
+<AlertTitle className="text-warning">Sem saldo disponível</AlertTitle>
+<AlertDescription className="text-warning/80">
+Você precisa ter pelo menos um saldo disponível para criar um pedido.
+</AlertDescription>
+</Alert>
+) : (
 <Controller
 control={control}
 name="serviceBalanceLotId"
@@ -265,10 +301,9 @@ if (balance?.videoFormatId) {
 setSelectedVideoFormatId(balance.videoFormatId);
 }
 }}
-disabled={isLoadingBalances}
 >
-<SelectTrigger className="w-full h-12">
-<SelectValue placeholder={isLoadingBalances ? "Carregando..." : "Selecione o saldo disponível"} />
+<SelectTrigger className={cn("w-full h-12", errors.serviceBalanceLotId && "border-destructive")}>
+<SelectValue placeholder="Selecione o saldo disponível" />
 </SelectTrigger>
 <SelectContent>
 {availableBalances.map((balance) => (
@@ -295,8 +330,12 @@ className="py-3"
 </Select>
 )}
 />
+)}
 {errors.serviceBalanceLotId && (
-<p className="text-sm text-destructive">{errors.serviceBalanceLotId.message}</p>
+<p className="text-sm text-destructive flex items-center gap-1">
+<AlertCircle className="h-3 w-3" />
+{errors.serviceBalanceLotId.message}
+</p>
 )}
 </div>
 
@@ -329,57 +368,69 @@ className="py-3"
               </motion.div>
             )}
 
-            {/* Title */}
-            <div className="space-y-2">
-              <Label htmlFor="title" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Título do Projeto
-              </Label>
-              <Input
-                id="title"
-                placeholder="Ex: Vídeo Institucional - Minha Empresa"
-                {...register('title')}
-              />
-              {errors.title && (
-                <p className="text-sm text-destructive">{errors.title.message}</p>
-              )}
-            </div>
+{/* Title */}
+<div className="space-y-2">
+<Label htmlFor="title" className="flex items-center gap-2">
+<FileText className="h-4 w-4" />
+Título do Projeto
+</Label>
+<Input
+id="title"
+placeholder="Ex: Vídeo Institucional - Minha Empresa"
+className={cn(errors.title && "border-destructive focus-visible:ring-destructive")}
+{...register('title')}
+/>
+{errors.title && (
+<p className="text-sm text-destructive flex items-center gap-1">
+<AlertCircle className="h-3 w-3" />
+{errors.title.message}
+</p>
+)}
+</div>
 
-            {/* Briefing */}
-            <div className="space-y-2">
-              <Label htmlFor="briefing" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Briefing Detalhado
-              </Label>
-              <Textarea
-                id="briefing"
-                placeholder="Descreva o projeto: objetivo, duração desejada, estilo de edição, referências..."
-                rows={6}
-                {...register('briefing')}
-              />
-              {errors.briefing && (
-                <p className="text-sm text-destructive">{errors.briefing.message}</p>
-              )}
-            </div>
+{/* Briefing */}
+<div className="space-y-2">
+<Label htmlFor="briefing" className="flex items-center gap-2">
+<FileText className="h-4 w-4" />
+Briefing Detalhado
+</Label>
+<Textarea
+id="briefing"
+placeholder="Descreva o projeto: objetivo, duração desejada, estilo de edição, referências..."
+rows={6}
+className={cn(errors.briefing && "border-destructive focus-visible:ring-destructive")}
+{...register('briefing')}
+/>
+{errors.briefing && (
+<p className="text-sm text-destructive flex items-center gap-1">
+<AlertCircle className="h-3 w-3" />
+{errors.briefing.message}
+</p>
+)}
+</div>
 
-            {/* Source Files URL */}
-            <div className="space-y-2">
-              <Label htmlFor="sourceFilesUrl" className="flex items-center gap-2">
-                <LinkIcon className="h-4 w-4" />
-                Link dos Arquivos (Drive, Dropbox, etc.)
-              </Label>
-              <Input
-                id="sourceFilesUrl"
-                placeholder="https://drive.google.com/..."
-                {...register('sourceFilesUrl')}
-              />
-              {errors.sourceFilesUrl && (
-                <p className="text-sm text-destructive">{errors.sourceFilesUrl.message}</p>
-              )}
-              <p className="text-xs text-muted-foreground">
-                Certifique-se de que o link está com permissão de acesso.
-              </p>
-            </div>
+{/* Source Files URL */}
+<div className="space-y-2">
+<Label htmlFor="sourceFilesUrl" className="flex items-center gap-2">
+<LinkIcon className="h-4 w-4" />
+Link dos Arquivos (Drive, Dropbox, etc.)
+</Label>
+<Input
+id="sourceFilesUrl"
+placeholder="https://drive.google.com/..."
+className={cn(errors.sourceFilesUrl && "border-destructive focus-visible:ring-destructive")}
+{...register('sourceFilesUrl')}
+/>
+{errors.sourceFilesUrl && (
+<p className="text-sm text-destructive flex items-center gap-1">
+<AlertCircle className="h-3 w-3" />
+{errors.sourceFilesUrl.message}
+</p>
+)}
+<p className="text-xs text-muted-foreground">
+Certifique-se de que o link está com permissão de acesso.
+</p>
+</div>
 
             {/* Deadline - Only show for fixed deadline services */}
             {selectedServiceType && !hasDynamicDeadline && minDeliveryDate && (
@@ -445,35 +496,41 @@ className="py-3"
               </motion.div>
             )}
 
-            {/* Submit */}
-            <div className="flex gap-4 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1"
-                onClick={() => navigate(-1)}
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                variant="premium"
-                className="flex-1"
-                disabled={isLoading || !selectedServiceType}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="animate-spin h-4 w-4" />
-                    Criando...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4" />
-                    Criar Pedido
-                  </>
-                )}
-              </Button>
-            </div>
+{/* Submit */}
+<div className="flex gap-4 pt-4">
+<Button
+type="button"
+variant="outline"
+className="flex-1"
+onClick={() => navigate(-1)}
+disabled={isLoading}
+>
+Cancelar
+</Button>
+<Button
+type="submit"
+variant="premium"
+className="flex-1 relative"
+disabled={isLoading}
+>
+{isLoading ? (
+<>
+<Loader2 className="animate-spin h-4 w-4" />
+Criando...
+</>
+) : (
+<>
+<Sparkles className="h-4 w-4" />
+Criar Pedido
+</>
+)}
+</Button>
+</div>
+{hasEmptyBalance && (
+<p className="text-sm text-muted-foreground text-center">
+Adicione saldos na sua conta para criar pedidos.
+</p>
+)}
           </form>
         </CardContent>
       </Card>
