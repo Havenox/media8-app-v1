@@ -22,6 +22,7 @@ Este projeto demonstra a aplicação prática de conceitos avançados de Engenha
 * **Unit Testing with Vitest**: Suíte de testes unitários para services e hooks do frontend, garantindo 100% de cobertura da engine de Offers/Contracts. [Ler Case Study](docs/implementations/037-testes-unitarios-frontend.md).
 * **Conditional Deletion Pattern**: Padrão arquitetural de deleção condicional (Hard/Soft Delete) com timer de segurança de 5s e verificação de dependências. [Ler Case Study](docs/implementations/048-abas-arquivamento-delecao-condicional-ofertas.md).
 * **UI Consistency Pattern**: Replicação de padrões de UX (abas, timer, reativação) em todas as telas de catálogo do admin. [Ler Case Study](docs/implementations/051-unificacao-padrao-abas-timer-formatos-estilos.md).
+* **User Governance Pipeline**: Gerenciamento estrito de ciclo de vida de usuários (Ativo → Arquivado → Reativado) com invalidação reativa de cache e sem reload. [Ler Case Study](docs/implementations/054-correcao-completa-governanca-usuarios.md).
 
 ### ⚡ Performance e UX
 *   **Virtualização (Infinite Scroll)**: Componentes UI otimizados para listar milhares de registros sem travar o DOM. [Ler Case Study](docs/implementations/010-refatoracao-infinite-scroll-generico.md).

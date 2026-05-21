@@ -153,6 +153,15 @@ Focado em **Segurança** e **Integridade de Dados**.
 * **Impacto**: UX consistente em todo admin, redução de curva de aprendizado, código mais manutenível.
 * *Implementação*: Ver `docs/implementations/051-unificacao-padrao-abas-timer-formatos-estilos.md`.
 
+### 11. User Governance Pipeline - Épico 4.2
+**Problema**: Gestão de usuários exigia segregação entre ativos/inativos com reativação sem reload, mas a API não expunha `IsActive` e o frontend usava `window.location.reload()`.
+**Solução**: Pipeline completo comDTO `IsActive`, filtro repositório `showInactive`, invalidação de cache e centralização de estado.
+* **Backend**: Adicionado `IsActive` no `AdminUserDto`, filtro `.Where(u => u.IsActive == !showInactive)`, endpoint `PUT /users/{id}/reactivate`.
+* **Frontend**: Service repassa `showInactive`, `queryClient.invalidateQueries()` substitui reload, `e.stopPropagation()` previne event bubbling.
+* **Correções**: Eliminado Temporal Dead Zone, removido AlertDialog duplicado, centralizado estado na UsersPage.
+* **Impacto**: UX fluida sem reload, modal abre 1 única vez, lista de inativos carrega corretamente.
+* *Implementação*: Ver `docs/implementations/052-pipeline-estrito-ciclo-vida-dados.md`, `docs/implementations/053-governanca-estrita-usuarios-arquivamento-reativacao.md`, `docs/implementations/054-correcao-completa-governanca-usuarios.md`.
+
 ---
 
 ## Fluxo de Dados
