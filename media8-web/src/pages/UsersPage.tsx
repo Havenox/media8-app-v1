@@ -56,7 +56,7 @@ import UserDetailsSheet from '@/components/users/UserDetailsSheet';
 import { useInfiniteUsers, useCreateUser, useDeleteUser, useUpdateUser, useUserStats } from '@/hooks/useUsers';
 import { InfiniteScroll } from '@/components/ui/infinite-scroll';
 import { useDebounce } from '@/hooks/useDebounce';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService } from '@/services/userService';
 
 // usePackages removed - migrated to offers/contracts
@@ -109,12 +109,13 @@ const updateUserMutation = useUpdateUser();
 // assignPackageMutation removed - use ContractAssignDialog instead
 
 // Hook para reativar usuário
+const queryClient = useQueryClient();
 const reactivateUserMutation = useMutation({
   mutationFn: (id: string) => userService.reactivate(id),
   onSuccess: () => {
     toast.success('Usuário reativado com sucesso!');
-    // Invalida queries de usuários para recarregar a lista
-    window.location.reload(); // Força reload para simplificar
+    // Invalida queries de usuários para recarregar a lista reativamente
+    queryClient.invalidateQueries({ queryKey: ['users'] });
   },
   onError: (error: Error) => {
     toast.error(error.message || 'Erro ao reativar usuário');
@@ -415,25 +416,22 @@ const handleRestoreUser = async () => {
             </div>
           </div>
           
-          {/* Botão de reativar quando showInactive estiver ativo */}
-          {showInactive && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                const user = users.find(u => u.id === user.id);
-                if (user) {
-                  setUserToRestore(user);
-                  setIsRestoreDialogOpen(true);
-                }
-              }}
-              className="ml-2"
-            >
-              Reativar
-            </Button>
-          )}
-        </motion.div>
+              {/* Botão de reativar quando showInactive estiver ativo */}
+              {showInactive && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setUserToRestore(user);
+                    setIsRestoreDialogOpen(true);
+                  }}
+                  className="ml-2"
+                >
+                  Reativar
+                </Button>
+              )}
+            </motion.div>
         ))}
 
                 {filteredUsers.length === 0 && !isLoadingUsers && (
