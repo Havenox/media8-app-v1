@@ -7,11 +7,15 @@
 export type UserRole = 'Admin' | 'Client' | 'Editor';
 
 export type OrderStatus =
-  | 'Pending'
-  | 'InProgress'
-  | 'InReview'
-  | 'ChangesRequested'
-  | 'Approved';
+| 'Draft'
+| 'Pending'
+| 'Processing'
+| 'InProgress'
+| 'InReview'
+| 'ChangesRequested'
+| 'Approved'
+| 'Completed'
+| 'Cancelled';
 
 export type TimelineActionType =
   | 'StatusChange'
@@ -70,6 +74,23 @@ export interface UserRegisterRequest {
 }
 
 // Order
+export interface ServiceBalanceLot {
+id: string;
+userId: string;
+videoFormatId: string;
+quantity: number;
+remainingQuantity: number;
+purchasedAt: string;
+expiresAt?: string | null;
+source: 'Purchase' | 'Subscription' | 'Promo' | 'Gift';
+assignmentId?: string | null;
+createdAt: string;
+updatedAt: string;
+user?: User;
+contract?: any;
+videoFormat?: VideoFormat;
+}
+
 export interface Order {
 id: string;
 clientId: string;
@@ -83,7 +104,10 @@ finalVideoUrl?: string;
 status: OrderStatus;
 deadline: string;
 createdAt: string;
-videoFormatId?: string; // FK dinâmica para VideoFormat (Fase 0)
+updatedAt: string;
+videoFormatId: string;
+serviceBalanceLotId?: string;
+assignmentId?: string;
 }
 
 export interface CreateOrderRequest {
@@ -91,7 +115,8 @@ title: string;
 briefing: string;
 sourceFilesUrl: string;
 deadline: string;
-videoFormatId?: string; // FK dinâmica para VideoFormat (Fase 0)
+videoFormatId: string;
+serviceBalanceLotId: string;
 }
 
 export interface UpdateOrderRequest {

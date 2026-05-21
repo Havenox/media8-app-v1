@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Order, OrderStatus, CreateOrderRequest, VideoFormat } from '@/types/api';
+import { Order, OrderStatus, CreateOrderRequest, VideoFormat, ServiceBalanceLot } from '@/types/api';
 import { ServiceType } from '@/types/services';
 import { orderService } from '@/services/orderService';
 import { toast } from 'sonner';
@@ -8,15 +8,16 @@ import { toast } from 'sonner';
 // QUERY KEYS
 // ==========================================
 export const orderKeys = {
-  all: ['orders'] as const,
-  lists: () => [...orderKeys.all, 'list'] as const,
-  list: (filters: Record<string, string>) => [...orderKeys.lists(), filters] as const,
-  details: () => [...orderKeys.all, 'detail'] as const,
-  detail: (id: string) => [...orderKeys.details(), id] as const,
-  byClient: (clientId: string) => [...orderKeys.all, 'client', clientId] as const,
-  byEditor: (editorId: string) => [...orderKeys.all, 'editor', editorId] as const,
-  byStatus: (status: OrderStatus) => [...orderKeys.all, 'status', status] as const,
-  stats: () => [...orderKeys.all, 'stats'] as const,
+all: ['orders'] as const,
+lists: () => [...orderKeys.all, 'list'] as const,
+list: (filters: Record<string, string>) => [...orderKeys.lists(), filters] as const,
+details: () => [...orderKeys.all, 'detail'] as const,
+detail: (id: string) => [...orderKeys.details(), id] as const,
+byClient: (clientId: string) => [...orderKeys.all, 'client', clientId] as const,
+byEditor: (editorId: string) => [...orderKeys.all, 'editor', editorId] as const,
+byStatus: (status: OrderStatus) => [...orderKeys.all, 'status', status] as const,
+stats: () => [...orderKeys.all, 'stats'] as const,
+availableBalances: () => [...orderKeys.all, 'available-balances'] as const,
 };
 
 // ==========================================
@@ -90,10 +91,14 @@ export const useOrderStats = () => {
 // MUTATIONS
 // ==========================================
 
-interface CreateOrderData extends CreateOrderRequest {
+interface CreateOrderData {
 clientId: string;
-serviceType?: ServiceType; // LEGACY - será removido
-videoFormatId?: string; // FK dinâmica para VideoFormat (Fase 0)
+title: string;
+briefing: string;
+sourceFilesUrl: string;
+deadline: string;
+videoFormatId: string;
+serviceBalanceLotId: string;
 }
 
 /**
@@ -105,8 +110,9 @@ const queryClient = useQueryClient();
 return useMutation({
 mutationFn: (data: CreateOrderData) => orderService.create(data),
 onSuccess: (newOrder) => {
-// Invalidate all order queries
+// Invalidate all order queries and available balances
 queryClient.invalidateQueries({ queryKey: orderKeys.all });
+queryClient.invalidateQueries({ queryKey: orderKeys.availableBalances() });
 toast.success('Pedido criado com sucesso!');
 },
 onError: (error: Error) => {
@@ -176,19 +182,48 @@ export const useAssignEditor = () => {
 };
 
 /**
- * Delete an order
- */
+* Delete an order
+*/
 export const useDeleteOrder = () => {
-  const queryClient = useQueryClient();
+const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (id: string) => orderService.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: orderKeys.all });
-      toast.success('Pedido removido com sucesso!');
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao remover pedido');
-    },
-  });
+return useMutation({
+mutationFn: (id: string) => orderService.delete(id),
+onSuccess: () => {
+queryClient.invalidateQueries({ queryKey: orderKeys.all });
+toast.success('Pedido removido com sucesso!');
+},
+onError: (error: Error) => {
+toast.error(error.message || 'Erro ao remover pedido');
+},
+});
+};
+
+/**
+* Cancel an order with refund
+*/
+export const useCancelOrder = () => {
+const queryClient = useQueryClient();
+
+return useMutation({
+mutationFn: (id: string) => orderService.cancel(id),
+onSuccess: (data) => {
+queryClient.invalidateQueries({ queryKey: orderKeys.all });
+queryClient.invalidateQueries({ queryKey: orderKeys.detail(data.id) });
+toast.success('Pedido cancelado com sucesso! Saldo estornado.');
+},
+onError: (error: Error) => {
+toast.error(error.message || 'Erro ao cancelar pedido');
+},
+});
+};
+
+/**
+* Fetch available service balances for order creation
+*/
+export const useAvailableBalances = () => {
+return useQuery({
+queryKey: orderKeys.availableBalances(),
+queryFn: () => orderService.getAvailableBalances(),
+});
 };

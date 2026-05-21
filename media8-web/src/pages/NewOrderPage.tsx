@@ -43,8 +43,8 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { getServiceConfig, isDynamicDeadline } from '@/types/services';
-import { useAvailableServices, useConsumeService } from '@/hooks/useServiceBalances';
-import { useCreateOrder } from '@/hooks/useOrders';
+import { useAvailableServices } from '@/hooks/useServiceBalances';
+import { useCreateOrder, useAvailableBalances } from '@/hooks/useOrders';
 import { useVideoFormats } from '@/hooks/useVideoFormats';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -65,31 +65,31 @@ const getMinDeliveryDate = (serviceType: ServiceType): Date => {
 };
 
 const orderSchema = z.object({
-  videoFormatId: z.string().min(1, 'Selecione um formato de vídeo'),
-  title: z.string().min(5, 'Título deve ter no mínimo 5 caracteres'),
-  briefing: z.string().min(20, 'Briefing deve ter no mínimo 20 caracteres'),
-  sourceFilesUrl: z.string().url('URL inválida'),
-  deadline: z.date().optional(),
+serviceBalanceLotId: z.string().min(1, 'Selecione um lote de saldo'),
+title: z.string().min(5, 'Título deve ter no mínimo 5 caracteres'),
+briefing: z.string().min(20, 'Briefing deve ter no mínimo 20 caracteres'),
+sourceFilesUrl: z.string().url('URL inválida'),
+deadline: z.date().optional(),
 });
 
 type OrderFormData = z.infer<typeof orderSchema>;
 
 const NewOrderPage: React.FC = () => {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const { user } = useAuth();
-  const [calendarOpen, setCalendarOpen] = useState(false);
-  const [selectedServiceType, setSelectedServiceType] = useState<string | null>(null);
-  const [selectedVideoFormatId, setSelectedVideoFormatId] = useState<string | null>(null);
+const navigate = useNavigate();
+const [searchParams] = useSearchParams();
+const { user } = useAuth();
+const [calendarOpen, setCalendarOpen] = useState(false);
+const [selectedServiceType, setSelectedServiceType] = useState<string | null>(null);
+const [selectedVideoFormatId, setSelectedVideoFormatId] = useState<string | null>(null);
 
-  // Get pre-selected service on load
-  const preSelectedService = searchParams.get('service');
+// Get pre-selected service on load
+const preSelectedService = searchParams.get('service');
 
-  // Get user's available services using hook
-  const { data: availableServices = [], isLoading: isLoadingServices } = useAvailableServices(user?.id);
-  const consumeService = useConsumeService();
-  const createOrderMutation = useCreateOrder();
-  const { data: videoFormats = [], isLoading: isLoadingFormats } = useVideoFormats();
+// Get user's available services using hook
+const { data: availableServices = [], isLoading: isLoadingServices } = useAvailableServices(user?.id);
+const createOrderMutation = useCreateOrder();
+const { data: videoFormats = [], isLoading: isLoadingFormats } = useVideoFormats();
+const { data: availableBalances = [], isLoading: isLoadingBalances } = useAvailableBalances();
 
   // Get selected service config
   const selectedConfig = useMemo(() => {
@@ -173,35 +173,31 @@ const NewOrderPage: React.FC = () => {
     return false;
   };
 
-  const onSubmit = async (data: OrderFormData) => {
-    if (!user?.id || !selectedVideoFormatId) return;
+const onSubmit = async (data: OrderFormData) => {
+if (!user?.id || !data.serviceBalanceLotId) return;
 
-    try {
-      // Consume service using FIFO logic with videoFormatId (Fase 0)
-      const result = await consumeService.mutateAsync({
-        userId: user.id,
-        videoFormatId: selectedVideoFormatId,
-      });
+try {
+const selectedBalance = availableBalances.find(b => b.id === data.serviceBalanceLotId);
+if (!selectedBalance || !selectedBalance.videoFormatId) {
+toast.error('Saldo selecionado inválido');
+return;
+}
 
-      if (!result.success) {
-        return; // Error is handled by the mutation loop
-      }
+await createOrderMutation.mutateAsync({
+clientId: user.id,
+title: data.title,
+briefing: data.briefing,
+sourceFilesUrl: data.sourceFilesUrl,
+deadline: data.deadline?.toISOString() || new Date().toISOString(),
+videoFormatId: selectedBalance.videoFormatId,
+serviceBalanceLotId: data.serviceBalanceLotId,
+});
 
-      // Create order with videoFormatId
-      await createOrderMutation.mutateAsync({
-        clientId: user.id,
-        title: data.title,
-        briefing: data.briefing,
-        sourceFilesUrl: data.sourceFilesUrl,
-        deadline: data.deadline?.toISOString() || new Date().toISOString(),
-        videoFormatId: selectedVideoFormatId,
-      });
-
-      navigate('/orders');
-    } catch (error) {
-      // Error handled in hooks
-    }
-  };
+navigate('/orders');
+} catch (error) {
+// Error handled in hook
+}
+};
 
   // Get icon for a service
   const getServiceIcon = (category: string) => {
@@ -209,7 +205,7 @@ const NewOrderPage: React.FC = () => {
     return <Icon className="h-4 w-4 mr-2" />;
   };
 
-  const isLoading = consumeService.isPending || createOrderMutation.isPending || isLoadingFormats;
+  const isLoading = createOrderMutation.isPending || isLoadingFormats || isLoadingBalances;
 
   return (
     <motion.div
@@ -234,64 +230,75 @@ const NewOrderPage: React.FC = () => {
         </p>
       </div>
 
-      {/* Form */}
-      <Card variant="elevated">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            Detalhes do Projeto
-          </CardTitle>
-          <CardDescription>
-            Quanto mais detalhado o briefing, melhor o resultado final.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Video Format Selection - Dynamic Catalog (Fase 0) */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2 text-base font-semibold">
-              <Package className="h-4 w-4" />
-              Formato do Vídeo
-            </Label>
-            <p className="text-sm text-muted-foreground mb-3">
-              Selecione o formato dinâmico do catálogo
-            </p>
-            <Controller
-              control={control}
-              name="videoFormatId"
-              render={({ field }) => (
-                <Select
-                  value={field.value}
-                  onValueChange={handleVideoFormatChange}
-                  disabled={isLoadingFormats}
-                >
-                  <SelectTrigger className="w-full h-12">
-                    <SelectValue placeholder={isLoadingFormats ? "Carregando..." : "Selecione o formato de vídeo"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {videoFormats.map((format) => (
-                      <SelectItem
-                        key={format.id}
-                        value={format.id}
-                        className="py-3"
-                      >
-                        <div className="flex items-center gap-3">
-                          {getServiceIcon('avulso')}
-                          <span>{format.name}</span>
-                          <span className="text-muted-foreground ml-auto text-xs">
-                            {format.maxDurationSeconds}s • {format.tier}
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            {errors.videoFormatId && (
-              <p className="text-sm text-destructive">{errors.videoFormatId.message}</p>
-            )}
-          </div>
+{/* Form */}
+<Card variant="elevated">
+<CardHeader>
+<CardTitle className="flex items-center gap-2">
+<Sparkles className="h-5 w-5 text-primary" />
+Detalhes do Projeto
+</CardTitle>
+<CardDescription>
+Selecione o saldo disponível e preencha os detalhes do seu projeto.
+</CardDescription>
+</CardHeader>
+<CardContent>
+<form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+{/* Service Balance Selection */}
+<div className="space-y-2">
+<Label className="flex items-center gap-2 text-base font-semibold">
+<Package className="h-4 w-4" />
+Saldo Disponível
+</Label>
+<p className="text-sm text-muted-foreground mb-3">
+Selecione qual lote de saldo financiará este pedido
+</p>
+<Controller
+control={control}
+name="serviceBalanceLotId"
+render={({ field }) => (
+<Select
+value={field.value}
+onValueChange={(value) => {
+field.onChange(value);
+const balance = availableBalances.find(b => b.id === value);
+if (balance?.videoFormatId) {
+setSelectedVideoFormatId(balance.videoFormatId);
+}
+}}
+disabled={isLoadingBalances}
+>
+<SelectTrigger className="w-full h-12">
+<SelectValue placeholder={isLoadingBalances ? "Carregando..." : "Selecione o saldo disponível"} />
+</SelectTrigger>
+<SelectContent>
+{availableBalances.map((balance) => (
+<SelectItem
+key={balance.id}
+value={balance.id}
+className="py-3"
+>
+<div className="flex items-center gap-3">
+{getServiceIcon('avulso')}
+<div className="flex-1">
+<div className="font-medium">
+{balance.contract?.snapshotOfferName || balance.contract?.offer?.name || 'Saldo de Edição'}
+</div>
+<div className="text-xs text-muted-foreground">
+{balance.remainingQuantity} {balance.remainingQuantity === 1 ? 'unidade' : 'unidades'} disponíveis
+{balance.expiresAt && ` • Vence em ${new Date(balance.expiresAt).toLocaleDateString()}`}
+</div>
+</div>
+</div>
+</SelectItem>
+))}
+</SelectContent>
+</Select>
+)}
+/>
+{errors.serviceBalanceLotId && (
+<p className="text-sm text-destructive">{errors.serviceBalanceLotId.message}</p>
+)}
+</div>
 
             {/* Dynamic Deadline Alert */}
             {selectedServiceType && (

@@ -40,22 +40,23 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 
 // Hooks
-import { useOrders, useOrdersByClient, useDeleteOrder } from '@/hooks/useOrders';
+import { useOrders, useOrdersByClient, useDeleteOrder, useCancelOrder } from '@/hooks/useOrders';
 
 const OrdersPage: React.FC = () => {
-  const { user } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+const { user } = useAuth();
+const [searchQuery, setSearchQuery] = useState('');
+const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  // For clients, show only their orders; for admin/editor, show all
-  const isClient = user?.role === 'Client';
-  const { data: allOrders = [], isLoading: isLoadingAll } = useOrders();
-  const { data: clientOrders = [], isLoading: isLoadingClient } = useOrdersByClient(isClient ? user?.id : undefined);
-  
-  const orders = isClient ? clientOrders : allOrders;
-  const isLoading = isClient ? isLoadingClient : isLoadingAll;
+// For clients, show only their orders; for admin/editor, show all
+const isClient = user?.role === 'Client';
+const { data: allOrders = [], isLoading: isLoadingAll } = useOrders();
+const { data: clientOrders = [], isLoading: isLoadingClient } = useOrdersByClient(isClient ? user?.id : undefined);
 
-  const deleteOrderMutation = useDeleteOrder();
+const orders = isClient ? clientOrders : allOrders;
+const isLoading = isClient ? isLoadingClient : isLoadingAll;
+
+const deleteOrderMutation = useDeleteOrder();
+const cancelOrderMutation = useCancelOrder();
 
   // Filter orders based on search and status
   const filteredOrders = useMemo(() => {
@@ -66,13 +67,25 @@ const OrdersPage: React.FC = () => {
     });
   }, [orders, searchQuery, statusFilter]);
 
-  const handleDeleteOrder = async (orderId: string) => {
-    try {
-      await deleteOrderMutation.mutateAsync(orderId);
-    } catch (error) {
-      // Error handled in hook
-    }
-  };
+const handleDeleteOrder = async (orderId: string) => {
+try {
+await deleteOrderMutation.mutateAsync(orderId);
+} catch (error) {
+// Error handled in hook
+}
+};
+
+const handleCancelOrder = async (orderId: string) => {
+try {
+await cancelOrderMutation.mutateAsync(orderId);
+} catch (error) {
+// Error handled in hook
+}
+};
+
+const canCancelOrder = (status: string) => {
+return status === 'Draft' || status === 'Pending';
+};
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -178,33 +191,50 @@ const OrdersPage: React.FC = () => {
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem asChild>
-                        <Link to={`/orders/${order.id}`}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          Ver Detalhes
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Edit className="h-4 w-4 mr-2" />
-                        Editar
-                      </DropdownMenuItem>
-                      {order.finalVideoUrl && (
-                        <DropdownMenuItem>
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Ver Vídeo Final
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        className="text-destructive"
-                        onClick={() => handleDeleteOrder(order.id)}
-                        disabled={deleteOrderMutation.isPending}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Excluir
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
+<DropdownMenuContent align="end" className="w-48">
+<DropdownMenuItem asChild>
+<Link to={`/orders/${order.id}`}>
+<Eye className="h-4 w-4 mr-2" />
+Ver Detalhes
+</Link>
+</DropdownMenuItem>
+<DropdownMenuItem>
+<Edit className="h-4 w-4 mr-2" />
+Editar
+</DropdownMenuItem>
+{order.finalVideoUrl && (
+<DropdownMenuItem>
+<ExternalLink className="h-4 w-4 mr-2" />
+Ver Vídeo Final
+</DropdownMenuItem>
+)}
+{canCancelOrder(order.status) && (
+<>
+<DropdownMenuSeparator />
+<DropdownMenuItem
+className="text-destructive"
+onClick={() => handleCancelOrder(order.id)}
+disabled={cancelOrderMutation.isPending}
+>
+<Trash2 className="h-4 w-4 mr-2" />
+Cancelar (Estorno)
+</DropdownMenuItem>
+</>
+)}
+{!canCancelOrder(order.status) && (
+<>
+<DropdownMenuSeparator />
+<DropdownMenuItem
+className="text-destructive"
+onClick={() => handleDeleteOrder(order.id)}
+disabled={deleteOrderMutation.isPending}
+>
+<Trash2 className="h-4 w-4 mr-2" />
+Excluir
+</DropdownMenuItem>
+</>
+)}
+</DropdownMenuContent>
                   </DropdownMenu>
                 </div>
               </CardHeader>
