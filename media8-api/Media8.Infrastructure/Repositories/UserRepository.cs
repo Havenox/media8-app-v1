@@ -37,35 +37,38 @@ public class UserRepository : Repository<User>, IUserRepository
              .FirstOrDefaultAsync(u => u.Email == email);
     }
 
-    public async Task<(IEnumerable<User> Users, int TotalCount)> GetPagedAsync(string? search, string? role, int page, int pageSize)
-    {
-        var query = _dbSet
-            .Include(u => u.Profile)
-            .Include(u => u.Roles)
-            .Include(u => u.Contracts)
-            .ThenInclude(c => c.Offer)
-            .AsNoTracking()
-            .AsQueryable();
+public async Task<(IEnumerable<User> Users, int TotalCount)> GetPagedAsync(string? search, string? role, int page, int pageSize, bool showInactive = false)
+{
+  var query = _dbSet
+    .Include(u => u.Profile)
+    .Include(u => u.Roles)
+    .Include(u => u.Contracts)
+    .ThenInclude(c => c.Offer)
+    .AsNoTracking()
+    .AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            search = search.Trim().ToLower();
-            query = query.Where(u => u.Email.ToLower().Contains(search) || (u.Profile != null && u.Profile.Name.ToLower().Contains(search)));
-        }
+  // Filtra por IsActive: se showInactive=false, traz apenas ativos; se true, traz apenas inativos
+  query = query.Where(u => u.IsActive == !showInactive);
 
-        if (!string.IsNullOrWhiteSpace(role) && Enum.TryParse<Media8.Domain.Enums.AppRole>(role, true, out var roleEnum))
-        {
-            query = query.Where(u => u.Roles.Any(r => r.Role == roleEnum));
-        }
+  if (!string.IsNullOrWhiteSpace(search))
+  {
+    search = search.Trim().ToLower();
+    query = query.Where(u => u.Email.ToLower().Contains(search) || (u.Profile != null && u.Profile.Name.ToLower().Contains(search)));
+  }
 
-        var total = await query.CountAsync();
+  if (!string.IsNullOrWhiteSpace(role) && Enum.TryParse<Media8.Domain.Enums.AppRole>(role, true, out var roleEnum))
+  {
+    query = query.Where(u => u.Roles.Any(r => r.Role == roleEnum));
+  }
 
-        var users = await query
-            .OrderBy(u => u.Profile.Name ?? u.Email)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+  var total = await query.CountAsync();
 
-        return (users, total);
-    }
+  var users = await query
+    .OrderBy(u => u.Profile.Name ?? u.Email)
+    .Skip((page - 1) * pageSize)
+    .Take(pageSize)
+    .ToListAsync();
+
+  return (users, total);
+}
 }

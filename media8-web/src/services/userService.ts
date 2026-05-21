@@ -60,6 +60,11 @@ const deleteAPI = async (id: string): Promise<{ success: boolean; message: strin
   return response.data;
 };
 
+const reactivateAPI = async (id: string): Promise<{ success: boolean; message: string }> => {
+  const response = await api.put(`/users/${id}/reactivate`);
+  return response.data;
+};
+
 // ... existing auth methods ...
 const loginAPI = async (email: string, password: string): Promise<UserLoginResponse> => {
   const response = await api.post('/auth/login', { email, password });
@@ -123,13 +128,17 @@ export const userService = {
     return updateAPI(id, data);
   },
 
-  async delete(id: string): Promise<void> {
-    return deleteAPI(id);
-  },
+async delete(id: string): Promise<void> {
+  return deleteAPI(id);
+},
 
-  async login(email: string, password: string): Promise<UserLoginResponse> {
-    return loginAPI(email, password);
-  },
+async reactivate(id: string): Promise<{ success: boolean; message: string }> {
+  return reactivateAPI(id);
+},
+
+async login(email: string, password: string): Promise<UserLoginResponse> {
+  return loginAPI(email, password);
+},
 
   async updateProfile(id: string, data: any): Promise<User> {
     return updateProfileAPI(id, data);

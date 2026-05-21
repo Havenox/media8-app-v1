@@ -56,6 +56,8 @@ import UserDetailsSheet from '@/components/users/UserDetailsSheet';
 import { useInfiniteUsers, useCreateUser, useDeleteUser, useUpdateUser, useUserStats } from '@/hooks/useUsers';
 import { InfiniteScroll } from '@/components/ui/infinite-scroll';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useMutation } from '@tanstack/react-query';
+import { userService } from '@/services/userService';
 
 // usePackages removed - migrated to offers/contracts
 import { ContractAssignDialog } from '@/components/contracts/ContractAssignDialog';
@@ -105,6 +107,19 @@ const createUserMutation = useCreateUser();
 const deleteUserMutation = useDeleteUser();
 const updateUserMutation = useUpdateUser();
 // assignPackageMutation removed - use ContractAssignDialog instead
+
+// Hook para reativar usuário
+const reactivateUserMutation = useMutation({
+  mutationFn: (id: string) => userService.reactivate(id),
+  onSuccess: () => {
+    toast.success('Usuário reativado com sucesso!');
+    // Invalida queries de usuários para recarregar a lista
+    window.location.reload(); // Força reload para simplificar
+  },
+  onError: (error: Error) => {
+    toast.error(error.message || 'Erro ao reativar usuário');
+  },
+});
 
 
   // Filter users in memory (Search only) - Ideally this should be backend search
@@ -196,13 +211,9 @@ const handleRestoreUser = async () => {
   if (!userToRestore) return;
   
   try {
-    await updateUserMutation.mutateAsync({
-      id: userToRestore.id,
-      data: { isActive: true }
-    });
+    reactivateUserMutation.mutateAsync(userToRestore.id);
     setIsRestoreDialogOpen(false);
     setUserToRestore(null);
-    toast.success('Usuário reativado com sucesso!');
   } catch (error) {
     toast.error('Erro ao reativar usuário');
   }

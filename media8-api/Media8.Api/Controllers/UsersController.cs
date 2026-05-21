@@ -39,27 +39,22 @@ public class UsersController : ControllerBase
         _userRoleRepository = userRoleRepository;
     }
 
-[HttpGet]
-[Authorize(Roles = "Admin")]
-public async Task<ActionResult<IEnumerable<AdminUserDto>>> GetAll(
-  [FromQuery] string? search,
-  [FromQuery] string? role,
-  [FromQuery] int page = 1,
-  [FromQuery] int pageSize = 20,
-  [FromQuery] bool showInactive = false)
-{
-  var (users, total) = await _userRepository.GetPagedAsync(search, role, page, pageSize);
-  
-  // Filtra usuários inativos se showInactive=false (padrão)
-  var filteredUsers = showInactive 
-    ? users 
-    : users.Where(u => u.IsActive);
-  
-  var userDtos = filteredUsers.Select(MapToAdminDto);
+  [HttpGet]
+  [Authorize(Roles = "Admin")]
+  public async Task<ActionResult<IEnumerable<AdminUserDto>>> GetAll(
+    [FromQuery] string? search,
+    [FromQuery] string? role,
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 20,
+    [FromQuery] bool showInactive = false)
+  {
+    var (users, total) = await _userRepository.GetPagedAsync(search, role, page, pageSize, showInactive);
 
-  Response.Headers.Append("X-Total-Count", total.ToString());
-  return Ok(userDtos);
-}
+    var userDtos = users.Select(MapToAdminDto);
+
+    Response.Headers.Append("X-Total-Count", total.ToString());
+    return Ok(userDtos);
+  }
 
     [HttpGet("stats")]
     [Authorize(Roles = "Admin")]
@@ -194,6 +189,27 @@ public async Task<ActionResult> DeleteUser(Guid id)
     success = true, 
     message = "Usuário arquivado com sucesso. Usuários não podem ser excluídos permanentemente por razões de governança.",
     deletedPhysically = false
+  });
+}
+
+/// <summary>
+/// Reativa um usuário arquivado.
+/// </summary>
+[HttpPut("{id:guid}/reactivate")]
+[Authorize(Roles = "Admin")]
+public async Task<ActionResult> ReactivateUser(Guid id)
+{
+  var user = await _userRepository.GetByIdWithProfileAsync(id);
+  if (user == null) return NotFound();
+
+  user.IsActive = true;
+  user.UpdatedAt = DateTime.UtcNow;
+  
+  await _userRepository.UpdateAsync(user);
+
+  return Ok(new { 
+    success = true, 
+    message = "Usuário reativado com sucesso."
   });
 }
 
