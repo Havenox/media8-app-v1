@@ -60,8 +60,6 @@ const UserDetailsSheet: React.FC<UserDetailsSheetProps> = ({
   onDelete,
   isDeleting = false,
 }) => {
-  const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
-  
   if (!user) return null;
 
   const { data: contracts = [], isLoading: isLoadingContracts } = useClientContracts(user.id);
@@ -239,7 +237,7 @@ Saldos e Serviços
           size="icon"
           onClick={(e) => {
             e.stopPropagation();
-            setIsArchiveDialogOpen(true);
+            onDelete(user.id);
           }}
           disabled={isDeleting}
         >
@@ -249,34 +247,9 @@ Saldos e Serviços
             <Archive className="h-4 w-4" />
           )}
         </Button>
-</SheetFooter>
-
-{/* Archive User AlertDialog */}
-<AlertDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen}>
-  <AlertDialogContent>
-    <AlertDialogHeader>
-      <AlertDialogTitle>Arquivar Usuário</AlertDialogTitle>
-      <AlertDialogDescription>
-        Deseja desativar este usuário? Ele perderá o acesso de login imediatamente 
-        e será movido para a lista de inativos.
-      </AlertDialogDescription>
-    </AlertDialogHeader>
-    <AlertDialogFooter>
-      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-      <AlertDialogAction
-        onClick={() => {
-          onDelete(user.id);
-          setIsArchiveDialogOpen(false);
-        }}
-        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-      >
-        Arquivar
-      </AlertDialogAction>
-    </AlertDialogFooter>
-  </AlertDialogContent>
-</AlertDialog>
-</SheetContent>
-</Sheet>
+      </SheetFooter>
+    </SheetContent>
+  </Sheet>
 );
 };
 
