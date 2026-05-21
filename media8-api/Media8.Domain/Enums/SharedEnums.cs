@@ -44,11 +44,15 @@ public enum ContractType
 
 public enum OrderStatus
 {
-    Pending,
-    InProgress,
-    InReview,
-    ChangesRequested,
-    Approved
+Draft,
+Pending,
+Processing,
+InProgress,
+InReview,
+ChangesRequested,
+Approved,
+Completed,
+Cancelled
 }
 
 public enum TimelineActionType

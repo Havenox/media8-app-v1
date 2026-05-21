@@ -13,11 +13,12 @@ public interface IAuthService
 
 public interface IOrderService
 {
-    Task<OrderResponse> CreateAsync(CreateOrderRequest request, Guid userId);
-    Task<OrderResponse?> GetByIdAsync(Guid id);
-    Task<List<OrderResponse>> GetAllAsync();
-    Task<List<OrderResponse>> GetByClientAsync(Guid clientId);
-    Task<List<OrderResponse>> GetByEditorAsync(Guid editorId);
+Task<OrderResponse> CreateAsync(CreateOrderRequest request, Guid userId);
+Task<OrderResponse> CancelOrderAsync(Guid orderId);
+Task<OrderResponse?> GetByIdAsync(Guid id);
+Task<List<OrderResponse>> GetAllAsync();
+Task<List<OrderResponse>> GetByClientAsync(Guid clientId);
+Task<List<OrderResponse>> GetByEditorAsync(Guid editorId);
 }
 
 public interface IPasswordHasher
