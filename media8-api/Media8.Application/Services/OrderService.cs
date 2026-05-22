@@ -1,5 +1,6 @@
 using Media8.Application.DTOs.Orders;
 using Media8.Application.Interfaces;
+using Media8.Domain.Common;
 using Media8.Domain.Entities;
 using Media8.Domain.Enums;
 using Microsoft.Extensions.Logging;
@@ -64,13 +65,13 @@ var order = await _orderRepository.GetByIdAsync(orderId)
 
 if (order.Status == OrderStatus.Cancelled)
 {
-throw new InvalidOperationException($"Pedido {orderId} já está cancelado.");
+throw new BusinessRuleException($"Pedido {orderId} já está cancelado.", "ORDER_ALREADY_CANCELLED");
 }
 
 if (order.Status != OrderStatus.Draft && order.Status != OrderStatus.Pending)
 {
-throw new InvalidOperationException(
-$"Pedido {orderId} não pode ser cancelado no status {order.Status}.");
+throw new BusinessRuleException(
+$"Pedido {orderId} não pode ser cancelado no status {order.Status}.", "ORDER_INVALID_STATUS");
 }
 
 // Valida janela de tempo dinâmica via SettingsService
@@ -79,8 +80,9 @@ var timeSinceCreation = DateTime.UtcNow - order.CreatedAt;
 
 if (timeSinceCreation.TotalHours > cancellationWindowHours)
 {
-throw new InvalidOperationException(
-$"Tempo limite excedido. Pedido criado há {timeSinceCreation.TotalHours:F1}h, limite é {cancellationWindowHours}h.");
+throw new BusinessRuleException(
+$"Tempo limite excedido. Pedido criado há {timeSinceCreation.TotalHours:F1}h, limite é {cancellationWindowHours}h.",
+"CANCELLATION_WINDOW_EXPIRED");
 }
 
 if (order.ServiceBalanceLotId.HasValue)

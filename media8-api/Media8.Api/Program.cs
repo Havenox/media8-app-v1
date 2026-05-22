@@ -119,6 +119,30 @@ app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+// Global Exception Handler for Business Rules
+app.Use(async (context, next) =>
+{
+try
+{
+await next.Invoke();
+}
+catch (Media8.Domain.Common.BusinessRuleException ex)
+{
+// Return 422 Unprocessable Entity for business rule violations
+context.Response.StatusCode = 422;
+context.Response.ContentType = "application/json";
+var result = new { message = ex.Message, errorCode = ex.ErrorCode };
+await context.Response.WriteAsJsonAsync(result);
+}
+catch (Exception ex)
+{
+// Handle other exceptions as 500
+context.Response.StatusCode = 500;
+context.Response.ContentType = "application/json";
+var errorResult = new { message = "Ocorreu um erro interno no servidor." };
+await context.Response.WriteAsJsonAsync(errorResult);
+}
+});
 
+app.MapControllers();
 app.Run();
