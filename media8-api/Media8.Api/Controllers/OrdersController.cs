@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Media8.Application.DTOs.Orders;
 using Media8.Application.Interfaces;
+using Media8.Domain.Common;
 using Media8.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -65,26 +66,31 @@ var balanceLot = await _balanceRepository.GetByIdAsync(request.ServiceBalanceLot
 
 if (balanceLot == null)
 {
-return BadRequest(new { message = "Lote de saldo não encontrado." });
+throw new BusinessRuleException("Lote de saldo não encontrado.", "BALANCE_LOT_NOT_FOUND");
 }
 
 if (balanceLot.UserId != userId)
 {
-return Unauthorized(new { message = "Lote de saldo não pertence ao usuário." });
+throw new BusinessRuleException("Lote de saldo não pertence ao usuário.", "BALANCE_LOT_NOT_USER");
 }
 
 if (balanceLot.RemainingQuantity <= 0)
 {
-return BadRequest(new { message = "Saldo insuficiente." });
+throw new BusinessRuleException("Saldo insuficiente.", "INSUFFICIENT_BALANCE");
 }
 
 if (balanceLot.ExpiresAt.HasValue && balanceLot.ExpiresAt.Value < DateTime.UtcNow)
 {
-return BadRequest(new { message = "Lote de saldo expirado." });
+throw new BusinessRuleException("Lote de saldo expirado.", "BALANCE_LOT_EXPIRED");
 }
 
 var response = await _orderService.CreateAsync(request, userId, request.ServiceBalanceLotId);
 return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
+}
+catch (BusinessRuleException)
+{
+// Deixa o middleware global tratar e retornar 422
+throw;
 }
 catch (Exception ex)
 {
@@ -123,18 +129,7 @@ if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var u
 return Unauthorized();
 }
 
-try
-{
 var response = await _orderService.CancelOrderAsync(id);
 return Ok(response);
-}
-catch (InvalidOperationException ex)
-{
-return BadRequest(new { message = ex.Message });
-}
-catch (Exception ex)
-{
-return BadRequest(new { message = ex.Message });
-}
 }
 }
