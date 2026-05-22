@@ -296,14 +296,14 @@ const ProfilesPage: React.FC = () => {
       >
         <div className="flex items-center justify-between mb-2">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
               Meus Perfis
             </h1>
             <p className="text-muted-foreground mt-1">
               Gerencie suas identidades visuais e perfis de edição
             </p>
           </div>
-          <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+          <Button variant="default">
             <Plus className="mr-2 h-4 w-4" />
             Novo Perfil
           </Button>
@@ -350,7 +350,7 @@ const ProfilesPage: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Palette className="h-5 w-5 text-purple-600" />
+                <Palette className="h-5 w-5 text-primary" />
                 {showArchived ? 'Identidades Visuais Arquivadas' : 'Identidades Visuais Ativas'}
               </CardTitle>
               <CardDescription>
@@ -418,7 +418,7 @@ const ProfilesPage: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Film className="h-5 w-5 text-pink-600" />
+                <Film className="h-5 w-5 text-primary" />
                 {showArchived ? 'Perfis de Edição Arquivados' : 'Perfis de Edição Ativos'}
               </CardTitle>
               <CardDescription>
