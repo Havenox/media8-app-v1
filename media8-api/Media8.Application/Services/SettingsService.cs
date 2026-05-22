@@ -1,4 +1,6 @@
 using Media8.Application.Interfaces;
+using Media8.Domain.Entities;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 
@@ -6,18 +8,22 @@ namespace Media8.Application.Services;
 
 /// <summary>
 /// Singleton service that manages system settings with in-memory caching.
-/// Uses EF Core directly to avoid Scoped/Singleton conflicts.
+/// Uses IServiceScopeFactory to resolve Scoped dependencies (IRepository) safely.
 /// </summary>
 public class SettingsService : ISettingsService
 {
 private readonly ILogger<SettingsService> _logger;
+private readonly IServiceScopeFactory _scopeFactory;
 private readonly ConcurrentDictionary<string, string> _cache = new();
 private readonly object _initializationLock = new();
 private bool _initialized = false;
 
-public SettingsService(ILogger<SettingsService> logger)
+public SettingsService(
+ILogger<SettingsService> logger,
+IServiceScopeFactory scopeFactory)
 {
 _logger = logger;
+_scopeFactory = scopeFactory;
 }
 
 /// <summary>
@@ -62,16 +68,52 @@ return Task.FromResult(defaultValue);
 }
 
 /// <summary>
-/// Sets or updates a setting value.
-/// Note: This requires manual cache refresh via RefreshCacheAsync.
+/// Sets or updates a setting value, persisting to database and updating cache.
+/// Uses IServiceScopeFactory to resolve scoped IRepository safely from Singleton.
 /// </summary>
-public Task SetSettingAsync(string key, string value)
+public async Task SetSettingAsync(string key, string value)
 {
-// Update cache
+try
+{
+// Create a temporary scope to resolve scoped services
+using var scope = _scopeFactory.CreateScope();
+var repository = scope.ServiceProvider.GetRequiredService<IRepository<SystemSetting>>();
+
+// Try to find existing setting
+var settings = await repository.FindAsync(s => s.Key == key);
+var setting = settings.FirstOrDefault();
+
+if (setting != null)
+{
+// Update existing
+setting.Value = value;
+setting.UpdatedAt = DateTime.UtcNow;
+await repository.UpdateAsync(setting);
+}
+else
+{
+// Create new
+var newSetting = new SystemSetting
+{
+Key = key,
+Value = value,
+Description = key,
+CreatedAt = DateTime.UtcNow,
+UpdatedAt = DateTime.UtcNow
+};
+await repository.AddAsync(newSetting);
+}
+
+// Update cache only after successful DB persistence
 _cache[key] = value;
 
-_logger.LogInformation("Setting {Key} updated to {Value} (cache only)", key, value);
-return Task.CompletedTask;
+_logger.LogInformation("Setting {Key} updated to {Value} (persisted to DB and cache)", key, value);
+}
+catch (Exception ex)
+{
+_logger.LogError(ex, "Error updating setting {Key}", key);
+throw;
+}
 }
 
 /// <summary>
@@ -84,14 +126,37 @@ return Task.FromResult(_cache.ToDictionary(k => k.Key, v => v.Value));
 
 /// <summary>
 /// Refreshes the cache from the database.
-/// Must be called explicitly when settings change.
+/// Uses IServiceScopeFactory to resolve scoped repository safely.
 /// </summary>
-public Task RefreshCacheAsync()
+public async Task RefreshCacheAsync()
 {
-// In singleton mode without DbContext access, this is a no-op
-// Settings must be refreshed via explicit calls after DB changes
-_logger.LogInformation("Cache refresh requested (no-op in singleton mode)");
-return Task.CompletedTask;
+try
+{
+using var scope = _scopeFactory.CreateScope();
+var repository = scope.ServiceProvider.GetRequiredService<IRepository<SystemSetting>>();
+
+var allSettings = await repository.GetAllAsync();
+var newCache = new Dictionary<string, string>();
+
+foreach (var setting in allSettings)
+{
+newCache[setting.Key] = setting.Value;
+}
+
+// Replace cache atomically
+_cache.Clear();
+foreach (var kvp in newCache)
+{
+_cache[kvp.Key] = kvp.Value;
+}
+
+_logger.LogInformation("Cache refreshed with {Count} settings from database", newCache.Count);
+}
+catch (Exception ex)
+{
+_logger.LogError(ex, "Error refreshing cache from database");
+throw;
+}
 }
 
 /// <summary>
