@@ -38,10 +38,20 @@ public DbSet<Offer> Offers => Set<Offer>();
 /// </summary>
 public DbSet<ClientContract> ClientContracts => Set<ClientContract>();
 
-/// <summary>
-/// Entidade SystemSetting para configurações dinâmicas do sistema
-/// </summary>
-public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
+  /// <summary>
+  /// Entidade SystemSetting para configurações dinâmicas do sistema
+  /// </summary>
+  public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
+
+  /// <summary>
+  /// Entidade VisualIdentityProfile para perfis de identidade visual dos clientes
+  /// </summary>
+  public DbSet<VisualIdentityProfile> VisualIdentityProfiles => Set<VisualIdentityProfile>();
+
+  /// <summary>
+  /// Entidade EditingProfile para perfis de edição de vídeo dos clientes
+  /// </summary>
+  public DbSet<EditingProfile> EditingProfiles => Set<EditingProfile>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -205,17 +215,56 @@ entity.HasOne(cc => cc.Assigner)
 .OnDelete(DeleteBehavior.Restrict);
 });
 
-// SystemSetting Configuration
-modelBuilder.Entity<SystemSetting>(entity =>
-{
-entity.ToTable("SystemSettings");
-entity.HasKey(ss => ss.Id);
-entity.HasIndex(ss => ss.Key).IsUnique();
-entity.Property(ss => ss.Key).IsRequired().HasMaxLength(100);
-entity.Property(ss => ss.Value).IsRequired();
-entity.Property(ss => ss.Description).HasMaxLength(500);
-});
+  // SystemSetting Configuration
+  modelBuilder.Entity<SystemSetting>(entity =>
+  {
+      entity.ToTable("SystemSettings");
+      entity.HasKey(ss => ss.Id);
+      entity.HasIndex(ss => ss.Key).IsUnique();
+      entity.Property(ss => ss.Key).IsRequired().HasMaxLength(100);
+      entity.Property(ss => ss.Value).IsRequired();
+      entity.Property(ss => ss.Description).HasMaxLength(500);
+  });
 
-// Enforce DateOnly conversion if needed
+  // VisualIdentityProfile Configuration
+  modelBuilder.Entity<VisualIdentityProfile>(entity =>
+  {
+      entity.ToTable("VisualIdentityProfiles");
+      entity.HasKey(vip => vip.Id);
+      entity.Property(vip => vip.Name).IsRequired().HasMaxLength(200);
+      entity.Property(vip => vip.SocialHandles).HasMaxLength(1000);
+      entity.Property(vip => vip.BrandColors).HasMaxLength(500);
+      entity.Property(vip => vip.BrandFonts).HasMaxLength(500);
+      entity.Property(vip => vip.TargetAudience).HasMaxLength(200);
+      entity.Property(vip => vip.BrandAssetsUrl).HasMaxLength(2000);
+      
+      // Relationship: One User can have many VisualIdentityProfiles (Cascade Delete)
+      entity.HasOne<Domain.Entities.User>()
+          .WithMany()
+          .HasForeignKey(vip => vip.UserId)
+          .OnDelete(DeleteBehavior.Cascade);
+  });
+
+  // EditingProfile Configuration
+  modelBuilder.Entity<EditingProfile>(entity =>
+  {
+      entity.ToTable("EditingProfiles");
+      entity.HasKey(ep => ep.Id);
+      entity.Property(ep => ep.Name).IsRequired().HasMaxLength(200);
+      entity.Property(ep => ep.ReferenceUrl).HasMaxLength(2000);
+      entity.Property(ep => ep.CutGuidelines).HasMaxLength(2000);
+      entity.Property(ep => ep.ThumbnailPreference).HasMaxLength(100);
+      entity.Property(ep => ep.MusicStyle).HasMaxLength(500);
+      entity.Property(ep => ep.TextHighlightStyle).HasMaxLength(500);
+      entity.Property(ep => ep.GeneralNotes).HasMaxLength(4000);
+      
+      // Relationship: One User can have many EditingProfiles (Cascade Delete)
+      entity.HasOne<Domain.Entities.User>()
+          .WithMany()
+          .HasForeignKey(ep => ep.UserId)
+          .OnDelete(DeleteBehavior.Cascade);
+  });
+
+  // Enforce DateOnly conversion if needed
 }
 }
