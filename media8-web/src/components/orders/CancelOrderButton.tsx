@@ -30,11 +30,13 @@ interface CancelOrderButtonProps {
  * Gerencia estados: vigente (com contador), expirado (desabilitado), e confirmação.
  */
 const CancelOrderButton: React.FC<CancelOrderButtonProps> = ({
-  orderId,
-  createdAt,
-  cancellationWindowHours = 24,
-  onSuccess,
+orderId,
+createdAt,
+cancellationWindowHours = 24,
+onSuccess,
 }) => {
+// Debug: log das props
+console.log('CancelOrderButton props:', { orderId, createdAt, cancellationWindowHours });
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [timeLeft, setTimeLeft] = useState<number>(0);
@@ -90,41 +92,55 @@ const CancelOrderButton: React.FC<CancelOrderButtonProps> = ({
       setIsDialogOpen(false);
       onSuccess?.();
     },
-    onError: (error: any) => {
-      // Tratamento específico para erro 422 (Business Rule)
-      if (error.response?.status === 422) {
-        const errorCode = error.response.data?.errorCode;
-        const message = error.response.data?.message || 'Regra de negócio violada.';
-        
-        if (errorCode === 'CANCELLATION_WINDOW_EXPIRED') {
-          toast({
-            title: 'Prazo de cancelamento expirado',
-            description: message,
-            variant: 'destructive',
-          });
-        } else if (errorCode === 'ORDER_ALREADY_CANCELLED') {
-          toast({
-            title: 'Pedido já cancelado',
-            description: message,
-            variant: 'destructive',
-          });
-        } else {
-          toast({
-            title: 'Não foi possível cancelar',
-            description: message,
-            variant: 'destructive',
-          });
-        }
-      } else {
-        // Erro genérico
-        toast({
-          title: 'Erro ao cancelar pedido',
-          description: error.response?.data?.message || 'Tente novamente mais tarde.',
-          variant: 'destructive',
-        });
-      }
-      setIsDialogOpen(false);
-    },
+onError: (error: any) => {
+// Debug: log do erro completo
+console.log('CancelOrderButton onError:', error);
+console.log('Error structure:', {
+status: error.response?.status,
+data: error.response?.data,
+message: error.response?.data?.message,
+errorCode: error.response?.data?.errorCode,
+});
+
+// Tratamento específico para erro 422 (Business Rule)
+if (error.response?.status === 422) {
+const errorCode = error.response.data?.errorCode;
+const message = error.response.data?.message || 'Regra de negócio violada.';
+
+console.log('Business rule error:', { errorCode, message });
+
+if (errorCode === 'CANCELLATION_WINDOW_EXPIRED') {
+toast({
+title: 'Prazo de cancelamento expirado',
+description: message,
+variant: 'destructive',
+});
+} else if (errorCode === 'ORDER_ALREADY_CANCELLED') {
+toast({
+title: 'Pedido já cancelado',
+description: message,
+variant: 'destructive',
+});
+} else {
+toast({
+title: 'Não foi possível cancelar',
+description: message,
+variant: 'destructive',
+});
+}
+} else {
+// Erro genérico
+const fallbackMessage = error.response?.data?.message || error.message || 'Tente novamente mais tarde.';
+console.log('Generic error:', fallbackMessage);
+
+toast({
+title: 'Erro ao cancelar pedido',
+description: fallbackMessage,
+variant: 'destructive',
+});
+}
+setIsDialogOpen(false);
+},
   });
 
   const handleCancel = () => {
