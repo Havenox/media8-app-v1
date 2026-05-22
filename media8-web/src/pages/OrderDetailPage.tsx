@@ -28,6 +28,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { StatusBadge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+Select,
+SelectContent,
+SelectItem,
+SelectTrigger,
+SelectValue,
+} from '@/components/ui/select';
 import CancelOrderButton from '@/components/orders/CancelOrderButton';
 import { useToast } from '@/hooks/use-toast';
 import { OrderStatus, OrderTimeline, TimelineActionType } from '@/types/api';
