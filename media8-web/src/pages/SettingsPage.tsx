@@ -24,6 +24,7 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { RoleBadge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import AdminSettingsSection from '@/components/admin/AdminSettingsSection';
 
 const SettingsPage: React.FC = () => {
   const { user } = useAuth();
@@ -439,33 +440,36 @@ const SettingsPage: React.FC = () => {
         </Card>
       </motion.div>
 
-      {/* Appearance Section */}
-      <motion.div variants={itemVariants}>
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Palette className="h-5 w-5 text-primary" />
-              <CardTitle>Aparência</CardTitle>
-            </div>
-            <CardDescription>
-              Personalize a interface do sistema.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-foreground">Tema escuro</p>
-                <p className="text-sm text-muted-foreground">
-                  Ative o modo escuro para reduzir o cansaço visual.
-                </p>
-              </div>
-              <Switch />
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    </motion.div>
-  );
+{/* Appearance Section */}
+<motion.div variants={itemVariants}>
+<Card>
+<CardHeader>
+<div className="flex items-center gap-2">
+<Palette className="h-5 w-5 text-primary" />
+<CardTitle>Aparência</CardTitle>
+</div>
+<CardDescription>
+Personalize a interface do sistema.
+</CardDescription>
+</CardHeader>
+<CardContent>
+<div className="flex items-center justify-between">
+<div>
+<p className="font-medium text-foreground">Tema escuro</p>
+<p className="text-sm text-muted-foreground">
+Ative o modo escuro para reduzir o cansaço visual.
+</p>
+</div>
+<Switch />
+</div>
+</CardContent>
+</Card>
+</motion.div>
+
+{/* Admin Settings Section (Admin only) */}
+<AdminSettingsSection />
+</motion.div>
+);
 };
 
 export default SettingsPage;
