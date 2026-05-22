@@ -28,6 +28,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { StatusBadge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import CancelOrderButton from '@/components/orders/CancelOrderButton';
 import {
   Select,
   SelectContent,
@@ -487,34 +488,44 @@ const OrderDetailPage: React.FC = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleUpdateStatus}
-                  disabled={!newStatus || newStatus === order.status || updateStatusMutation.isPending}
-                >
-                  <Edit className="h-4 w-4" />
-                  Atualizar Status
-                </Button>
+<Button
+variant="outline"
+className="w-full"
+onClick={handleUpdateStatus}
+disabled={!newStatus || newStatus === order.status || updateStatusMutation.isPending}
+>
+<Edit className="h-4 w-4" />
+Atualizar Status
+</Button>
 
-                {order.status === 'InReview' && (
-                  <Button 
-                    variant="premium" 
-                    className="w-full" 
-                    onClick={handleApprove}
-                    disabled={updateStatusMutation.isPending}
-                  >
-                    <CheckCircle2 className="h-4 w-4" />
-                    Aprovar Vídeo
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-      </div>
-    </motion.div>
-  );
+{order.status === 'InReview' && (
+<Button
+variant="premium"
+className="w-full"
+onClick={handleApprove}
+disabled={updateStatusMutation.isPending}
+>
+<CheckCircle2 className="h-4 w-4" />
+Aprovar Vídeo
+</Button>
+)}
+
+{/* Cancel Order Button (Client only, with timer) */}
+{user?.role === 'Client' && (order.status === 'Draft' || order.status === 'Pending') && (
+<CancelOrderButton
+orderId={order.id}
+createdAt={order.createdAt}
+cancellationWindowHours={24}
+onSuccess={() => navigate('/orders')}
+/>
+)}
+</CardContent>
+</Card>
+</motion.div>
+</div>
+</div>
+</motion.div>
+);
 };
 
 export default OrderDetailPage;
