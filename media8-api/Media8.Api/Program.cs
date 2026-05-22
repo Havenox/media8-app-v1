@@ -86,16 +86,23 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
 
+// Add Settings Service (Singleton with In-Memory Cache)
+builder.Services.AddSingleton<Media8.Application.Interfaces.ISettingsService, Media8.Application.Services.SettingsService>();
+
 var app = builder.Build();
 
-// Run Seeder
+// Run Seeder and Initialize Settings Cache
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<Media8.Infrastructure.Data.ApplicationDbContext>();
-    await context.Database.MigrateAsync();
+var context = scope.ServiceProvider.GetRequiredService<Media8.Infrastructure.Data.ApplicationDbContext>();
+await context.Database.MigrateAsync();
 
-    var seeder = scope.ServiceProvider.GetRequiredService<Media8.Infrastructure.Data.DbSeeder>();
-    await seeder.SeedAsync();
+var seeder = scope.ServiceProvider.GetRequiredService<Media8.Infrastructure.Data.DbSeeder>();
+await seeder.SeedAsync();
+
+// Initialize Settings Service cache
+var settingsService = scope.ServiceProvider.GetRequiredService<Media8.Application.Interfaces.ISettingsService>();
+await settingsService.InitializeAsync();
 }
 
 // Configure the HTTP request pipeline.

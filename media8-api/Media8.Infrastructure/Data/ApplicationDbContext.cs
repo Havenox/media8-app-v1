@@ -31,12 +31,17 @@ public class ApplicationDbContext : DbContext
     /// <summary>
     /// Entidade Offer para ofertas comerciais
     /// </summary>
-    public DbSet<Offer> Offers => Set<Offer>();
+public DbSet<Offer> Offers => Set<Offer>();
 
-    /// <summary>
-    /// Entidade ClientContract para contratos de clientes
-    /// </summary>
-    public DbSet<ClientContract> ClientContracts => Set<ClientContract>();
+/// <summary>
+/// Entidade ClientContract para contratos de clientes
+/// </summary>
+public DbSet<ClientContract> ClientContracts => Set<ClientContract>();
+
+/// <summary>
+/// Entidade SystemSetting para configurações dinâmicas do sistema
+/// </summary>
+public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -173,33 +178,44 @@ public class ApplicationDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
-        // ClientContract Configuration
-        modelBuilder.Entity<ClientContract>(entity =>
-        {
-            entity.ToTable("ClientContracts");
-            entity.HasKey(cc => cc.Id);
-            entity.Property(cc => cc.OfferId).IsRequired();
-            entity.Property(cc => cc.ClientId).IsRequired();
-            entity.Property(cc => cc.AssignedBy).IsRequired();
-            entity.Property(cc => cc.Status).HasDefaultValue(AssignmentStatus.Active);
-            entity.Property(cc => cc.SnapshotOfferName).HasMaxLength(255);
+// ClientContract Configuration
+modelBuilder.Entity<ClientContract>(entity =>
+{
+entity.ToTable("ClientContracts");
+entity.HasKey(cc => cc.Id);
+entity.Property(cc => cc.OfferId).IsRequired();
+entity.Property(cc => cc.ClientId).IsRequired();
+entity.Property(cc => cc.AssignedBy).IsRequired();
+entity.Property(cc => cc.Status).HasDefaultValue(AssignmentStatus.Active);
+entity.Property(cc => cc.SnapshotOfferName).HasMaxLength(255);
 
-            entity.HasOne(cc => cc.Offer)
-                .WithMany(o => o.Contracts)
-                .HasForeignKey(cc => cc.OfferId)
-                .OnDelete(DeleteBehavior.Restrict);
+entity.HasOne(cc => cc.Offer)
+.WithMany(o => o.Contracts)
+.HasForeignKey(cc => cc.OfferId)
+.OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne(cc => cc.Client)
-                .WithMany(u => u.Contracts)
-                .HasForeignKey(cc => cc.ClientId)
-                .OnDelete(DeleteBehavior.Restrict);
+entity.HasOne(cc => cc.Client)
+.WithMany(u => u.Contracts)
+.HasForeignKey(cc => cc.ClientId)
+.OnDelete(DeleteBehavior.Restrict);
 
-        entity.HasOne(cc => cc.Assigner)
-            .WithMany()
-            .HasForeignKey(cc => cc.AssignedBy)
-            .OnDelete(DeleteBehavior.Restrict);
-    });
+entity.HasOne(cc => cc.Assigner)
+.WithMany()
+.HasForeignKey(cc => cc.AssignedBy)
+.OnDelete(DeleteBehavior.Restrict);
+});
 
-    // Enforce DateOnly conversion if needed
+// SystemSetting Configuration
+modelBuilder.Entity<SystemSetting>(entity =>
+{
+entity.ToTable("SystemSettings");
+entity.HasKey(ss => ss.Id);
+entity.HasIndex(ss => ss.Key).IsUnique();
+entity.Property(ss => ss.Key).IsRequired().HasMaxLength(100);
+entity.Property(ss => ss.Value).IsRequired();
+entity.Property(ss => ss.Description).HasMaxLength(500);
+});
+
+// Enforce DateOnly conversion if needed
 }
 }
