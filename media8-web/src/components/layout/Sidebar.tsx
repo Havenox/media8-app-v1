@@ -38,9 +38,10 @@ interface NavItem {
 const navItems: NavItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
   { icon: FolderKanban, label: 'Pedidos', path: '/orders', roles: ['Admin', 'Client'] },
-  { icon: ShoppingBag, label: 'Serviços', path: '/services', roles: ['Admin', 'Client'] },
-  { icon: Scissors, label: 'Edições', path: '/edits', roles: ['Admin', 'Editor'] },
-  { icon: Users, label: 'Usuários', path: '/users', roles: ['Admin'] },
+{ icon: ShoppingBag, label: 'Serviços', path: '/services', roles: ['Admin', 'Client'] },
+{ icon: Palette, label: 'Meus Perfis', path: '/profiles', roles: ['Admin', 'Client'] },
+{ icon: Scissors, label: 'Edições', path: '/edits', roles: ['Admin', 'Editor'] },
+{ icon: Users, label: 'Usuários', path: '/users', roles: ['Admin'] },
   { icon: Package, label: 'Ofertas', path: '/admin/offers', roles: ['Admin'] },
 { icon: Film, label: 'Formatos', path: '/admin/video-formats', roles: ['Admin'] },
 { icon: Palette, label: 'Estilos', path: '/admin/editing-styles', roles: ['Admin'] },
