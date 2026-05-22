@@ -13,16 +13,19 @@ namespace Media8.Api.Controllers;
 [Route("api/v1/[controller]")]
 public class OrdersController : ControllerBase
 {
-private readonly IOrderService _orderService;
-private readonly IRepository<ServiceBalanceLot> _balanceRepository;
+    private readonly IOrderService _orderService;
+    private readonly IRepository<ServiceBalanceLot> _balanceRepository;
+    private readonly ISettingsService _settingsService;
 
-public OrdersController(
-IOrderService orderService,
-IRepository<ServiceBalanceLot> balanceRepository)
-{
-_orderService = orderService;
-_balanceRepository = balanceRepository;
-}
+    public OrdersController(
+        IOrderService orderService,
+        IRepository<ServiceBalanceLot> balanceRepository,
+        ISettingsService settingsService)
+    {
+        _orderService = orderService;
+        _balanceRepository = balanceRepository;
+        _settingsService = settingsService;
+    }
 
 [HttpGet("available-balances")]
 public async Task<ActionResult<List<ServiceBalanceLot>>> GetAvailableBalances()
@@ -120,16 +123,35 @@ return NotFound();
 return Ok(order);
 }
 
-[HttpPost("{id}/cancel")]
-public async Task<ActionResult<OrderResponse>> Cancel(Guid id)
-{
-var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
-{
-return Unauthorized();
-}
+    [HttpPost("{id}/cancel")]
+    public async Task<ActionResult<OrderResponse>> Cancel(Guid id)
+    {
+        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
+        {
+            return Unauthorized();
+        }
 
-var response = await _orderService.CancelOrderAsync(id);
-return Ok(response);
-}
+        var response = await _orderService.CancelOrderAsync(id);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Gets the cancellation window in hours for orders.
+    /// This endpoint requires authentication but is accessible by all roles (Admin, Editor, Client).
+    /// </summary>
+    /// <returns>The number of hours allowed for order cancellation.</returns>
+    [HttpGet("cancellation-window")]
+    public async Task<ActionResult<int>> GetCancellationWindow()
+    {
+        try
+        {
+            var hours = await _settingsService.GetSettingAsync("CancellationWindowHours", 24);
+            return Ok(hours);
+        }
+        catch
+        {
+            return Ok(24);
+        }
+    }
 }

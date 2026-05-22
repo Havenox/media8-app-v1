@@ -119,11 +119,10 @@ async getAvailableBalances(): Promise<ServiceBalanceLot[]> {
 return getAvailableBalancesAPI();
 },
 
-async getCancellationWindow(): Promise<number> {
-const response = await api.get<SystemSettingsResponse>('/admin/settings');
-const hours = response.data.settings['CancellationWindowHours'];
-return hours ? parseInt(hours, 10) : 24;
-},
+  async getCancellationWindow(): Promise<number> {
+    const response = await api.get<number>('/orders/cancellation-window');
+    return response.data ?? 24;
+  },
 
   // Helper: Get stats for dashboard
   async getStats(): Promise<{
