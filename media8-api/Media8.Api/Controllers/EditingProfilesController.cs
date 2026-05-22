@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Media8.Application.DTOs.Profiles;
 using Media8.Application.Interfaces;
+using Media8.Domain.Common;
 using Media8.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,13 +23,14 @@ public class EditingProfilesController : ControllerBase
     /// <summary>
     /// Lista todos os perfis de edição do usuário logado
     /// </summary>
+    /// <param name="onlyActive">Se true (padrão), retorna apenas perfis ativos. Se false, retorna todos (incluindo arquivados).</param>
     [HttpGet]
     [ProducesResponseType(typeof(List<EditingProfileResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<List<EditingProfileResponse>>> GetByUser()
+    public async Task<ActionResult<List<EditingProfileResponse>>> GetByUser([FromQuery] bool onlyActive = true)
     {
         var userId = GetUserIdFromClaims();
-        var profiles = await _profileService.GetByUserIdAsync(userId);
+        var profiles = await _profileService.GetByUserIdAsync(userId, onlyActive);
         var response = profiles.Select(p => new EditingProfileResponse
         {
             Id = p.Id,
@@ -41,6 +43,7 @@ public class EditingProfilesController : ControllerBase
             UseVideoHook = p.UseVideoHook,
             TextHighlightStyle = p.TextHighlightStyle,
             GeneralNotes = p.GeneralNotes,
+            IsActive = p.IsActive,
             CreatedAt = p.CreatedAt,
             UpdatedAt = p.UpdatedAt
         }).ToList();
@@ -182,7 +185,7 @@ public class EditingProfilesController : ControllerBase
     }
 
     /// <summary>
-    /// Exclui um perfil de edição
+    /// Arquiva um perfil de edição (IsActive = false)
     /// </summary>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -212,6 +215,79 @@ public class EditingProfilesController : ControllerBase
         catch (KeyNotFoundException)
         {
             return NotFound();
+        }
+    }
+
+    /// <summary>
+    /// Restaura um perfil de edição arquivado (IsActive = true)
+    /// </summary>
+    [HttpPost("{id}/restore")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> Restore(Guid id)
+    {
+        var userId = GetUserIdFromClaims();
+        var profile = await _profileService.GetByIdAsync(id);
+
+        if (profile == null)
+        {
+            return NotFound();
+        }
+
+        // Validação de propriedade
+        if (profile.UserId != userId)
+        {
+            return Forbid();
+        }
+
+        try
+        {
+            await _profileService.RestoreAsync(id);
+            return Ok();
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
+
+    /// <summary>
+    /// Exclui permanentemente um perfil de edição (apenas se estiver inativo e não estiver em uso)
+    /// </summary>
+    [HttpDelete("{id}/hard-delete")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> HardDelete(Guid id)
+    {
+        var userId = GetUserIdFromClaims();
+        var profile = await _profileService.GetByIdAsync(id);
+
+        if (profile == null)
+        {
+            return NotFound();
+        }
+
+        // Validação de propriedade
+        if (profile.UserId != userId)
+        {
+            return Forbid();
+        }
+
+        try
+        {
+            await _profileService.HardDeleteAsync(id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (BusinessRuleException ex)
+        {
+            return UnprocessableEntity(new { message = ex.Message, errorCode = ex.ErrorCode });
         }
     }
 
