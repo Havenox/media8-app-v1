@@ -100,9 +100,11 @@ await context.Database.MigrateAsync();
 var seeder = scope.ServiceProvider.GetRequiredService<Media8.Infrastructure.Data.DbSeeder>();
 await seeder.SeedAsync();
 
-// Initialize Settings Service cache
+// Initialize Settings Service cache from database
 var settingsService = scope.ServiceProvider.GetRequiredService<Media8.Application.Interfaces.ISettingsService>();
-await settingsService.InitializeAsync();
+var allSettings = await context.SystemSettings.Select(s => new { s.Key, s.Value }).ToListAsync();
+var settingsDict = allSettings.ToDictionary(s => s.Key, s => s.Value);
+((Media8.Application.Services.SettingsService)settingsService).LoadFromDictionary(settingsDict);
 }
 
 // Configure the HTTP request pipeline.
