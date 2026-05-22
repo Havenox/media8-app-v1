@@ -21,7 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 interface CancelOrderButtonProps {
   orderId: string;
   createdAt: string;
-  cancellationWindowHours: number;
+  cancellationWindowHours?: number | null;
   onSuccess?: () => void;
   variant?: 'button' | 'menu';
 }
@@ -29,14 +29,17 @@ interface CancelOrderButtonProps {
 /**
  * Botão de cancelamento com contador regressivo e confirmação.
  * Gerencia estados: vigente (com contador), expirado (desabilitado), e confirmação.
- * 
+ *
  * variant='button': Renderiza botão completo (padrão para OrderDetailPage)
  * variant='menu': Renderiza conteúdo para dropdown menu (sem wrapper Button)
+ *
+ * Se cancellationWindowHours for undefined/null, o componente não renderiza o timer
+ * para evitar exibição de informações falsas.
  */
 const CancelOrderButton: React.FC<CancelOrderButtonProps> = ({
   orderId,
   createdAt,
-  cancellationWindowHours = 24,
+  cancellationWindowHours,
   onSuccess,
   variant = 'button',
 }) => {
@@ -46,16 +49,21 @@ const CancelOrderButton: React.FC<CancelOrderButtonProps> = ({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isExpired, setIsExpired] = useState(false);
 
-  // Calcula tempo restante
+  // Calcula tempo restante apenas se cancellationWindowHours for válido
   useEffect(() => {
+    // Se não houver valor válido, não calcula timer
+    if (cancellationWindowHours == null || cancellationWindowHours <= 0) {
+      return;
+    }
+
     const createdAtDate = new Date(createdAt);
     const deadline = new Date(createdAtDate.getTime() + cancellationWindowHours * 60 * 60 * 1000);
-    
+
     const updateTimer = () => {
       const now = new Date().getTime();
       const deadlineTime = deadline.getTime();
       const diff = deadlineTime - now;
-      
+
       if (diff <= 0) {
         setTimeLeft(0);
         setIsExpired(true);
@@ -177,17 +185,17 @@ setIsDialogOpen(false);
                 <p>
                   Você está prestes a cancelar este pedido. O saldo será estornado automaticamente para o lote de origem.
                 </p>
-                <div className="bg-muted p-3 rounded-md">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="h-4 w-4 text-primary" />
-                    <span className="font-medium">
-                      Prazo restante: {formatTimeLeft(timeLeft)}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Após este prazo, o cancelamento deverá ser feito diretamente com o suporte.
-                  </p>
-                </div>
+            <div className="bg-muted p-3 rounded-md">
+              <div className="flex items-center gap-2 text-sm">
+                <Clock className="h-4 w-4 text-primary" />
+                <span className="font-medium">
+                  Prazo restante: {formatTimeLeft(timeLeft)}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Janela de cancelamento: {cancellationWindowHours}h. Após este prazo, o cancelamento deverá ser feito diretamente com o suporte.
+              </p>
+            </div>
                 <p className="text-sm text-muted-foreground">
                   Tem certeza que deseja prosseguir?
                 </p>
