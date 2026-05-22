@@ -57,7 +57,7 @@ const OrdersPage: React.FC = () => {
   const isLoading = isClient ? isLoadingClient : isLoadingAll;
 
   const deleteOrderMutation = useDeleteOrder();
-  const { data: cancellationWindowHours = 24 } = useCancellationWindow();
+  const { data: cancellationWindowHours } = useCancellationWindow();
 
   // Filter orders based on search and status
   const filteredOrders = useMemo(() => {

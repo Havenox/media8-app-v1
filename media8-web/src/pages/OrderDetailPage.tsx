@@ -52,12 +52,11 @@ const { toast } = useToast();
 const { data: order, isLoading, error } = useOrder(id);
 const updateStatusMutation = useUpdateOrderStatus();
 
-// Fetch cancellation window from settings
-const { data: cancellationWindowHours = 24 } = useQuery({
-queryKey: ['settings', 'CancellationWindowHours'],
-queryFn: () => orderService.getCancellationWindow(),
-initialData: 24, // Fallback to 24h
-});
+  // Fetch cancellation window from settings
+  const { data: cancellationWindowHours } = useQuery({
+    queryKey: ['settings', 'CancellationWindowHours'],
+    queryFn: () => orderService.getCancellationWindow(),
+  });
 
 const [newComment, setNewComment] = useState('');
 const [newStatus, setNewStatus] = useState<OrderStatus | null>(null);
