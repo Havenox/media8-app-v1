@@ -189,12 +189,17 @@ toast.error('Saldo selecionado inválido');
 return;
 }
 
+// Format deadline to yyyy-MM-dd for DateOnly compatibility
+const formattedDeadline = data.deadline
+? data.deadline.toISOString().split('T')[0]
+: new Date().toISOString().split('T')[0];
+
 await createOrderMutation.mutateAsync({
 clientId: user.id,
 title: data.title,
 briefing: data.briefing,
 sourceFilesUrl: data.sourceFilesUrl,
-deadline: data.deadline?.toISOString() || new Date().toISOString(),
+deadline: formattedDeadline,
 videoFormatId: selectedBalance.videoFormatId,
 serviceBalanceLotId: data.serviceBalanceLotId,
 });
@@ -297,7 +302,7 @@ control={control}
 name="serviceBalanceLotId"
 render={({ field }) => (
 <Select
-value={field.value}
+value={field.value || ""}
 onValueChange={(value) => {
 field.onChange(value);
 const balance = availableBalances.find(b => b.id === value);
