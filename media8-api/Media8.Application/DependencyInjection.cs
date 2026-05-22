@@ -12,6 +12,10 @@ public static class DependencyInjection
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IServiceBalanceService, ServiceBalanceService>();
         
+        // Briefing Profiles
+        services.AddScoped<IVisualIdentityProfileService, VisualIdentityProfileService>();
+        services.AddScoped<IEditingProfileService, EditingProfileService>();
+
         return services;
     }
 }
