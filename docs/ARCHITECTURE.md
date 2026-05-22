@@ -180,6 +180,15 @@ Focado em **Segurança** e **Integridade de Dados**.
 * **Impacto**: Experiência educada e transparente, consistência entre páginas, admins podem ajustar janela de cancelamento dinamicamente.
 * *Implementação*: Ver `docs/implementations/059-ux-cancelamento-pedidos-com-timer-e-validacao.md`.
 
+### 14. Briefing Profiles Lifecycle - Épico 4.5
+**Problema**: Necessidade de gerenciar briefings de forma dinâmica e reutilizável, separando elementos estáticos da marca (Identidade Visual) de preferências artísticas (Edição), com governança de ciclo de vida (arquivamento, restauração, exclusão condicional).
+**Solução**: Criação de duas entidades (`VisualIdentityProfile` e `EditingProfile`) com coluna `IsActive`, endpoints REST de ciclo de vida, e validação de vínculos com pedidos.
+* **Backend**: Entidades de domínio com `IsActive`, migration, serviços com `ArchiveAsync`, `RestoreAsync`, `HardDeleteAsync`, controllers com rotas `/restore` e `/hard-delete`.
+* **Frontend**: (Futuro) UI para CRUD de perfis, lixeira de arquivados, botões de restaurar e excluir permanentemente.
+* **Segurança**: Validação de propriedade via JWT, `BusinessRuleException` para exclusão de ativos ou vinculados a pedidos.
+* **Impacto**: Redução de retrabalho do cliente, dados limpos para editores, governança de dados com soft delete e validação de vínculos.
+* *Implementação*: Ver `docs/implementations/060-roadmap-briefing-profiles.md`, `docs/implementations/061-perfis-briefing-ciclo-de-vida-completo.md`.
+
 ---
 
 ## Fluxo de Dados
