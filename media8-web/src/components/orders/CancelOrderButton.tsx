@@ -259,7 +259,7 @@ setIsDialogOpen(false);
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Após este prazo, o cancelamento deverá ser feito diretamente com o suporte.
+                  Janela de cancelamento: {cancellationWindowHours}h. Após este prazo, o cancelamento deverá ser feito diretamente com o suporte.
                 </p>
               </div>
               <p className="text-sm text-muted-foreground">
