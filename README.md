@@ -23,6 +23,8 @@ Este projeto demonstra a aplicação prática de conceitos avançados de Engenha
 * **Conditional Deletion Pattern**: Padrão arquitetural de deleção condicional (Hard/Soft Delete) com timer de segurança de 5s e verificação de dependências. [Ler Case Study](docs/implementations/048-abas-arquivamento-delecao-condicional-ofertas.md).
 * **UI Consistency Pattern**: Replicação de padrões de UX (abas, timer, reativação) em todas as telas de catálogo do admin. [Ler Case Study](docs/implementations/051-unificacao-padrao-abas-timer-formatos-estilos.md).
 * **User Governance Pipeline**: Gerenciamento estrito de ciclo de vida de usuários (Ativo → Arquivado → Reativado) com invalidação reativa de cache e sem reload. [Ler Case Study](docs/implementations/054-correcao-completa-governanca-usuarios.md).
+* **Dynamic Settings System**: Sistema de configurações dinâmicas com cache Singleton, persistência em banco, e UI admin para gestão de regras de negócio sem deploy. [Ler Case Study](docs/implementations/058-configuracoes-dinamicas-sistema-completo.md).
+* **Order Cancellation UX**: Fluxo educado de cancelamento com timer regressivo, modal de confirmação, validação de regras de negócio (422), e sincronização com configurações dinâmicas. [Ler Case Study](docs/implementations/059-ux-cancelamento-pedidos-com-timer-e-validacao.md).
 
 ### ⚡ Performance e UX
 *   **Virtualização (Infinite Scroll)**: Componentes UI otimizados para listar milhares de registros sem travar o DOM. [Ler Case Study](docs/implementations/010-refatoracao-infinite-scroll-generico.md).

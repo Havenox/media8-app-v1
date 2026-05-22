@@ -162,6 +162,24 @@ Focado em **Segurança** e **Integridade de Dados**.
 * **Impacto**: UX fluida sem reload, modal abre 1 única vez, lista de inativos carrega corretamente.
 * *Implementação*: Ver `docs/implementations/052-pipeline-estrito-ciclo-vida-dados.md`, `docs/implementations/053-governanca-estrita-usuarios-arquivamento-reativacao.md`, `docs/implementations/054-correcao-completa-governanca-usuarios.md`.
 
+### 12. Dynamic Settings System - Épico 4.3
+**Problema**: Regras de negócio críticas (ex: janela de cancelamento de pedidos) estavam hardcoded, exigindo deploy para alterações e sem transparência para admins.
+**Solução**: Sistema de configurações dinâmicas com entidade `SystemSetting`, cache Singleton com `IServiceScopeFactory` para persistência, API admin protegida por RBAC, e UI de gestão.
+* **Backend**: `SystemSetting` entity, `SettingsService` com `ConcurrentDictionary`, `AdminSettingsController` (GET/PATCH), integração com `OrderService` para validação dinâmica.
+* **Frontend**: `AdminSettingsSection` na SettingsPage, hook `useQuery` para busca assíncrona, tratamento de loading e erro.
+* **Segurança**: Apenas Admins podem alterar configurações, cache e banco sincronizados, fallback para valor padrão se falhar.
+* **Impacto**: Admins alteram regras sem deploy, performance O(1) com cache, consistência entre frontend/backend.
+* *Implementação*: Ver `docs/implementations/058-configuracoes-dinamicas-sistema-completo.md`.
+
+### 13. Order Cancellation UX - Épico 4.4
+**Problema**: Cancelamento de pedidos lacked feedback visual, confirmação, e tratamento semântico de erros (400 ao invés de 422), criando experiência frustrante.
+**Solução**: Fluxo completo com `BusinessRuleException` (422), componente `CancelOrderButton` com timer regressivo, modal de confirmação, e sincronização com configurações dinâmicas.
+* **Backend**: `BusinessRuleException` com `ErrorCode`, middleware global para 422, `OrderService` com validação dinâmica de janela.
+* **Frontend**: `CancelOrderButton` com máquina de estados (vigente, expirado, confirmação), tratamento de erro 422 com toast específico, busca dinâmica de `cancellationWindowHours`.
+* **UX**: Timer em tempo real, confirmação educada com resumo de estorno, mensagens claras para cada cenário (prazo expirado, já cancelado, etc.).
+* **Impacto**: Experiência educada e transparente, consistência entre páginas, admins podem ajustar janela de cancelamento dinamicamente.
+* *Implementação*: Ver `docs/implementations/059-ux-cancelamento-pedidos-com-timer-e-validacao.md`.
+
 ---
 
 ## Fluxo de Dados
