@@ -38,25 +38,26 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
+import CancelOrderButton from '@/components/orders/CancelOrderButton';
 
 // Hooks
-import { useOrders, useOrdersByClient, useDeleteOrder, useCancelOrder } from '@/hooks/useOrders';
+import { useOrders, useOrdersByClient, useDeleteOrder, useCancellationWindow } from '@/hooks/useOrders';
 
 const OrdersPage: React.FC = () => {
-const { user } = useAuth();
-const [searchQuery, setSearchQuery] = useState('');
-const [statusFilter, setStatusFilter] = useState<string>('all');
+  const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
-// For clients, show only their orders; for admin/editor, show all
-const isClient = user?.role === 'Client';
-const { data: allOrders = [], isLoading: isLoadingAll } = useOrders();
-const { data: clientOrders = [], isLoading: isLoadingClient } = useOrdersByClient(isClient ? user?.id : undefined);
+  // For clients, show only their orders; for admin/editor, show all
+  const isClient = user?.role === 'Client';
+  const { data: allOrders = [], isLoading: isLoadingAll } = useOrders();
+  const { data: clientOrders = [], isLoading: isLoadingClient } = useOrdersByClient(isClient ? user?.id : undefined);
 
-const orders = isClient ? clientOrders : allOrders;
-const isLoading = isClient ? isLoadingClient : isLoadingAll;
+  const orders = isClient ? clientOrders : allOrders;
+  const isLoading = isClient ? isLoadingClient : isLoadingAll;
 
-const deleteOrderMutation = useDeleteOrder();
-const cancelOrderMutation = useCancelOrder();
+  const deleteOrderMutation = useDeleteOrder();
+  const { data: cancellationWindowHours = 24 } = useCancellationWindow();
 
   // Filter orders based on search and status
   const filteredOrders = useMemo(() => {
@@ -67,25 +68,17 @@ const cancelOrderMutation = useCancelOrder();
     });
   }, [orders, searchQuery, statusFilter]);
 
-const handleDeleteOrder = async (orderId: string) => {
-try {
-await deleteOrderMutation.mutateAsync(orderId);
-} catch (error) {
-// Error handled in hook
-}
-};
+  const handleDeleteOrder = async (orderId: string) => {
+    try {
+      await deleteOrderMutation.mutateAsync(orderId);
+    } catch (error) {
+      // Error handled in hook
+    }
+  };
 
-const handleCancelOrder = async (orderId: string) => {
-try {
-await cancelOrderMutation.mutateAsync(orderId);
-} catch (error) {
-// Error handled in hook
-}
-};
-
-const canCancelOrder = (status: string) => {
-return status === 'Draft' || status === 'Pending';
-};
+  const canCancelOrder = (status: string) => {
+    return status === 'Draft' || status === 'Pending';
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -202,38 +195,39 @@ Ver Detalhes
 <Edit className="h-4 w-4 mr-2" />
 Editar
 </DropdownMenuItem>
-{order.finalVideoUrl && (
-<DropdownMenuItem>
-<ExternalLink className="h-4 w-4 mr-2" />
-Ver Vídeo Final
-</DropdownMenuItem>
-)}
-{canCancelOrder(order.status) && (
-<>
-<DropdownMenuSeparator />
-<DropdownMenuItem
-className="text-destructive"
-onClick={() => handleCancelOrder(order.id)}
-disabled={cancelOrderMutation.isPending}
->
-<Trash2 className="h-4 w-4 mr-2" />
-Cancelar (Estorno)
-</DropdownMenuItem>
-</>
-)}
-{!canCancelOrder(order.status) && (
-<>
-<DropdownMenuSeparator />
-<DropdownMenuItem
-className="text-destructive"
-onClick={() => handleDeleteOrder(order.id)}
-disabled={deleteOrderMutation.isPending}
->
-<Trash2 className="h-4 w-4 mr-2" />
-Excluir
-</DropdownMenuItem>
-</>
-)}
+              {order.finalVideoUrl && (
+                <DropdownMenuItem>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Ver Vídeo Final
+                </DropdownMenuItem>
+              )}
+              {canCancelOrder(order.status) && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <CancelOrderButton
+                      orderId={order.id}
+                      createdAt={order.createdAt}
+                      cancellationWindowHours={cancellationWindowHours}
+                      variant="menu"
+                      onSuccess={() => {}}
+                    />
+                  </DropdownMenuItem>
+                </>
+              )}
+              {!canCancelOrder(order.status) && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-destructive"
+                    onClick={() => handleDeleteOrder(order.id)}
+                    disabled={deleteOrderMutation.isPending}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir
+                  </DropdownMenuItem>
+                </>
+              )}
 </DropdownMenuContent>
                   </DropdownMenu>
                 </div>

@@ -23,20 +23,23 @@ interface CancelOrderButtonProps {
   createdAt: string;
   cancellationWindowHours: number;
   onSuccess?: () => void;
+  variant?: 'button' | 'menu';
 }
 
 /**
  * Botão de cancelamento com contador regressivo e confirmação.
  * Gerencia estados: vigente (com contador), expirado (desabilitado), e confirmação.
+ * 
+ * variant='button': Renderiza botão completo (padrão para OrderDetailPage)
+ * variant='menu': Renderiza conteúdo para dropdown menu (sem wrapper Button)
  */
 const CancelOrderButton: React.FC<CancelOrderButtonProps> = ({
-orderId,
-createdAt,
-cancellationWindowHours = 24,
-onSuccess,
+  orderId,
+  createdAt,
+  cancellationWindowHours = 24,
+  onSuccess,
+  variant = 'button',
 }) => {
-// Debug: log das props
-console.log('CancelOrderButton props:', { orderId, createdAt, cancellationWindowHours });
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [timeLeft, setTimeLeft] = useState<number>(0);
@@ -92,53 +95,41 @@ console.log('CancelOrderButton props:', { orderId, createdAt, cancellationWindow
       setIsDialogOpen(false);
       onSuccess?.();
     },
-onError: (error: any) => {
-// Debug: log do erro completo
-console.log('CancelOrderButton onError:', error);
-console.log('Error structure:', {
-status: error.response?.status,
-data: error.response?.data,
-message: error.response?.data?.message,
-errorCode: error.response?.data?.errorCode,
-});
+  onError: (error: any) => {
+    // Tratamento específico para erro 422 (Business Rule)
+    if (error.response?.status === 422) {
+      const errorCode = error.response.data?.errorCode;
+      const message = error.response.data?.message || 'Regra de negócio violada.';
 
-// Tratamento específico para erro 422 (Business Rule)
-if (error.response?.status === 422) {
-const errorCode = error.response.data?.errorCode;
-const message = error.response.data?.message || 'Regra de negócio violada.';
+      if (errorCode === 'CANCELLATION_WINDOW_EXPIRED') {
+        toast({
+          title: 'Prazo de cancelamento expirado',
+          description: message,
+          variant: 'destructive',
+        });
+      } else if (errorCode === 'ORDER_ALREADY_CANCELLED') {
+        toast({
+          title: 'Pedido já cancelado',
+          description: message,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Não foi possível cancelar',
+          description: message,
+          variant: 'destructive',
+        });
+      }
+    } else {
+      // Erro genérico
+      const fallbackMessage = error.response?.data?.message || error.message || 'Tente novamente mais tarde.';
 
-console.log('Business rule error:', { errorCode, message });
-
-if (errorCode === 'CANCELLATION_WINDOW_EXPIRED') {
-toast({
-title: 'Prazo de cancelamento expirado',
-description: message,
-variant: 'destructive',
-});
-} else if (errorCode === 'ORDER_ALREADY_CANCELLED') {
-toast({
-title: 'Pedido já cancelado',
-description: message,
-variant: 'destructive',
-});
-} else {
-toast({
-title: 'Não foi possível cancelar',
-description: message,
-variant: 'destructive',
-});
-}
-} else {
-// Erro genérico
-const fallbackMessage = error.response?.data?.message || error.message || 'Tente novamente mais tarde.';
-console.log('Generic error:', fallbackMessage);
-
-toast({
-title: 'Erro ao cancelar pedido',
-description: fallbackMessage,
-variant: 'destructive',
-});
-}
+      toast({
+        title: 'Erro ao cancelar pedido',
+        description: fallbackMessage,
+        variant: 'destructive',
+      });
+    }
 setIsDialogOpen(false);
 },
   });
@@ -149,6 +140,14 @@ setIsDialogOpen(false);
 
   // Se expirado, exibe botão desabilitado com mensagem
   if (isExpired) {
+    if (variant === 'menu') {
+      return (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground px-2 py-1.5">
+          <AlertCircle className="h-4 w-4" />
+          Prazo de cancelamento expirado
+        </div>
+      );
+    }
     return (
       <Button variant="outline" disabled className="w-full gap-2">
         <AlertCircle className="h-4 w-4" />
@@ -157,11 +156,74 @@ setIsDialogOpen(false);
     );
   }
 
+  // Modo menu: renderiza apenas o trigger do AlertDialog
+  if (variant === 'menu') {
+    return (
+      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <AlertDialogTrigger asChild>
+          <div className="flex items-center gap-2 text-destructive px-2 py-1.5 cursor-pointer">
+            <Trash2 className="h-4 w-4" />
+            <span>Cancelar (Estorno)</span>
+          </div>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-amber-500" />
+              Confirmar Cancelamento
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              <div className="space-y-3">
+                <p>
+                  Você está prestes a cancelar este pedido. O saldo será estornado automaticamente para o lote de origem.
+                </p>
+                <div className="bg-muted p-3 rounded-md">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="h-4 w-4 text-primary" />
+                    <span className="font-medium">
+                      Prazo restante: {formatTimeLeft(timeLeft)}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Após este prazo, o cancelamento deverá ser feito diretamente com o suporte.
+                  </p>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Tem certeza que deseja prosseguir?
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancel}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {cancelMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Cancelando...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Confirmar Cancelamento
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    );
+  }
+
+  // Modo botão (padrão)
   return (
     <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <AlertDialogTrigger asChild>
-        <Button 
-          variant="destructive" 
+        <Button
+          variant="destructive"
           className="w-full gap-2"
           disabled={cancelMutation.isPending}
         >

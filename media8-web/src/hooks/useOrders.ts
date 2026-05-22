@@ -219,11 +219,22 @@ toast.error(error.message || 'Erro ao cancelar pedido');
 };
 
 /**
-* Fetch available service balances for order creation
-*/
+ * Fetch available service balances for order creation
+ */
 export const useAvailableBalances = () => {
-return useQuery({
-queryKey: orderKeys.availableBalances(),
-queryFn: () => orderService.getAvailableBalances(),
-});
+  return useQuery({
+    queryKey: orderKeys.availableBalances(),
+    queryFn: () => orderService.getAvailableBalances(),
+  });
+};
+
+/**
+ * Fetch cancellation window from settings
+ */
+export const useCancellationWindow = () => {
+  return useQuery({
+    queryKey: ['settings', 'CancellationWindowHours'] as const,
+    queryFn: () => orderService.getCancellationWindow(),
+    initialData: 24,
+  });
 };
