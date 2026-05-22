@@ -16,7 +16,9 @@ public interface IVisualIdentityProfileService
     /// <summary>
     /// Busca todos os perfis de identidade visual de um usuário
     /// </summary>
-    Task<List<VisualIdentityProfile>> GetByUserIdAsync(Guid userId);
+    /// <param name="userId">ID do usuário</param>
+    /// <param name="onlyActive">Se true, retorna apenas perfis ativos (padrão). Se false, retorna todos.</param>
+    Task<List<VisualIdentityProfile>> GetByUserIdAsync(Guid userId, bool onlyActive = true);
 
     /// <summary>
     /// Cria um novo perfil de identidade visual
@@ -29,7 +31,17 @@ public interface IVisualIdentityProfileService
     Task<VisualIdentityProfile> UpdateAsync(Guid id, UpdateVisualIdentityProfileRequest request);
 
     /// <summary>
-    /// Exclui um perfil de identidade visual
+    /// Arquiva um perfil de identidade visual (IsAtive = false)
     /// </summary>
-    Task DeleteAsync(Guid id);
+    Task ArchiveAsync(Guid id);
+
+    /// <summary>
+    /// Restaura um perfil de identidade visual arquivado (IsActive = true)
+    /// </summary>
+    Task RestoreAsync(Guid id);
+
+    /// <summary>
+    /// Exclui permanentemente um perfil de identidade visual (apenas se estiver inativo e não estiver em uso)
+    /// </summary>
+    Task HardDeleteAsync(Guid id);
 }

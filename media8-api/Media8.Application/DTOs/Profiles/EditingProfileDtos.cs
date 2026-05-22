@@ -78,6 +78,7 @@ public class EditingProfileResponse
     public bool UseVideoHook { get; set; }
     public string TextHighlightStyle { get; set; } = string.Empty;
     public string GeneralNotes { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

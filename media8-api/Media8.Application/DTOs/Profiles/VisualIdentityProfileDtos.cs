@@ -65,6 +65,7 @@ public class VisualIdentityProfileResponse
     public string BrandFonts { get; set; } = string.Empty;
     public string TargetAudience { get; set; } = string.Empty;
     public string BrandAssetsUrl { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

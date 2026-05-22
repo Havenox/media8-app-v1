@@ -16,7 +16,9 @@ public interface IEditingProfileService
     /// <summary>
     /// Busca todos os perfis de edição de um usuário
     /// </summary>
-    Task<List<EditingProfile>> GetByUserIdAsync(Guid userId);
+    /// <param name="userId">ID do usuário</param>
+    /// <param name="onlyActive">Se true, retorna apenas perfis ativos (padrão). Se false, retorna todos.</param>
+    Task<List<EditingProfile>> GetByUserIdAsync(Guid userId, bool onlyActive = true);
 
     /// <summary>
     /// Cria um novo perfil de edição
@@ -29,7 +31,17 @@ public interface IEditingProfileService
     Task<EditingProfile> UpdateAsync(Guid id, UpdateEditingProfileRequest request);
 
     /// <summary>
-    /// Exclui um perfil de edição
+    /// Arquiva um perfil de edição (IsActive = false)
     /// </summary>
-    Task DeleteAsync(Guid id);
+    Task ArchiveAsync(Guid id);
+
+    /// <summary>
+    /// Restaura um perfil de edição arquivado (IsActive = true)
+    /// </summary>
+    Task RestoreAsync(Guid id);
+
+    /// <summary>
+    /// Exclui permanentemente um perfil de edição (apenas se estiver inativo e não estiver em uso)
+    /// </summary>
+    Task HardDeleteAsync(Guid id);
 }

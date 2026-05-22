@@ -198,7 +198,7 @@ public class VisualIdentityProfilesController : ControllerBase
 
         try
         {
-            await _profileService.DeleteAsync(id);
+            await _profileService.ArchiveAsync(id);
             return NoContent();
         }
         catch (KeyNotFoundException)
