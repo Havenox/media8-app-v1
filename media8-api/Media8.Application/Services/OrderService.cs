@@ -10,11 +10,13 @@ public class OrderService(
 IRepository<Order> orderRepository,
 IRepository<User> userRepository,
 IRepository<ServiceBalanceLot> balanceRepository,
+ISettingsService settingsService,
 ILogger<OrderService> logger) : IOrderService
 {
 private readonly IRepository<Order> _orderRepository = orderRepository;
 private readonly IRepository<User> _userRepository = userRepository;
 private readonly IRepository<ServiceBalanceLot> _balanceRepository = balanceRepository;
+private readonly ISettingsService _settingsService = settingsService;
 private readonly ILogger<OrderService> _logger = logger;
 
 public async Task<OrderResponse> CreateAsync(CreateOrderRequest request, Guid userId, Guid serviceBalanceLotId)
@@ -69,6 +71,16 @@ if (order.Status != OrderStatus.Draft && order.Status != OrderStatus.Pending)
 {
 throw new InvalidOperationException(
 $"Pedido {orderId} não pode ser cancelado no status {order.Status}.");
+}
+
+// Valida janela de tempo dinâmica via SettingsService
+var cancellationWindowHours = await _settingsService.GetSettingAsync<int>("CancellationWindowHours", 24);
+var timeSinceCreation = DateTime.UtcNow - order.CreatedAt;
+
+if (timeSinceCreation.TotalHours > cancellationWindowHours)
+{
+throw new InvalidOperationException(
+$"Tempo limite excedido. Pedido criado há {timeSinceCreation.TotalHours:F1}h, limite é {cancellationWindowHours}h.");
 }
 
 if (order.ServiceBalanceLotId.HasValue)
