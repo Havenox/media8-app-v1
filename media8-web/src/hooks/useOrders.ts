@@ -235,6 +235,5 @@ export const useCancellationWindow = () => {
   return useQuery({
     queryKey: ['settings', 'CancellationWindowHours'] as const,
     queryFn: () => orderService.getCancellationWindow(),
-    initialData: 24,
   });
 };
