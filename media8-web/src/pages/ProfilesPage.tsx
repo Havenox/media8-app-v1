@@ -8,9 +8,9 @@ import {
   RotateCcw,
   MoreVertical,
   Plus,
-  Search,
   Eye,
   EyeOff,
+  Pencil,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -46,8 +46,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import {
@@ -55,15 +53,21 @@ import {
   useArchiveVisualIdentityProfile,
   useRestoreVisualIdentityProfile,
   useHardDeleteVisualIdentityProfile,
+  useCreateVisualIdentityProfile,
+  useUpdateVisualIdentityProfile,
 } from '@/hooks/useProfiles';
 import {
   useEditingProfiles,
   useArchiveEditingProfile,
   useRestoreEditingProfile,
   useHardDeleteEditingProfile,
+  useCreateEditingProfile,
+  useUpdateEditingProfile,
 } from '@/hooks/useProfiles';
+import { VisualIdentityProfileForm } from '@/components/profiles/VisualIdentityProfileForm';
+import { EditingProfileForm } from '@/components/profiles/EditingProfileForm';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
+import { VisualIdentityProfile, EditingProfile } from '@/types/profiles';
 
 const ProfilesPage: React.FC = () => {
   const { user } = useAuth();
@@ -80,6 +84,8 @@ const ProfilesPage: React.FC = () => {
   const archiveVisualMutation = useArchiveVisualIdentityProfile();
   const restoreVisualMutation = useRestoreVisualIdentityProfile();
   const hardDeleteVisualMutation = useHardDeleteVisualIdentityProfile();
+  const createVisualMutation = useCreateVisualIdentityProfile();
+  const updateVisualMutation = useUpdateVisualIdentityProfile();
 
   // Editing Profiles
   const {
@@ -91,6 +97,8 @@ const ProfilesPage: React.FC = () => {
   const archiveEditingMutation = useArchiveEditingProfile();
   const restoreEditingMutation = useRestoreEditingProfile();
   const hardDeleteEditingMutation = useHardDeleteEditingProfile();
+  const createEditingMutation = useCreateEditingProfile();
+  const updateEditingMutation = useUpdateEditingProfile();
 
   // Dialog states
   const [profileToDelete, setProfileToDelete] = useState<{
@@ -98,6 +106,12 @@ const ProfilesPage: React.FC = () => {
     type: 'visual' | 'editing';
     name: string;
   } | null>(null);
+
+  // Form states
+  const [visualFormOpen, setVisualFormOpen] = useState(false);
+  const [editingFormOpen, setEditingFormOpen] = useState(false);
+  const [selectedVisualProfile, setSelectedVisualProfile] = useState<VisualIdentityProfile | null>(null);
+  const [selectedEditingProfile, setSelectedEditingProfile] = useState<EditingProfile | null>(null);
 
   const handleArchive = (
     id: string,
@@ -161,6 +175,60 @@ const ProfilesPage: React.FC = () => {
     }
   };
 
+  const handleOpenVisualForm = (profile?: VisualIdentityProfile) => {
+    setSelectedVisualProfile(profile || null);
+    setVisualFormOpen(true);
+  };
+
+  const handleOpenEditingForm = (profile?: EditingProfile) => {
+    setSelectedEditingProfile(profile || null);
+    setEditingFormOpen(true);
+  };
+
+  const handleSaveVisual = (data: any) => {
+    if (selectedVisualProfile) {
+      updateVisualMutation.mutate(
+        { id: selectedVisualProfile.id, data },
+        {
+          onSuccess: () => {
+            refetchVisual();
+            setVisualFormOpen(false);
+            setSelectedVisualProfile(null);
+          },
+        }
+      );
+    } else {
+      createVisualMutation.mutate(data as any, {
+        onSuccess: () => {
+          refetchVisual();
+          setVisualFormOpen(false);
+        },
+      });
+    }
+  };
+
+  const handleSaveEditing = (data: any) => {
+    if (selectedEditingProfile) {
+      updateEditingMutation.mutate(
+        { id: selectedEditingProfile.id, data },
+        {
+          onSuccess: () => {
+            refetchEditing();
+            setEditingFormOpen(false);
+            setSelectedEditingProfile(null);
+          },
+        }
+      );
+    } else {
+      createEditingMutation.mutate(data as any, {
+        onSuccess: () => {
+          refetchEditing();
+          setEditingFormOpen(false);
+        },
+      });
+    }
+  };
+
   const renderVisualIdentityRow = (profile: any) => (
     <TableRow key={profile.id} className="group">
       <TableCell className="font-medium">{profile.name}</TableCell>
@@ -175,6 +243,10 @@ const ProfilesPage: React.FC = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => handleOpenVisualForm(profile)}>
+              <Pencil className="mr-2 h-4 w-4" />
+              Editar
+            </DropdownMenuItem>
             {!showArchived ? (
               <>
                 <DropdownMenuItem onClick={() => handleArchive(profile.id, 'visual', profile.name)}>
@@ -226,6 +298,10 @@ const ProfilesPage: React.FC = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => handleOpenEditingForm(profile)}>
+              <Pencil className="mr-2 h-4 w-4" />
+              Editar
+            </DropdownMenuItem>
             {!showArchived ? (
               <>
                 <DropdownMenuItem onClick={() => handleArchive(profile.id, 'editing', profile.name)}>
@@ -303,7 +379,14 @@ const ProfilesPage: React.FC = () => {
               Gerencie suas identidades visuais e perfis de edição
             </p>
           </div>
-          <Button variant="default">
+          <Button
+            variant="default"
+            onClick={() =>
+              activeTab === 'visual'
+                ? handleOpenVisualForm()
+                : handleOpenEditingForm()
+            }
+          >
             <Plus className="mr-2 h-4 w-4" />
             Novo Perfil
           </Button>
@@ -507,6 +590,23 @@ const ProfilesPage: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Forms */}
+      <VisualIdentityProfileForm
+        open={visualFormOpen}
+        onOpenChange={setVisualFormOpen}
+        profile={selectedVisualProfile}
+        onSave={handleSaveVisual}
+        isPending={createVisualMutation.isPending || updateVisualMutation.isPending}
+      />
+
+      <EditingProfileForm
+        open={editingFormOpen}
+        onOpenChange={setEditingFormOpen}
+        profile={selectedEditingProfile}
+        onSave={handleSaveEditing}
+        isPending={createEditingMutation.isPending || updateEditingMutation.isPending}
+      />
     </div>
   );
 };
