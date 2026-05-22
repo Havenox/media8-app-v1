@@ -2,6 +2,10 @@ import { Order, OrderStatus, CreateOrderRequest, VideoFormat, ServiceBalanceLot 
 import { ServiceType } from '@/types/services';
 import { api } from '@/lib/api';
 
+export interface SystemSettingsResponse {
+  settings: Record<string, string>;
+}
+
 // ==========================================
 // API FUNCTIONS
 // ==========================================
@@ -113,6 +117,12 @@ return cancelAPI(id);
 
 async getAvailableBalances(): Promise<ServiceBalanceLot[]> {
 return getAvailableBalancesAPI();
+},
+
+async getCancellationWindow(): Promise<number> {
+const response = await api.get<SystemSettingsResponse>('/admin/settings');
+const hours = response.data.settings['CancellationWindowHours'];
+return hours ? parseInt(hours, 10) : 24;
 },
 
   // Helper: Get stats for dashboard

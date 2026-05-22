@@ -29,37 +29,39 @@ import { StatusBadge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import CancelOrderButton from '@/components/orders/CancelOrderButton';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { OrderStatus, OrderTimeline, TimelineActionType } from '@/types/api';
+import { useQuery } from '@tanstack/react-query';
+import { orderService } from '@/services/orderService';
 
 // Timeline is stored in-memory per session (will be replaced with API later)
 const OrderDetailPage: React.FC = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const { toast } = useToast();
+const { id } = useParams();
+const navigate = useNavigate();
+const { user } = useAuth();
+const { toast } = useToast();
 
-  // Fetch real order data
-  const { data: order, isLoading, error } = useOrder(id);
-  const updateStatusMutation = useUpdateOrderStatus();
+// Fetch real order data
+const { data: order, isLoading, error } = useOrder(id);
+const updateStatusMutation = useUpdateOrderStatus();
 
-  const [newComment, setNewComment] = useState('');
-  const [newStatus, setNewStatus] = useState<OrderStatus | null>(null);
-  const [sessionTimeline, setSessionTimeline] = useState<OrderTimeline[]>([]);
+// Fetch cancellation window from settings
+const { data: cancellationWindowHours = 24 } = useQuery({
+queryKey: ['settings', 'CancellationWindowHours'],
+queryFn: () => orderService.getCancellationWindow(),
+initialData: 24, // Fallback to 24h
+});
 
-  // Set initial status when order loads
-  React.useEffect(() => {
-    if (order && newStatus === null) {
-      setNewStatus(order.status);
-    }
-  }, [order, newStatus]);
+const [newComment, setNewComment] = useState('');
+const [newStatus, setNewStatus] = useState<OrderStatus | null>(null);
+const [sessionTimeline, setSessionTimeline] = useState<OrderTimeline[]>([]);
+
+// Set initial status when order loads
+React.useEffect(() => {
+if (order && newStatus === null) {
+setNewStatus(order.status);
+}
+}, [order, newStatus]);
 
   const handleAddComment = () => {
     if (!newComment.trim() || !user) return;
@@ -515,7 +517,7 @@ Aprovar Vídeo
 <CancelOrderButton
 orderId={order.id}
 createdAt={order.createdAt}
-cancellationWindowHours={24}
+cancellationWindowHours={cancellationWindowHours}
 onSuccess={() => navigate('/orders')}
 />
 )}
