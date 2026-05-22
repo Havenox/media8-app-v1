@@ -8,6 +8,7 @@ export { orderService, resetOrdersState } from './orderService';
 export { offerService, resetOffersState } from './offerService';
 export { clientContractService, resetClientContractsState } from './clientContractService';
 export { serviceBalanceService, resetServiceBalanceState, addLots } from './serviceBalanceService';
+export { visualIdentityProfileService, editingProfileService } from './profileService';
 
 // Reset all demo states (useful for testing)
 import { resetUsersState } from './userService';
