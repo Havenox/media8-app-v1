@@ -43,12 +43,18 @@ public class VisualIdentityProfile
     /// </summary>
     public string TargetAudience { get; set; } = string.Empty;
     
-    /// <summary>
-    /// URLs to brand assets such as images, videos, logos, CTAs stored in Drive.
-    /// Question: "Há imagens, vídeos, logos, CTAs ou arquivos específicos que devo utilizar? (Envie os arquivos no Drive)"
-    /// </summary>
-    public string BrandAssetsUrl { get; set; } = string.Empty;
-    
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+  /// <summary>
+  /// URLs to brand assets such as images, videos, logos, CTAs stored in Drive.
+  /// Question: "Há imagens, vídeos, logos, CTAs ou arquivos específicos que devo utilizar? (Envie os arquivos no Drive)"
+  /// </summary>
+  public string BrandAssetsUrl { get; set; } = string.Empty;
+
+  /// <summary>
+  /// Indicates whether the profile is active (not archived).
+  /// Default: true (active)
+  /// </summary>
+  public bool IsActive { get; set; } = true;
+
+  public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+  public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

@@ -55,12 +55,18 @@ public class EditingProfile
     /// </summary>
     public string TextHighlightStyle { get; set; } = string.Empty;
     
-    /// <summary>
-    /// General notes combining extra important info and additional instructions.
-    /// Questions: "Informações extras importantes para essa edição..." and "Algo mais que você queira incluir na edição?"
-    /// </summary>
-    public string GeneralNotes { get; set; } = string.Empty;
-    
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+  /// <summary>
+  /// General notes combining extra important info and additional instructions.
+  /// Questions: "Informações extras importantes para essa edição..." and "Algo mais que você queira incluir na edição?"
+  /// </summary>
+  public string GeneralNotes { get; set; } = string.Empty;
+
+  /// <summary>
+  /// Indicates whether the profile is active (not archived).
+  /// Default: true (active)
+  /// </summary>
+  public bool IsActive { get; set; } = true;
+
+  public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+  public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

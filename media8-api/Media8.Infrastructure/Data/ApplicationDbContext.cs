@@ -237,7 +237,8 @@ entity.HasOne(cc => cc.Assigner)
       entity.Property(vip => vip.BrandFonts).HasMaxLength(500);
       entity.Property(vip => vip.TargetAudience).HasMaxLength(200);
       entity.Property(vip => vip.BrandAssetsUrl).HasMaxLength(2000);
-      
+      entity.Property(vip => vip.IsActive).IsRequired().HasDefaultValue(true);
+
       // Relationship: One User can have many VisualIdentityProfiles (Cascade Delete)
       entity.HasOne<Domain.Entities.User>()
           .WithMany()
@@ -257,7 +258,8 @@ entity.HasOne(cc => cc.Assigner)
       entity.Property(ep => ep.MusicStyle).HasMaxLength(500);
       entity.Property(ep => ep.TextHighlightStyle).HasMaxLength(500);
       entity.Property(ep => ep.GeneralNotes).HasMaxLength(4000);
-      
+      entity.Property(ep => ep.IsActive).IsRequired().HasDefaultValue(true);
+
       // Relationship: One User can have many EditingProfiles (Cascade Delete)
       entity.HasOne<Domain.Entities.User>()
           .WithMany()
