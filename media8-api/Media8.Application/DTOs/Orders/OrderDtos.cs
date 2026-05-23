@@ -18,6 +18,16 @@ public Guid VideoFormatId { get; set; }
 /// </summary>
 public Guid ServiceBalanceLotId { get; set; }
 
+/// <summary>
+/// ID do perfil de branding (opcional)
+/// </summary>
+public Guid? BrandingProfileId { get; set; }
+
+/// <summary>
+/// ID do perfil de edição (opcional)
+/// </summary>
+public Guid? EditingProfileId { get; set; }
+
 public DateOnly Deadline { get; set; }
 }
 

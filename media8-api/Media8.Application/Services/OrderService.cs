@@ -40,15 +40,17 @@ balanceLot.RemainingQuantity);
 
 var order = new Order
 {
-ClientId = userId,
-Title = request.Title,
-Briefing = request.Briefing,
-SourceFilesUrl = request.SourceFilesUrl,
-VideoFormatId = request.VideoFormatId,
-Deadline = request.Deadline,
-ServiceBalanceLotId = serviceBalanceLotId,
-AssignmentId = balanceLot.AssignmentId,
-Status = OrderStatus.Draft
+    ClientId = userId,
+    Title = request.Title,
+    Briefing = request.Briefing,
+    SourceFilesUrl = request.SourceFilesUrl,
+    VideoFormatId = request.VideoFormatId,
+    Deadline = request.Deadline,
+    ServiceBalanceLotId = serviceBalanceLotId,
+    AssignmentId = balanceLot.AssignmentId,
+    BrandingProfileId = request.BrandingProfileId,
+    EditingProfileId = request.EditingProfileId,
+    Status = OrderStatus.Draft
 };
 
 await _orderRepository.AddAsync(order);
