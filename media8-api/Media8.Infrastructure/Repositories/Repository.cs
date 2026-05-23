@@ -1,20 +1,26 @@
 using Media8.Application.Interfaces;
 using Media8.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using System.Linq.Expressions;
 
 namespace Media8.Infrastructure.Repositories;
 
 public class Repository<T> : IRepository<T> where T : class
 {
-    protected readonly ApplicationDbContext _context;
-    protected readonly DbSet<T> _dbSet;
+protected readonly ApplicationDbContext _context;
+protected readonly DbSet<T> _dbSet;
 
-    public Repository(ApplicationDbContext context)
-    {
-        _context = context;
-        _dbSet = context.Set<T>();
-    }
+public Repository(ApplicationDbContext context)
+{
+_context = context;
+_dbSet = context.Set<T>();
+}
+
+public async Task<IDbContextTransaction> BeginTransactionAsync()
+{
+return await _context.Database.BeginTransactionAsync();
+}
 
     public virtual async Task<T?> GetByIdAsync(Guid id)
     {

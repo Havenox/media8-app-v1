@@ -23,13 +23,14 @@ private readonly ILogger<OrderService> _logger = logger;
 public async Task<OrderResponse> CreateAsync(CreateOrderRequest request, Guid userId, Guid serviceBalanceLotId)
 {
 var balanceLot = await _balanceRepository.GetByIdAsync(serviceBalanceLotId)
-  ?? throw new InvalidOperationException("Lote de saldo não encontrado.");
+?? throw new InvalidOperationException("Lote de saldo não encontrado.");
 
 if (balanceLot.RemainingQuantity <= 0)
 {
 throw new InvalidOperationException("Saldo insuficiente.");
 }
 
+// 1. Decrementa o saldo
 balanceLot.RemainingQuantity -= 1;
 await _balanceRepository.UpdateAsync(balanceLot);
 
@@ -38,19 +39,20 @@ _logger.LogInformation(
 serviceBalanceLotId,
 balanceLot.RemainingQuantity);
 
+// 2. Cria o pedido herdando VideoFormatId do lote de saldo (não do request)
 var order = new Order
 {
-    ClientId = userId,
-    Title = request.Title,
-    Briefing = request.Briefing,
-    SourceFilesUrl = request.SourceFilesUrl,
-    VideoFormatId = request.VideoFormatId,
-    Deadline = request.Deadline,
-    ServiceBalanceLotId = serviceBalanceLotId,
-    AssignmentId = balanceLot.AssignmentId,
-    BrandingProfileId = request.BrandingProfileId,
-    EditingProfileId = request.EditingProfileId,
-    Status = OrderStatus.Draft
+ClientId = userId,
+Title = request.Title,
+Briefing = request.Briefing,
+SourceFilesUrl = request.SourceFilesUrl,
+VideoFormatId = balanceLot.VideoFormatId, // Herda do lote, não do request
+Deadline = request.Deadline,
+ServiceBalanceLotId = serviceBalanceLotId,
+AssignmentId = balanceLot.AssignmentId,
+BrandingProfileId = request.BrandingProfileId,
+EditingProfileId = request.EditingProfileId,
+Status = OrderStatus.Draft
 };
 
 await _orderRepository.AddAsync(order);
