@@ -12,7 +12,7 @@ import { api } from '@/lib/api';
 // BRANDING PROFILE SERVICE (formerly Visual Identity Profile)
 // ==========================================
 
-const BRANDING_BASE = '/branding-profiles';
+const BRANDING_BASE = '/BrandingProfiles';
 
 const getBrandingByIdAPI = async (id: string): Promise<BrandingProfile> => {
   const response = await api.get(`${BRANDING_BASE}/${id}`);
@@ -45,7 +45,7 @@ const hardDeleteBrandingAPI = async (id: string): Promise<void> => {
 // EDITING PROFILE SERVICE
 // ==========================================
 
-const EDITING_BASE = '/editing-profiles';
+const EDITING_BASE = '/EditingProfiles';
 
 const getEditingByIdAPI = async (id: string): Promise<EditingProfile> => {
   const response = await api.get(`${EDITING_BASE}/${id}`);
