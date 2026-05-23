@@ -7,8 +7,6 @@ import {
   RotateCcw,
   MoreVertical,
   Plus,
-  Eye,
-  EyeOff,
   Pencil,
 } from 'lucide-react';
 
@@ -263,21 +261,12 @@ const EditingProfilesPage: React.FC = () => {
         <CardContent>
           <div className="flex justify-end mb-4">
             <Button
-              variant={showArchived ? 'default' : 'outline'}
+              variant="ghost"
+              size="sm"
               onClick={() => setShowArchived(!showArchived)}
-              className="gap-2"
+              className={showArchived ? 'bg-muted' : ''}
             >
-              {showArchived ? (
-                <>
-                  <EyeOff className="h-4 w-4" />
-                  Arquivados
-                </>
-              ) : (
-                <>
-                  <Eye className="h-4 w-4" />
-                  Ativos
-                </>
-              )}
+              {showArchived ? 'Ocultar arquivados' : 'Exibir arquivados'}
             </Button>
           </div>
 
