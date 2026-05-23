@@ -29,6 +29,16 @@ public Guid? ServiceBalanceLotId { get; set; }
 /// </summary>
 public Guid? AssignmentId { get; set; }
 
+/// <summary>
+/// Foreign Key para o perfil de branding (BrandingProfile) usado neste pedido
+/// </summary>
+public Guid? BrandingProfileId { get; set; }
+
+/// <summary>
+/// Foreign Key para o perfil de edição (EditingProfile) usado neste pedido
+/// </summary>
+public Guid? EditingProfileId { get; set; }
+
 public DateOnly Deadline { get; set; }
 public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
@@ -39,6 +49,8 @@ public User? Editor { get; set; }
 public VideoFormat? VideoFormat { get; set; }
 public ServiceBalanceLot? ServiceBalanceLot { get; set; }
 public ClientContract? Contract { get; set; }
+public BrandingProfile? BrandingProfile { get; set; }
+public EditingProfile? EditingProfile { get; set; }
 public ICollection<OrderTimeline> Timeline { get; set; } = new List<OrderTimeline>();
 }
 

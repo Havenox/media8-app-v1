@@ -122,13 +122,26 @@ public DbSet<BrandingProfile> BrandingProfiles => Set<BrandingProfile>();
             .HasForeignKey(o => o.ClientId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<Order>()
-            .HasOne(o => o.Editor)
-            .WithMany(u => u.EditorOrders)
-            .HasForeignKey(o => o.EditorId)
-            .OnDelete(DeleteBehavior.SetNull);
+modelBuilder.Entity<Order>()
+.HasOne(o => o.Editor)
+.WithMany(u => u.EditorOrders)
+.HasForeignKey(o => o.EditorId)
+.OnDelete(DeleteBehavior.SetNull);
 
-        // Service Balance Lot
+// Order Profile Links (Restrict to prevent orphaned orders)
+modelBuilder.Entity<Order>()
+.HasOne(o => o.BrandingProfile)
+.WithMany()
+.HasForeignKey(o => o.BrandingProfileId)
+.OnDelete(DeleteBehavior.Restrict);
+
+modelBuilder.Entity<Order>()
+.HasOne(o => o.EditingProfile)
+.WithMany()
+.HasForeignKey(o => o.EditingProfileId)
+.OnDelete(DeleteBehavior.Restrict);
+
+// Service Balance Lot
         modelBuilder.Entity<ServiceBalanceLot>()
             .HasOne(sl => sl.Contract)
             .WithMany(cc => cc.ServiceBalanceLots)

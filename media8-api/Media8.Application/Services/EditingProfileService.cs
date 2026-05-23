@@ -111,19 +111,23 @@ public class EditingProfileService : IEditingProfileService
         var profile = profiles.FirstOrDefault() 
             ?? throw new KeyNotFoundException($"EditingProfile with ID {id} not found.");
 
-        // Validação: perfil deve estar inativo para exclusão física
-        if (profile.IsActive)
-        {
-            throw new BusinessRuleException(
-                "O perfil deve estar arquivado (inativo) antes de ser excluído permanentemente.", 
-                "PROFILE_MUST_BE_INACTIVE");
-        }
+// Validação: perfil deve estar inativo para exclusão física
+if (profile.IsActive)
+{
+    throw new BusinessRuleException(
+        "O perfil deve estar arquivado (inativo) antes de ser excluído permanentemente.",
+        "PROFILE_MUST_BE_INACTIVE");
+}
 
-        // TODO: Verificar vínculo com pedidos quando o campo for implementado na entidade Order
-        // Por enquanto, apenas previne a exclusão se estiver ativo (já feito acima)
-        // Quando o campo VisualIdentityProfileId ou EditingProfileId for adicionado ao Order,
-        // esta validação deve ser implementada aqui.
+// Validação: impedir exclusão se estiver vinculado a algum pedido
+var ordersWithProfile = await _orderRepository.FindAsync(o => o.EditingProfileId == id);
+if (ordersWithProfile.Any())
+{
+    throw new BusinessRuleException(
+        "Este perfil está vinculado a um pedido ativo e não pode ser excluído definitivamente.",
+        "PROFILE_IN_USE");
+}
 
-        await _repository.DeleteAsync(id);
+await _repository.DeleteAsync(id);
     }
 }
