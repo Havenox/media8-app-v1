@@ -1,39 +1,30 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { format, addBusinessDays, isBefore, startOfDay } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import {
   ArrowLeft,
-  Video,
+  Palette,
+  Film,
   FileText,
   Link as LinkIcon,
-  Calendar as CalendarIcon,
+  Plus,
+  Check,
   Loader2,
-  Sparkles,
-  Smartphone,
-  Youtube,
-  Package,
-  Clock,
-  AlertCircle,
-  CheckCircle2,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Calendar } from '@/components/ui/calendar';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -41,519 +32,406 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
-import { getServiceConfig, isDynamicDeadline } from '@/types/services';
-import { useAvailableServices } from '@/hooks/useServiceBalances';
-import { useCreateOrder, useAvailableBalances } from '@/hooks/useOrders';
-import { useVideoFormats } from '@/hooks/useVideoFormats';
-import { useAuth } from '@/contexts/AuthContext';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
-// Icon mapping for service categories
-const categoryIcons: Record<string, React.ElementType> = {
-  reels: Smartphone,
-  youtube: Youtube,
-  pacote: Package,
-  avulso: Video,
-};
+import { BrandingProfileForm } from '@/components/profiles/BrandingProfileForm';
+import { EditingProfileForm } from '@/components/profiles/EditingProfileForm';
+import {
+  useBrandingProfiles,
+  useCreateBrandingProfile,
+  useEditingProfiles,
+  useCreateEditingProfile,
+} from '@/hooks/useBrandingProfiles';
+import { useAvailableBalances, useCreateOrder } from '@/hooks/useOrders';
+import { useAuth } from '@/contexts/AuthContext';
+import { CreateBrandingProfileRequest } from '@/types/brandingProfiles';
+import { CreateEditingProfileRequest } from '@/types/brandingProfiles';
 
-// Helper function to get minimum delivery date based on service type
-const getMinDeliveryDate = (serviceType: ServiceType): Date => {
-  const today = startOfDay(new Date());
-  const config = getServiceConfig(serviceType);
-  const minDays = config?.minBusinessDays || 7;
-  return addBusinessDays(today, minDays);
-};
-
+// Schema do formulário
 const orderSchema = z.object({
-serviceBalanceLotId: z.string().min(1, 'Selecione um lote de saldo'),
-title: z.string().min(5, 'Título deve ter no mínimo 5 caracteres'),
-briefing: z.string().min(20, 'Briefing deve ter no mínimo 20 caracteres'),
-sourceFilesUrl: z.string().url('URL inválida'),
-deadline: z.date().optional(),
+  serviceBalanceLotId: z.string().min(1, 'Selecione um lote de saldo'),
+  brandingProfileId: z.string().min(1, 'Selecione um perfil de branding'),
+  editingProfileId: z.string().min(1, 'Selecione um perfil de edição'),
+  title: z.string().min(5, 'Título deve ter no mínimo 5 caracteres'),
+  briefing: z.string().min(20, 'Briefing deve ter no mínimo 20 caracteres'),
+  sourceFilesUrl: z.string().url('URL inválida'),
+  deadline: z.string(),
 });
 
 type OrderFormData = z.infer<typeof orderSchema>;
 
 const NewOrderPage: React.FC = () => {
-const navigate = useNavigate();
-const [searchParams] = useSearchParams();
-const { user } = useAuth();
-const [calendarOpen, setCalendarOpen] = useState(false);
-const [selectedServiceType, setSelectedServiceType] = useState<string | null>(null);
-const [selectedVideoFormatId, setSelectedVideoFormatId] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
-// Get pre-selected service on load
-const preSelectedService = searchParams.get('service');
+  // Estados de cascata
+  const [step, setStep] = useState(1);
+  const [selectedLotId, setSelectedLotId] = useState('');
+  const [selectedBrandingId, setSelectedBrandingId] = useState('');
+  const [selectedEditingId, setSelectedEditingId] = useState('');
 
-// Get user's available services using hook
-const { data: availableServices = [], isLoading: isLoadingServices } = useAvailableServices(user?.id);
-const createOrderMutation = useCreateOrder();
-const { data: videoFormats = [], isLoading: isLoadingFormats } = useVideoFormats();
-const { data: availableBalances = [], isLoading: isLoadingBalances } = useAvailableBalances();
+  // Estados das modais
+  const [isBrandingModalOpen, setIsBrandingModalOpen] = useState(false);
+  const [isEditingModalOpen, setIsEditingModalOpen] = useState(false);
 
-  // Get selected service config
-  const selectedConfig = useMemo(() => {
-    if (!selectedServiceType) return null;
-    return getServiceConfig(selectedServiceType);
-  }, [selectedServiceType]);
+  // Hooks
+  const { data: availableBalances = [], isLoading: isLoadingBalances } = useAvailableBalances();
+  const { data: brandingProfiles = [] } = useBrandingProfiles(true);
+  const { data: editingProfiles = [] } = useEditingProfiles(true);
+  const createBrandingMutation = useCreateBrandingProfile();
+  const createEditingMutation = useCreateEditingProfile();
+  const createOrderMutation = useCreateOrder();
 
-  // Check if deadline is dynamic
-  const hasDynamicDeadline = useMemo(() => {
-    if (!selectedServiceType) return false;
-    return isDynamicDeadline(selectedServiceType);
-  }, [selectedServiceType]);
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<OrderFormData>({
+    resolver: zodResolver(orderSchema),
+  });
 
-  // Calculate minimum delivery date based on selected service
-  const minDeliveryDate = useMemo(() => {
-    if (!selectedServiceType || hasDynamicDeadline) return null;
-    return getMinDeliveryDate(selectedServiceType);
-  }, [selectedServiceType, hasDynamicDeadline]);
+  // Passo 1: Seleção de saldo
+  const handleLotSelect = (lotId: string) => {
+    setSelectedLotId(lotId);
+    setValue('serviceBalanceLotId', lotId);
+    setStep(2);
+  };
 
-  // Get selected video format config
-  const selectedVideoFormat = useMemo(() => {
-    if (!selectedVideoFormatId) return null;
-    return videoFormats.find(vf => vf.id === selectedVideoFormatId) || null;
-  }, [selectedVideoFormatId, videoFormats]);
+  // Passo 2: Seleção de branding
+  const handleBrandingSelect = (value: string) => {
+    if (value === '+new') {
+      setIsBrandingModalOpen(true);
+      return;
+    }
+    setSelectedBrandingId(value);
+    setValue('brandingProfileId', value);
+    setStep(3);
+  };
 
-const {
-register,
-handleSubmit,
-control,
-setValue,
-watch,
-formState: { errors, isValid, isDirty },
-trigger,
-} = useForm<OrderFormData>({
-resolver: zodResolver(orderSchema),
-mode: 'onChange',
-});
+  // Passo 3: Seleção de edição
+  const handleEditingSelect = (value: string) => {
+    if (value === '+new') {
+      setIsEditingModalOpen(true);
+      return;
+    }
+    setSelectedEditingId(value);
+    setValue('editingProfileId', value);
+    setStep(4);
+  };
 
-  const watchedServiceType = watch('serviceType');
+  // Callbacks das modais
+  const handleSaveBranding = (data: CreateBrandingProfileRequest) => {
+    createBrandingMutation.mutate(data, {
+      onSuccess: (newProfile) => {
+        setIsBrandingModalOpen(false);
+        setSelectedBrandingId(newProfile.id);
+        setValue('brandingProfileId', newProfile.id);
+        setStep(3);
+        toast.success('Perfil de branding criado com sucesso!');
+      },
+      onError: (error) => {
+        toast.error(error.message || 'Erro ao criar perfil');
+      },
+    });
+  };
 
-  // Pre-select service from URL query param
-  useEffect(() => {
-    if (preSelectedService && availableServices.length > 0 && !watchedServiceType) {
-      // Find matching service in available services
-      const matchingService = availableServices.find((balance) => {
-        // Priority: snapshot from contract > planName > default
-        const snapshotName = balance.lots?.[0]?.contract?.snapshotOfferName || balance.planName;
-        const key = `${balance.serviceType}::${snapshotName || 'default'}`;
-        return key === preSelectedService;
-      });
+  const handleSaveEditing = (data: CreateEditingProfileRequest) => {
+    createEditingMutation.mutate(data, {
+      onSuccess: (newProfile) => {
+        setIsEditingModalOpen(false);
+        setSelectedEditingId(newProfile.id);
+        setValue('editingProfileId', newProfile.id);
+        setStep(4);
+        toast.success('Perfil de edição criado com sucesso!');
+      },
+      onError: (error) => {
+        toast.error(error.message || 'Erro ao criar perfil');
+      },
+    });
+  };
 
-      if (matchingService) {
-        handleServiceTypeChange(preSelectedService);
+  // Submissão final
+  const onSubmit = async (data: OrderFormData) => {
+    createOrderMutation.mutate(
+      {
+        ...data,
+        serviceBalanceLotId: data.serviceBalanceLotId as any,
+      },
+      {
+        onSuccess: () => {
+          toast.success('Pedido criado com sucesso!');
+          navigate('/orders');
+        },
+        onError: (error) => {
+          toast.error(error.message || 'Erro ao criar pedido');
+        },
       }
-    }
-  }, [preSelectedService, availableServices, watchedServiceType]);
-  const handleServiceTypeChange = (value: string) => {
-    // Extract serviceType from unique key (format: "serviceType::planName")
-    const serviceType = value.split('::')[0] as string;
-    setSelectedServiceType(serviceType);
-    setValue('serviceType', value);
-
-    // Reset deadline when service type changes
-    if (!isDynamicDeadline(serviceType as any)) {
-      const newMinDate = getMinDeliveryDate(serviceType as any);
-      setValue('deadline', newMinDate);
-    } else {
-      setValue('deadline', undefined);
-    }
+    );
   };
-
-  const handleVideoFormatChange = (videoFormatId: string) => {
-    setSelectedVideoFormatId(videoFormatId);
-    setValue('videoFormatId', videoFormatId);
-  };
-
-  // Function to check if a date should be disabled
-  const isDateDisabled = (date: Date): boolean => {
-    if (!minDeliveryDate) return true;
-    const today = startOfDay(new Date());
-    if (isBefore(date, today)) return true;
-    if (isBefore(date, minDeliveryDate)) return true;
-    return false;
-  };
-
-const onSubmit = async (data: OrderFormData) => {
-if (!user?.id) {
-toast.error('Usuário não autenticado');
-return;
-}
-
-try {
-const selectedBalance = availableBalances.find(b => b.id === data.serviceBalanceLotId);
-if (!selectedBalance || !selectedBalance.videoFormatId) {
-toast.error('Saldo selecionado inválido');
-return;
-}
-
-// Format deadline to yyyy-MM-dd for DateOnly compatibility
-const formattedDeadline = data.deadline
-? data.deadline.toISOString().split('T')[0]
-: new Date().toISOString().split('T')[0];
-
-await createOrderMutation.mutateAsync({
-clientId: user.id,
-title: data.title,
-briefing: data.briefing,
-sourceFilesUrl: data.sourceFilesUrl,
-deadline: formattedDeadline,
-videoFormatId: selectedBalance.videoFormatId,
-serviceBalanceLotId: data.serviceBalanceLotId,
-});
-
-navigate('/orders');
-} catch (error) {
-// Error handled in hook
-}
-};
-
-const handleFormSubmit = async (e: React.FormEvent) => {
-e.preventDefault();
-const isValidated = await trigger();
-if (!isValidated) {
-const errorMessages = Object.entries(errors).map(([field, error]) => {
-const fieldLabels: Record<string, string> = {
-serviceBalanceLotId: 'Saldo disponível',
-title: 'Título',
-briefing: 'Briefing',
-sourceFilesUrl: 'URL dos arquivos',
-};
-return `${fieldLabels[field] || field}: ${error.message}`;
-});
-toast.error('Preencha os campos obrigatórios:', {
-description: errorMessages.join('\n'),
-});
-return;
-}
-
-// Se validado com sucesso, prossegue com a submissão
-handleSubmit(onSubmit)(e);
-};
-
-  // Get icon for a service
-  const getServiceIcon = (category: string) => {
-    const Icon = categoryIcons[category] || Video;
-    return <Icon className="h-4 w-4 mr-2" />;
-  };
-
-  const isLoading = createOrderMutation.isPending || isLoadingFormats || isLoadingBalances;
-
-const hasEmptyBalance = availableBalances.length === 0;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="max-w-3xl mx-auto space-y-6"
-    >
-      {/* Back Button */}
-      <Button variant="ghost" onClick={() => navigate(-1)}>
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Voltar
-      </Button>
-
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* Header */}
-      <div className="text-center space-y-2">
-        <div className="w-16 h-16 rounded-2xl gradient-hero flex items-center justify-center mx-auto">
-          <Video className="h-8 w-8 text-cream" />
-        </div>
-        <h1 className="text-2xl font-bold text-foreground">Novo Pedido de Edição</h1>
-        <p className="text-muted-foreground">
-          Selecione o serviço e preencha os detalhes do seu projeto.
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="mb-8"
+      >
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/orders')}
+          className="mb-4"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar
+        </Button>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          Novo Pedido
+        </h1>
+        <p className="text-muted-foreground mt-1">
+          Preencha as informações do seu pedido em cascata
         </p>
-      </div>
+      </motion.div>
 
-{/* Form */}
-<Card variant="elevated">
-<CardHeader>
-<CardTitle className="flex items-center gap-2">
-<Sparkles className="h-5 w-5 text-primary" />
-Detalhes do Projeto
-</CardTitle>
-<CardDescription>
-Selecione o saldo disponível e preencha os detalhes do seu projeto.
-</CardDescription>
-</CardHeader>
-<CardContent>
-<form onSubmit={handleFormSubmit} className="space-y-6">
-{/* Service Balance Selection */}
-<div className="space-y-2">
-<Label className="flex items-center gap-2 text-base font-semibold">
-<Package className="h-4 w-4" />
-Saldo Disponível
-</Label>
-<p className="text-sm text-muted-foreground mb-3">
-Selecione qual lote de saldo financiará este pedido
-</p>
-{hasEmptyBalance ? (
-<Alert className="border-warning/30 bg-warning/10">
-<AlertCircle className="h-4 w-4 text-warning" />
-<AlertTitle className="text-warning">Sem saldo disponível</AlertTitle>
-<AlertDescription className="text-warning/80">
-Você precisa ter pelo menos um saldo disponível para criar um pedido.
-</AlertDescription>
-</Alert>
-) : (
-<Controller
-control={control}
-name="serviceBalanceLotId"
-render={({ field }) => (
-<Select
-value={field.value || ""}
-onValueChange={(value) => {
-field.onChange(value);
-const balance = availableBalances.find(b => b.id === value);
-if (balance?.videoFormatId) {
-setSelectedVideoFormatId(balance.videoFormatId);
-}
-}}
->
-<SelectTrigger className={cn("w-full h-12", errors.serviceBalanceLotId && "border-destructive")}>
-<SelectValue placeholder="Selecione o saldo disponível" />
-</SelectTrigger>
-<SelectContent>
-{availableBalances.map((balance) => (
-<SelectItem
-key={balance.id}
-value={balance.id}
-className="py-3"
->
-<div className="flex items-center gap-3">
-{getServiceIcon('avulso')}
-<div className="flex-1">
-<div className="font-medium">
-{balance.contract?.snapshotOfferName || balance.contract?.offer?.name || 'Saldo de Edição'}
-</div>
-<div className="text-xs text-muted-foreground">
-{balance.remainingQuantity} {balance.remainingQuantity === 1 ? 'unidade' : 'unidades'} disponíveis
-{balance.expiresAt && ` • Vence em ${new Date(balance.expiresAt).toLocaleDateString()}`}
-</div>
-</div>
-</div>
-</SelectItem>
-))}
-</SelectContent>
-</Select>
-)}
-/>
-)}
-{errors.serviceBalanceLotId && (
-<p className="text-sm text-destructive flex items-center gap-1">
-<AlertCircle className="h-3 w-3" />
-{errors.serviceBalanceLotId.message}
-</p>
-)}
-</div>
+      {/* Passo 1: Seleção de Saldo */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold">
+              1
+            </span>
+            Selecione o Lote de Saldo
+          </CardTitle>
+          <CardDescription>
+            Escolha o contrato que financiará este pedido
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Select
+            value={selectedLotId}
+            onValueChange={handleLotSelect}
+            disabled={step !== 1}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um lote de saldo" />
+            </SelectTrigger>
+            <SelectContent>
+              {isLoadingBalances ? (
+                <SelectItem value="loading" disabled>
+                  Carregando...
+                </SelectItem>
+              ) : availableBalances.length > 0 ? (
+                availableBalances.map((lot) => (
+                  <SelectItem key={lot.id} value={lot.id}>
+                    {lot.contract?.snapshotOfferName || 'Contrato'} - {lot.remainingQuantity} vídeos
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="none" disabled>
+                  Nenhum lote disponível
+                </SelectItem>
+              )}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
 
-            {/* Dynamic Deadline Alert */}
-            {selectedServiceType && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                transition={{ duration: 0.3 }}
+      {/* Passo 2: Perfil de Branding */}
+      <Card className={`mb-6 ${step < 2 ? 'opacity-50 pointer-events-none' : ''}`}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold">
+              2
+            </span>
+            Perfil de Branding
+          </CardTitle>
+          <CardDescription>
+            Selecione ou crie um perfil de marca
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Select
+            value={selectedBrandingId}
+            onValueChange={handleBrandingSelect}
+            disabled={step < 2}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um perfil de branding" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="+new" className="text-primary font-medium">
+                <div className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Novo Perfil de Branding
+                </div>
+              </SelectItem>
+              {brandingProfiles.map((profile) => (
+                <SelectItem key={profile.id} value={profile.id}>
+                  {profile.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
+      {/* Passo 3: Perfil de Edição */}
+      <Card className={`mb-6 ${step < 3 ? 'opacity-50 pointer-events-none' : ''}`}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold">
+              3
+            </span>
+            Perfil de Edição
+          </CardTitle>
+          <CardDescription>
+            Selecione ou crie um estilo de edição
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Select
+            value={selectedEditingId}
+            onValueChange={handleEditingSelect}
+            disabled={step < 3}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um perfil de edição" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="+new" className="text-primary font-medium">
+                <div className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Novo Perfil de Edição
+                </div>
+              </SelectItem>
+              {editingProfiles.map((profile) => (
+                <SelectItem key={profile.id} value={profile.id}>
+                  {profile.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
+      {/* Passo 4: Dados do Vídeo */}
+      <Card className={`mb-6 ${step < 4 ? 'opacity-50 pointer-events-none' : ''}`}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold">
+              4
+            </span>
+            Dados do Vídeo
+          </CardTitle>
+          <CardDescription>
+            Preencha as informações específicas deste pedido
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Título do Projeto</Label>
+              <Input
+                id="title"
+                placeholder="Ex: Reels #001 - Janeiro"
+                disabled={step < 4}
+                {...register('title')}
+              />
+              {errors.title && (
+                <p className="text-sm text-destructive">{errors.title.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="briefing">Briefing Detalhado</Label>
+              <Textarea
+                id="briefing"
+                placeholder="Ex: Remover pausas entre 01:10 e 01:25, manter introdução..."
+                disabled={step < 4}
+                rows={4}
+                {...register('briefing')}
+              />
+              {errors.briefing && (
+                <p className="text-sm text-destructive">{errors.briefing.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="sourceFilesUrl">Link dos Arquivos</Label>
+              <Input
+                id="sourceFilesUrl"
+                placeholder="Ex: https://drive.google.com/..."
+                disabled={step < 4}
+                {...register('sourceFilesUrl')}
+              />
+              {errors.sourceFilesUrl && (
+                <p className="text-sm text-destructive">{errors.sourceFilesUrl.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="deadline">Prazo de Entrega</Label>
+              <Input
+                id="deadline"
+                type="date"
+                disabled={step < 4}
+                {...register('deadline')}
+              />
+              {errors.deadline && (
+                <p className="text-sm text-destructive">{errors.deadline.message}</p>
+              )}
+            </div>
+
+            <div className="flex gap-4 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate('/orders')}
+                disabled={isSubmitting}
               >
-                {hasDynamicDeadline ? (
-                  <Alert className="border-info/30 bg-info/10">
-                    <AlertCircle className="h-4 w-4 text-info" />
-                    <AlertTitle className="text-info">Prazo a Definir</AlertTitle>
-                    <AlertDescription className="text-info/80">
-                      Este é um projeto complexo. Nossa equipe analisará os arquivos e confirmará 
-                      a data de entrega via chat em até 24h após o envio.
-                    </AlertDescription>
-                  </Alert>
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting || step < 4}
+                className="flex-1"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Enviando...
+                  </>
                 ) : (
-                  <Alert className="border-success/30 bg-success/10">
-                    <CheckCircle2 className="h-4 w-4 text-success" />
-                    <AlertTitle className="text-success">Prazo Estimado</AlertTitle>
-                    <AlertDescription className="text-success/80">
-                      Entrega em até {selectedConfig?.minBusinessDays} dias úteis após envio dos arquivos.
-                      Você pode selecionar uma data específica abaixo.
-                    </AlertDescription>
-                  </Alert>
+                  <>
+                    <Check className="mr-2 h-4 w-4" />
+                    Criar Pedido
+                  </>
                 )}
-              </motion.div>
-            )}
-
-{/* Title */}
-<div className="space-y-2">
-<Label htmlFor="title" className="flex items-center gap-2">
-<FileText className="h-4 w-4" />
-Título do Projeto
-</Label>
-<Input
-id="title"
-placeholder="Ex: Vídeo Institucional - Minha Empresa"
-className={cn(errors.title && "border-destructive focus-visible:ring-destructive")}
-{...register('title')}
-/>
-{errors.title && (
-<p className="text-sm text-destructive flex items-center gap-1">
-<AlertCircle className="h-3 w-3" />
-{errors.title.message}
-</p>
-)}
-</div>
-
-{/* Briefing */}
-<div className="space-y-2">
-<Label htmlFor="briefing" className="flex items-center gap-2">
-<FileText className="h-4 w-4" />
-Briefing Detalhado
-</Label>
-<Textarea
-id="briefing"
-placeholder="Descreva o projeto: objetivo, duração desejada, estilo de edição, referências..."
-rows={6}
-className={cn(errors.briefing && "border-destructive focus-visible:ring-destructive")}
-{...register('briefing')}
-/>
-{errors.briefing && (
-<p className="text-sm text-destructive flex items-center gap-1">
-<AlertCircle className="h-3 w-3" />
-{errors.briefing.message}
-</p>
-)}
-</div>
-
-{/* Source Files URL */}
-<div className="space-y-2">
-<Label htmlFor="sourceFilesUrl" className="flex items-center gap-2">
-<LinkIcon className="h-4 w-4" />
-Link dos Arquivos (Drive, Dropbox, etc.)
-</Label>
-<Input
-id="sourceFilesUrl"
-placeholder="https://drive.google.com/..."
-className={cn(errors.sourceFilesUrl && "border-destructive focus-visible:ring-destructive")}
-{...register('sourceFilesUrl')}
-/>
-{errors.sourceFilesUrl && (
-<p className="text-sm text-destructive flex items-center gap-1">
-<AlertCircle className="h-3 w-3" />
-{errors.sourceFilesUrl.message}
-</p>
-)}
-<p className="text-xs text-muted-foreground">
-Certifique-se de que o link está com permissão de acesso.
-</p>
-</div>
-
-            {/* Deadline - Only show for fixed deadline services */}
-            {selectedServiceType && !hasDynamicDeadline && minDeliveryDate && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                transition={{ duration: 0.3 }}
-                className="space-y-2"
-              >
-                <Label className="flex items-center gap-2">
-                  <CalendarIcon className="h-4 w-4" />
-                  Prazo de Entrega
-                </Label>
-                <Controller
-                  control={control}
-                  name="deadline"
-                  render={({ field }) => (
-                    <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal h-12",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {field.value ? (
-                            format(field.value, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
-                          ) : (
-                            <span>Selecione uma data</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 bg-card border-border shadow-xl" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={(date) => {
-                            field.onChange(date);
-                            setCalendarOpen(false);
-                          }}
-                          disabled={isDateDisabled}
-                          initialFocus
-                          className="rounded-lg pointer-events-auto"
-                        />
-                        <div className="p-3 border-t border-border bg-muted/30">
-                          <p className="text-xs text-muted-foreground flex items-center gap-2">
-                            <Clock className="h-3 w-3" />
-                            <span>
-                              <span className="font-medium text-foreground">{selectedConfig?.name}:</span>{' '}
-                              Prazo mínimo de {selectedConfig?.minBusinessDays} dias úteis
-                            </span>
-                          </p>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  )}
-                />
-                {errors.deadline && (
-                  <p className="text-sm text-destructive">{errors.deadline.message}</p>
-                )}
-              </motion.div>
-            )}
-
-{/* Submit */}
-<div className="flex gap-4 pt-4">
-<Button
-type="button"
-variant="outline"
-className="flex-1"
-onClick={() => navigate(-1)}
-disabled={isLoading}
->
-Cancelar
-</Button>
-<Button
-type="submit"
-variant="premium"
-className="flex-1 relative"
-disabled={isLoading}
->
-{isLoading ? (
-<>
-<Loader2 className="animate-spin h-4 w-4" />
-Criando...
-</>
-) : (
-<>
-<Sparkles className="h-4 w-4" />
-Criar Pedido
-</>
-)}
-</Button>
-</div>
-{hasEmptyBalance && (
-<p className="text-sm text-muted-foreground text-center">
-Adicione saldos na sua conta para criar pedidos.
-</p>
-)}
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>
 
-      {/* Info Card */}
-      <Card className="border-primary/20 bg-primary/5">
-        <CardContent className="p-4">
-          <p className="text-sm text-muted-foreground">
-            <strong className="text-foreground">Dica:</strong> Ao criar um pedido, 1 unidade do serviço 
-            selecionado será consumida do seu inventário. Você será notificado em cada etapa do processo.
-          </p>
-        </CardContent>
-      </Card>
-    </motion.div>
+      {/* Modais de Criação de Perfis */}
+      <BrandingProfileForm
+        open={isBrandingModalOpen}
+        onOpenChange={setIsBrandingModalOpen}
+        onSave={handleSaveBranding}
+        isPending={createBrandingMutation.isPending}
+      />
+
+      <EditingProfileForm
+        open={isEditingModalOpen}
+        onOpenChange={setIsEditingModalOpen}
+        onSave={handleSaveEditing}
+        isPending={createEditingMutation.isPending}
+      />
+    </div>
   );
 };
 
