@@ -43,10 +43,10 @@ public DbSet<ClientContract> ClientContracts => Set<ClientContract>();
   /// </summary>
   public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
 
-  /// <summary>
-  /// Entidade VisualIdentityProfile para perfis de identidade visual dos clientes
-  /// </summary>
-  public DbSet<VisualIdentityProfile> VisualIdentityProfiles => Set<VisualIdentityProfile>();
+/// <summary>
+/// Entidade BrandingProfile para perfis de branding dos clientes
+/// </summary>
+public DbSet<BrandingProfile> BrandingProfiles => Set<BrandingProfile>();
 
   /// <summary>
   /// Entidade EditingProfile para perfis de edição de vídeo dos clientes
@@ -226,25 +226,25 @@ entity.HasOne(cc => cc.Assigner)
       entity.Property(ss => ss.Description).HasMaxLength(500);
   });
 
-  // VisualIdentityProfile Configuration
-  modelBuilder.Entity<VisualIdentityProfile>(entity =>
-  {
-      entity.ToTable("VisualIdentityProfiles");
-      entity.HasKey(vip => vip.Id);
-      entity.Property(vip => vip.Name).IsRequired().HasMaxLength(200);
-      entity.Property(vip => vip.SocialHandles).HasMaxLength(1000);
-      entity.Property(vip => vip.BrandColors).HasMaxLength(500);
-      entity.Property(vip => vip.BrandFonts).HasMaxLength(500);
-      entity.Property(vip => vip.TargetAudience).HasMaxLength(200);
-      entity.Property(vip => vip.BrandAssetsUrl).HasMaxLength(2000);
-      entity.Property(vip => vip.IsActive).IsRequired().HasDefaultValue(true);
+// BrandingProfile Configuration
+modelBuilder.Entity<BrandingProfile>(entity =>
+{
+    entity.ToTable("BrandingProfiles");
+    entity.HasKey(bp => bp.Id);
+    entity.Property(bp => bp.Name).IsRequired().HasMaxLength(200);
+    entity.Property(bp => bp.SocialHandles).HasMaxLength(1000);
+    entity.Property(bp => bp.BrandColors).HasMaxLength(500);
+    entity.Property(bp => bp.BrandFonts).HasMaxLength(500);
+    entity.Property(bp => bp.TargetAudience).HasMaxLength(200);
+    entity.Property(bp => bp.BrandAssetsUrl).HasMaxLength(2000);
+    entity.Property(bp => bp.IsActive).IsRequired().HasDefaultValue(true);
 
-      // Relationship: One User can have many VisualIdentityProfiles (Cascade Delete)
-      entity.HasOne<Domain.Entities.User>()
-          .WithMany()
-          .HasForeignKey(vip => vip.UserId)
-          .OnDelete(DeleteBehavior.Cascade);
-  });
+    // Relationship: One User can have many BrandingProfiles (Cascade Delete)
+    entity.HasOne<Domain.Entities.User>()
+    .WithMany()
+    .HasForeignKey(bp => bp.UserId)
+    .OnDelete(DeleteBehavior.Cascade);
+});
 
   // EditingProfile Configuration
   modelBuilder.Entity<EditingProfile>(entity =>

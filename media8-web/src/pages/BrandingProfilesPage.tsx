@@ -49,13 +49,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import {
-  useVisualIdentityProfiles,
-  useArchiveVisualIdentityProfile,
-  useRestoreVisualIdentityProfile,
-  useHardDeleteVisualIdentityProfile,
-  useCreateVisualIdentityProfile,
-  useUpdateVisualIdentityProfile,
-} from '@/hooks/useProfiles';
+  useBrandingProfiles,
+  useArchiveBrandingProfile,
+  useRestoreBrandingProfile,
+  useHardDeleteBrandingProfile,
+  useCreateBrandingProfile,
+  useUpdateBrandingProfile,
+} from '@/hooks/useBrandingProfiles';
 import {
   useEditingProfiles,
   useArchiveEditingProfile,
@@ -63,29 +63,29 @@ import {
   useHardDeleteEditingProfile,
   useCreateEditingProfile,
   useUpdateEditingProfile,
-} from '@/hooks/useProfiles';
-import { VisualIdentityProfileForm } from '@/components/profiles/VisualIdentityProfileForm';
+} from '@/hooks/useBrandingProfiles';
+import { BrandingProfileForm } from '@/components/profiles/BrandingProfileForm';
 import { EditingProfileForm } from '@/components/profiles/EditingProfileForm';
 import { useAuth } from '@/contexts/AuthContext';
-import { VisualIdentityProfile, EditingProfile } from '@/types/profiles';
+import { BrandingProfile, EditingProfile } from '@/types/brandingProfiles';
 
-const ProfilesPage: React.FC = () => {
+const BrandingProfilesPage: React.FC = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'visual' | 'editing'>('visual');
+  const [activeTab, setActiveTab] = useState<'branding' | 'editing'>('branding');
   const [showArchived, setShowArchived] = useState(false);
 
-  // Visual Identity Profiles
+  // Branding Profiles
   const {
-    data: visualProfiles,
-    isLoading: isLoadingVisual,
-    refetch: refetchVisual,
-  } = useVisualIdentityProfiles(!showArchived);
+    data: brandingProfiles,
+    isLoading: isLoadingBranding,
+    refetch: refetchBranding,
+  } = useBrandingProfiles(!showArchived);
 
-  const archiveVisualMutation = useArchiveVisualIdentityProfile();
-  const restoreVisualMutation = useRestoreVisualIdentityProfile();
-  const hardDeleteVisualMutation = useHardDeleteVisualIdentityProfile();
-  const createVisualMutation = useCreateVisualIdentityProfile();
-  const updateVisualMutation = useUpdateVisualIdentityProfile();
+  const archiveBrandingMutation = useArchiveBrandingProfile();
+  const restoreBrandingMutation = useRestoreBrandingProfile();
+  const hardDeleteBrandingMutation = useHardDeleteBrandingProfile();
+  const createBrandingMutation = useCreateBrandingProfile();
+  const updateBrandingMutation = useUpdateBrandingProfile();
 
   // Editing Profiles
   const {
@@ -103,24 +103,24 @@ const ProfilesPage: React.FC = () => {
   // Dialog states
   const [profileToDelete, setProfileToDelete] = useState<{
     id: string;
-    type: 'visual' | 'editing';
+    type: 'branding' | 'editing';
     name: string;
   } | null>(null);
 
   // Form states
-  const [visualFormOpen, setVisualFormOpen] = useState(false);
+  const [brandingFormOpen, setBrandingFormOpen] = useState(false);
   const [editingFormOpen, setEditingFormOpen] = useState(false);
-  const [selectedVisualProfile, setSelectedVisualProfile] = useState<VisualIdentityProfile | null>(null);
+  const [selectedBrandingProfile, setSelectedBrandingProfile] = useState<BrandingProfile | null>(null);
   const [selectedEditingProfile, setSelectedEditingProfile] = useState<EditingProfile | null>(null);
 
   const handleArchive = (
     id: string,
-    type: 'visual' | 'editing',
+    type: 'branding' | 'editing',
     name: string
   ) => {
-    if (type === 'visual') {
-      archiveVisualMutation.mutate(id, {
-        onSuccess: () => refetchVisual(),
+    if (type === 'branding') {
+      archiveBrandingMutation.mutate(id, {
+        onSuccess: () => refetchBranding(),
       });
     } else {
       archiveEditingMutation.mutate(id, {
@@ -131,12 +131,12 @@ const ProfilesPage: React.FC = () => {
 
   const handleRestore = (
     id: string,
-    type: 'visual' | 'editing',
+    type: 'branding' | 'editing',
     name: string
   ) => {
-    if (type === 'visual') {
-      restoreVisualMutation.mutate(id, {
-        onSuccess: () => refetchVisual(),
+    if (type === 'branding') {
+      restoreBrandingMutation.mutate(id, {
+        onSuccess: () => refetchBranding(),
       });
     } else {
       restoreEditingMutation.mutate(id, {
@@ -147,7 +147,7 @@ const ProfilesPage: React.FC = () => {
 
   const handleHardDelete = (
     id: string,
-    type: 'visual' | 'editing',
+    type: 'branding' | 'editing',
     name: string
   ) => {
     setProfileToDelete({ id, type, name });
@@ -158,10 +158,10 @@ const ProfilesPage: React.FC = () => {
 
     const { id, type } = profileToDelete;
 
-    if (type === 'visual') {
-      hardDeleteVisualMutation.mutate(id, {
+    if (type === 'branding') {
+      hardDeleteBrandingMutation.mutate(id, {
         onSuccess: () => {
-          refetchVisual();
+          refetchBranding();
           setProfileToDelete(null);
         },
       });
@@ -175,9 +175,9 @@ const ProfilesPage: React.FC = () => {
     }
   };
 
-  const handleOpenVisualForm = (profile?: VisualIdentityProfile) => {
-    setSelectedVisualProfile(profile || null);
-    setVisualFormOpen(true);
+  const handleOpenBrandingForm = (profile?: BrandingProfile) => {
+    setSelectedBrandingProfile(profile || null);
+    setBrandingFormOpen(true);
   };
 
   const handleOpenEditingForm = (profile?: EditingProfile) => {
@@ -185,23 +185,23 @@ const ProfilesPage: React.FC = () => {
     setEditingFormOpen(true);
   };
 
-  const handleSaveVisual = (data: any) => {
-    if (selectedVisualProfile) {
-      updateVisualMutation.mutate(
-        { id: selectedVisualProfile.id, data },
+  const handleSaveBranding = (data: any) => {
+    if (selectedBrandingProfile) {
+      updateBrandingMutation.mutate(
+        { id: selectedBrandingProfile.id, data },
         {
           onSuccess: () => {
-            refetchVisual();
-            setVisualFormOpen(false);
-            setSelectedVisualProfile(null);
+            refetchBranding();
+            setBrandingFormOpen(false);
+            setSelectedBrandingProfile(null);
           },
         }
       );
     } else {
-      createVisualMutation.mutate(data as any, {
+      createBrandingMutation.mutate(data as any, {
         onSuccess: () => {
-          refetchVisual();
-          setVisualFormOpen(false);
+          refetchBranding();
+          setBrandingFormOpen(false);
         },
       });
     }
@@ -229,7 +229,7 @@ const ProfilesPage: React.FC = () => {
     }
   };
 
-  const renderVisualIdentityRow = (profile: any) => (
+  const renderBrandingProfileRow = (profile: any) => (
     <TableRow key={profile.id} className="group">
       <TableCell className="font-medium">{profile.name}</TableCell>
       <TableCell className="hidden md:table-cell">{profile.brandColors}</TableCell>
@@ -243,18 +243,18 @@ const ProfilesPage: React.FC = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleOpenVisualForm(profile)}>
+            <DropdownMenuItem onClick={() => handleOpenBrandingForm(profile)}>
               <Pencil className="mr-2 h-4 w-4" />
               Editar
             </DropdownMenuItem>
             {!showArchived ? (
               <>
-                <DropdownMenuItem onClick={() => handleArchive(profile.id, 'visual', profile.name)}>
+                <DropdownMenuItem onClick={() => handleArchive(profile.id, 'branding', profile.name)}>
                   <Archive className="mr-2 h-4 w-4" />
                   Arquivar
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => handleHardDelete(profile.id, 'visual', profile.name)}
+                  onClick={() => handleHardDelete(profile.id, 'branding', profile.name)}
                   className="text-destructive focus:text-destructive"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
@@ -263,12 +263,12 @@ const ProfilesPage: React.FC = () => {
               </>
             ) : (
               <>
-                <DropdownMenuItem onClick={() => handleRestore(profile.id, 'visual', profile.name)}>
+                <DropdownMenuItem onClick={() => handleRestore(profile.id, 'branding', profile.name)}>
                   <RotateCcw className="mr-2 h-4 w-4" />
                   Restaurar
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => handleHardDelete(profile.id, 'visual', profile.name)}
+                  onClick={() => handleHardDelete(profile.id, 'branding', profile.name)}
                   className="text-destructive focus:text-destructive"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
@@ -373,17 +373,17 @@ const ProfilesPage: React.FC = () => {
         <div className="flex items-center justify-between mb-2">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              Meus Perfis
+              Perfis de Branding
             </h1>
             <p className="text-muted-foreground mt-1">
-              Gerencie suas identidades visuais e perfis de edição
+              Gerencie seus perfis de branding e edição
             </p>
           </div>
           <Button
             variant="default"
             onClick={() =>
-              activeTab === 'visual'
-                ? handleOpenVisualForm()
+              activeTab === 'branding'
+                ? handleOpenBrandingForm()
                 : handleOpenEditingForm()
             }
           >
@@ -394,16 +394,16 @@ const ProfilesPage: React.FC = () => {
       </motion.div>
 
       {/* Main Tabs */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'visual' | 'editing')} className="w-full">
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'branding' | 'editing')} className="w-full">
         <div className="flex items-center justify-between mb-6">
           <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="visual" className="flex items-center gap-2">
+            <TabsTrigger value="branding" className="flex items-center gap-2">
               <Palette className="h-4 w-4" />
-              Identidade Visual
+              Branding
             </TabsTrigger>
             <TabsTrigger value="editing" className="flex items-center gap-2">
               <Film className="h-4 w-4" />
-              Perfil de Edição
+              Edição
             </TabsTrigger>
           </TabsList>
 
@@ -428,22 +428,22 @@ const ProfilesPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Visual Identity Content */}
-        <TabsContent value="visual">
+        {/* Branding Content */}
+        <TabsContent value="branding">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Palette className="h-5 w-5 text-primary" />
-                {showArchived ? 'Identidades Visuais Arquivadas' : 'Identidades Visuais Ativas'}
+                {showArchived ? 'Perfis de Branding Arquivados' : 'Perfis de Branding Ativos'}
               </CardTitle>
               <CardDescription>
                 {showArchived
                   ? 'Perfis arquivados podem ser restaurados ou excluídos permanentemente'
-                  : 'Gerencie as identidades visuais da sua marca'}
+                  : 'Gerencie os perfis de branding da sua marca'}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {isLoadingVisual ? (
+              {isLoadingBranding ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -456,7 +456,7 @@ const ProfilesPage: React.FC = () => {
                   </TableHeader>
                   <TableBody>{renderSkeletonRows()}</TableBody>
                 </Table>
-              ) : visualProfiles && visualProfiles.length > 0 ? (
+              ) : brandingProfiles && brandingProfiles.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -469,7 +469,7 @@ const ProfilesPage: React.FC = () => {
                   </TableHeader>
                   <TableBody>
                     <AnimatePresence>
-                      {visualProfiles.map((profile) => renderVisualIdentityRow(profile))}
+                      {brandingProfiles.map((profile) => renderBrandingProfileRow(profile))}
                     </AnimatePresence>
                   </TableBody>
                 </Table>
@@ -488,7 +488,7 @@ const ProfilesPage: React.FC = () => {
                   <p className="text-muted-foreground">
                     {showArchived
                       ? 'Os perfis arquivados aparecerão aqui'
-                      : 'Comece criando um novo perfil de identidade visual'}
+                      : 'Comece criando um novo perfil de branding'}
                   </p>
                 </div>
               )}
@@ -592,12 +592,12 @@ const ProfilesPage: React.FC = () => {
       </AlertDialog>
 
       {/* Forms */}
-      <VisualIdentityProfileForm
-        open={visualFormOpen}
-        onOpenChange={setVisualFormOpen}
-        profile={selectedVisualProfile}
-        onSave={handleSaveVisual}
-        isPending={createVisualMutation.isPending || updateVisualMutation.isPending}
+      <BrandingProfileForm
+        open={brandingFormOpen}
+        onOpenChange={setBrandingFormOpen}
+        profile={selectedBrandingProfile}
+        onSave={handleSaveBranding}
+        isPending={createBrandingMutation.isPending || updateBrandingMutation.isPending}
       />
 
       <EditingProfileForm
@@ -611,4 +611,4 @@ const ProfilesPage: React.FC = () => {
   );
 };
 
-export default ProfilesPage;
+export default BrandingProfilesPage;

@@ -3,9 +3,9 @@ using System.ComponentModel.DataAnnotations;
 namespace Media8.Application.DTOs.Profiles;
 
 /// <summary>
-/// Requisição para criação de um novo identidade visual
+/// Requisição para criação de um novo perfil de branding
 /// </summary>
-public class CreateVisualIdentityProfileRequest
+public class CreateBrandingProfileRequest
 {
     /// <summary>
     /// Nome do perfil (ex: "Marca 1: Salão de Beleza")
@@ -46,16 +46,16 @@ public class CreateVisualIdentityProfileRequest
 }
 
 /// <summary>
-/// Requisição para atualização de identidade visual
+/// Requisição para atualização de perfil de branding
 /// </summary>
-public class UpdateVisualIdentityProfileRequest : CreateVisualIdentityProfileRequest
+public class UpdateBrandingProfileRequest : CreateBrandingProfileRequest
 {
 }
 
 /// <summary>
-/// Resposta de identidade visual
+/// Resposta de perfil de branding
 /// </summary>
-public class VisualIdentityProfileResponse
+public class BrandingProfileResponse
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }

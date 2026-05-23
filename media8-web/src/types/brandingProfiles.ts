@@ -1,10 +1,10 @@
 // ==========================================
-// MEDIA 8 - Profile Types (DTOs)
-// VisualIdentityProfile & EditingProfile
+// MEDIA 8 - Branding Profile Types (DTOs)
+// BrandingProfile (formerly VisualIdentityProfile) & EditingProfile
 // ==========================================
 
-// Visual Identity Profile
-export interface VisualIdentityProfile {
+// Branding Profile (formerly Visual Identity Profile)
+export interface BrandingProfile {
   id: string;
   userId: string;
   name: string;
@@ -18,7 +18,7 @@ export interface VisualIdentityProfile {
   updatedAt: string;
 }
 
-export interface CreateVisualIdentityProfileRequest {
+export interface CreateBrandingProfileRequest {
   name: string;
   socialHandles: string;
   brandColors: string;
@@ -27,7 +27,7 @@ export interface CreateVisualIdentityProfileRequest {
   brandAssetsUrl: string;
 }
 
-export interface UpdateVisualIdentityProfileRequest {
+export interface UpdateBrandingProfileRequest {
   name?: string;
   socialHandles?: string;
   brandColors?: string;

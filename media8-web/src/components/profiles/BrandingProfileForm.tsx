@@ -19,24 +19,24 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { VisualIdentityProfile, CreateVisualIdentityProfileRequest, UpdateVisualIdentityProfileRequest } from '@/types/profiles';
+import { BrandingProfile, CreateBrandingProfileRequest, UpdateBrandingProfileRequest } from '@/types/brandingProfiles';
 
-interface VisualIdentityProfileFormProps {
+interface BrandingProfileFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  profile?: VisualIdentityProfile | null;
-  onSave: (data: CreateVisualIdentityProfileRequest | UpdateVisualIdentityProfileRequest) => void;
+  profile?: BrandingProfile | null;
+  onSave: (data: CreateBrandingProfileRequest | UpdateBrandingProfileRequest) => void;
   isPending?: boolean;
 }
 
-export const VisualIdentityProfileForm: React.FC<VisualIdentityProfileFormProps> = ({
+export const BrandingProfileForm: React.FC<BrandingProfileFormProps> = ({
   open,
   onOpenChange,
   profile,
   onSave,
   isPending,
 }) => {
-  const { register, handleSubmit, setValue, watch, reset } = useForm<CreateVisualIdentityProfileRequest>({
+  const { register, handleSubmit, setValue, watch, reset } = useForm<CreateBrandingProfileRequest>({
     defaultValues: {
       name: '',
       socialHandles: '',
@@ -71,7 +71,7 @@ export const VisualIdentityProfileForm: React.FC<VisualIdentityProfileFormProps>
     }
   }, [open, profile, reset]);
 
-  const onSubmit = (data: CreateVisualIdentityProfileRequest | UpdateVisualIdentityProfileRequest) => {
+  const onSubmit = (data: CreateBrandingProfileRequest | UpdateBrandingProfileRequest) => {
     onSave(data);
   };
 
@@ -80,7 +80,7 @@ export const VisualIdentityProfileForm: React.FC<VisualIdentityProfileFormProps>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>
-            {profile ? 'Editar Identidade Visual' : 'Nova Identidade Visual'}
+            {profile ? 'Editar Perfil de Branding' : 'Novo Perfil de Branding'}
           </DialogTitle>
           <DialogDescription>
             Preencha as informações da sua marca. Estes dados serão reutilizados em futuros pedidos.

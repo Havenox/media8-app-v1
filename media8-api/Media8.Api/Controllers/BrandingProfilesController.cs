@@ -11,27 +11,27 @@ namespace Media8.Api.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/v1/[controller]")]
-public class VisualIdentityProfilesController : ControllerBase
+public class BrandingProfilesController : ControllerBase
 {
-    private readonly IVisualIdentityProfileService _profileService;
+    private readonly IBrandingProfileService _profileService;
 
-    public VisualIdentityProfilesController(IVisualIdentityProfileService profileService)
+    public BrandingProfilesController(IBrandingProfileService profileService)
     {
         _profileService = profileService;
     }
 
     /// <summary>
-    /// Lista todos os perfis de identidade visual do usuário logado
+    /// Lista todos os perfis de branding do usuário logado
     /// </summary>
     /// <param name="onlyActive">Se true (padrão), retorna apenas perfis ativos. Se false, retorna todos (incluindo arquivados).</param>
     [HttpGet]
-    [ProducesResponseType(typeof(List<VisualIdentityProfileResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<BrandingProfileResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<List<VisualIdentityProfileResponse>>> GetByUser([FromQuery] bool onlyActive = true)
+    public async Task<ActionResult<List<BrandingProfileResponse>>> GetByUser([FromQuery] bool onlyActive = true)
     {
         var userId = GetUserIdFromClaims();
         var profiles = await _profileService.GetByUserIdAsync(userId, onlyActive);
-        var response = profiles.Select(p => new VisualIdentityProfileResponse
+        var response = profiles.Select(p => new BrandingProfileResponse
         {
             Id = p.Id,
             UserId = p.UserId,
@@ -50,13 +50,13 @@ public class VisualIdentityProfilesController : ControllerBase
     }
 
     /// <summary>
-    /// Busca um perfil de identidade visual específico por ID
+    /// Busca um perfil de branding específico por ID
     /// </summary>
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(VisualIdentityProfileResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(BrandingProfileResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<VisualIdentityProfileResponse>> GetById(Guid id)
+    public async Task<ActionResult<BrandingProfileResponse>> GetById(Guid id)
     {
         var userId = GetUserIdFromClaims();
         var profile = await _profileService.GetByIdAsync(id);
@@ -72,7 +72,7 @@ public class VisualIdentityProfilesController : ControllerBase
             return Forbid();
         }
 
-        return Ok(new VisualIdentityProfileResponse
+        return Ok(new BrandingProfileResponse
         {
             Id = profile.Id,
             UserId = profile.UserId,
@@ -88,20 +88,19 @@ public class VisualIdentityProfilesController : ControllerBase
     }
 
     /// <summary>
-    /// Cria um novo perfil de identidade visual
+    /// Cria um novo perfil de branding
     /// </summary>
     [HttpPost]
-    [ProducesResponseType(typeof(VisualIdentityProfileResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(BrandingProfileResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(object), StatusCodes.Status422UnprocessableEntity)]
-    public async Task<ActionResult<VisualIdentityProfileResponse>> Create([FromBody] CreateVisualIdentityProfileRequest request)
+    public async Task<ActionResult<BrandingProfileResponse>> Create([FromBody] CreateBrandingProfileRequest request)
     {
         var userId = GetUserIdFromClaims();
 
         try
         {
             var profile = await _profileService.CreateAsync(userId, request);
-
-            var response = new VisualIdentityProfileResponse
+            return CreatedAtAction(nameof(GetById), new { id = profile.Id }, new BrandingProfileResponse
             {
                 Id = profile.Id,
                 UserId = profile.UserId,
@@ -111,26 +110,25 @@ public class VisualIdentityProfilesController : ControllerBase
                 BrandFonts = profile.BrandFonts,
                 TargetAudience = profile.TargetAudience,
                 BrandAssetsUrl = profile.BrandAssetsUrl,
+                IsActive = profile.IsActive,
                 CreatedAt = profile.CreatedAt,
                 UpdatedAt = profile.UpdatedAt
-            };
-
-            return CreatedAtAction(nameof(GetById), new { id = profile.Id }, response);
+            });
         }
-        catch (Exception ex)
+        catch (BusinessRuleException ex)
         {
-            return UnprocessableEntity(new { message = ex.Message });
+            return UnprocessableEntity(new { message = ex.Message, errorCode = ex.ErrorCode });
         }
     }
 
     /// <summary>
-    /// Atualiza um perfil de identidade visual existente
+    /// Atualiza um perfil de branding existente
     /// </summary>
     [HttpPut("{id}")]
-    [ProducesResponseType(typeof(VisualIdentityProfileResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(BrandingProfileResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<VisualIdentityProfileResponse>> Update(Guid id, [FromBody] UpdateVisualIdentityProfileRequest request)
+    public async Task<ActionResult<BrandingProfileResponse>> Update(Guid id, [FromBody] UpdateBrandingProfileRequest request)
     {
         var userId = GetUserIdFromClaims();
         var profile = await _profileService.GetByIdAsync(id);
@@ -140,7 +138,6 @@ public class VisualIdentityProfilesController : ControllerBase
             return NotFound();
         }
 
-        // Validação de propriedade
         if (profile.UserId != userId)
         {
             return Forbid();
@@ -149,8 +146,7 @@ public class VisualIdentityProfilesController : ControllerBase
         try
         {
             var updatedProfile = await _profileService.UpdateAsync(id, request);
-
-            var response = new VisualIdentityProfileResponse
+            return Ok(new BrandingProfileResponse
             {
                 Id = updatedProfile.Id,
                 UserId = updatedProfile.UserId,
@@ -160,24 +156,19 @@ public class VisualIdentityProfilesController : ControllerBase
                 BrandFonts = updatedProfile.BrandFonts,
                 TargetAudience = updatedProfile.TargetAudience,
                 BrandAssetsUrl = updatedProfile.BrandAssetsUrl,
+                IsActive = updatedProfile.IsActive,
                 CreatedAt = updatedProfile.CreatedAt,
                 UpdatedAt = updatedProfile.UpdatedAt
-            };
-
-            return Ok(response);
+            });
         }
-        catch (KeyNotFoundException)
+        catch (BusinessRuleException ex)
         {
-            return NotFound();
-        }
-        catch (Exception ex)
-        {
-            return UnprocessableEntity(new { message = ex.Message });
+            return UnprocessableEntity(new { message = ex.Message, errorCode = ex.ErrorCode });
         }
     }
 
     /// <summary>
-    /// Arquiva um perfil de identidade visual (IsAtive = false)
+    /// Arquiva um perfil de branding (soft delete)
     /// </summary>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -193,25 +184,17 @@ public class VisualIdentityProfilesController : ControllerBase
             return NotFound();
         }
 
-        // Validação de propriedade
         if (profile.UserId != userId)
         {
             return Forbid();
         }
 
-        try
-        {
-            await _profileService.ArchiveAsync(id);
-            return NoContent();
-        }
-        catch (KeyNotFoundException)
-        {
-            return NotFound();
-        }
+        await _profileService.ArchiveAsync(id);
+        return NoContent();
     }
 
     /// <summary>
-    /// Restaura um perfil de identidade visual arquivado (IsActive = true)
+    /// Restaura um perfil de branding arquivado
     /// </summary>
     [HttpPost("{id}/restore")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -227,25 +210,17 @@ public class VisualIdentityProfilesController : ControllerBase
             return NotFound();
         }
 
-        // Validação de propriedade
         if (profile.UserId != userId)
         {
             return Forbid();
         }
 
-        try
-        {
-            await _profileService.RestoreAsync(id);
-            return Ok();
-        }
-        catch (KeyNotFoundException)
-        {
-            return NotFound();
-        }
+        await _profileService.RestoreAsync(id);
+        return Ok();
     }
 
     /// <summary>
-    /// Exclui permanentemente um perfil de identidade visual (apenas se estiver inativo e não estiver em uso)
+    /// Exclui permanentemente um perfil de branding (hard delete)
     /// </summary>
     [HttpDelete("{id}/hard-delete")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -262,7 +237,6 @@ public class VisualIdentityProfilesController : ControllerBase
             return NotFound();
         }
 
-        // Validação de propriedade
         if (profile.UserId != userId)
         {
             return Forbid();
@@ -273,10 +247,6 @@ public class VisualIdentityProfilesController : ControllerBase
             await _profileService.HardDeleteAsync(id);
             return NoContent();
         }
-        catch (KeyNotFoundException)
-        {
-            return NotFound();
-        }
         catch (BusinessRuleException ex)
         {
             return UnprocessableEntity(new { message = ex.Message, errorCode = ex.ErrorCode });
@@ -285,10 +255,10 @@ public class VisualIdentityProfilesController : ControllerBase
 
     private Guid GetUserIdFromClaims()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+        var claimValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (claimValue == null || !Guid.TryParse(claimValue, out var userId))
         {
-            throw new UnauthorizedAccessException("Usuário não identificado.");
+            throw new UnauthorizedAccessException("User ID claim not found or invalid.");
         }
         return userId;
     }

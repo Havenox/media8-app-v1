@@ -1,44 +1,44 @@
 import {
-  VisualIdentityProfile,
+  BrandingProfile,
   EditingProfile,
-  CreateVisualIdentityProfileRequest,
-  UpdateVisualIdentityProfileRequest,
+  CreateBrandingProfileRequest,
+  UpdateBrandingProfileRequest,
   CreateEditingProfileRequest,
   UpdateEditingProfileRequest,
-} from '@/types/profiles';
+} from '@/types/brandingProfiles';
 import { api } from '@/lib/api';
 
 // ==========================================
-// VISUAL IDENTITY PROFILE SERVICE
+// BRANDING PROFILE SERVICE (formerly Visual Identity Profile)
 // ==========================================
 
-const VISUAL_BASE = '/api/v1/visual-identity-profiles';
+const BRANDING_BASE = '/api/v1/branding-profiles';
 
-const getVisualByIdAPI = async (id: string): Promise<VisualIdentityProfile> => {
-  const response = await api.get(`${VISUAL_BASE}/${id}`);
+const getBrandingByIdAPI = async (id: string): Promise<BrandingProfile> => {
+  const response = await api.get(`${BRANDING_BASE}/${id}`);
   return response.data;
 };
 
-const createVisualAPI = async (data: CreateVisualIdentityProfileRequest): Promise<VisualIdentityProfile> => {
-  const response = await api.post(VISUAL_BASE, data);
+const createBrandingAPI = async (data: CreateBrandingProfileRequest): Promise<BrandingProfile> => {
+  const response = await api.post(BRANDING_BASE, data);
   return response.data;
 };
 
-const updateVisualAPI = async (id: string, data: UpdateVisualIdentityProfileRequest): Promise<VisualIdentityProfile> => {
-  const response = await api.put(`${VISUAL_BASE}/${id}`, data);
+const updateBrandingAPI = async (id: string, data: UpdateBrandingProfileRequest): Promise<BrandingProfile> => {
+  const response = await api.put(`${BRANDING_BASE}/${id}`, data);
   return response.data;
 };
 
-const archiveVisualAPI = async (id: string): Promise<void> => {
-  await api.delete(`${VISUAL_BASE}/${id}`);
+const archiveBrandingAPI = async (id: string): Promise<void> => {
+  await api.delete(`${BRANDING_BASE}/${id}`);
 };
 
-const restoreVisualAPI = async (id: string): Promise<void> => {
-  await api.post(`${VISUAL_BASE}/${id}/restore`);
+const restoreBrandingAPI = async (id: string): Promise<void> => {
+  await api.post(`${BRANDING_BASE}/${id}/restore`);
 };
 
-const hardDeleteVisualAPI = async (id: string): Promise<void> => {
-  await api.delete(`${VISUAL_BASE}/${id}/hard-delete`);
+const hardDeleteBrandingAPI = async (id: string): Promise<void> => {
+  await api.delete(`${BRANDING_BASE}/${id}/hard-delete`);
 };
 
 // ==========================================
@@ -78,34 +78,34 @@ const hardDeleteEditingAPI = async (id: string): Promise<void> => {
 // EXPORTED SERVICES
 // ==========================================
 
-export const visualIdentityProfileService = {
-  async getAll(onlyActive: boolean = true): Promise<VisualIdentityProfile[]> {
-    const response = await api.get(VISUAL_BASE, { params: { onlyActive } });
+export const brandingProfileService = {
+  async getAll(onlyActive: boolean = true): Promise<BrandingProfile[]> {
+    const response = await api.get(BRANDING_BASE, { params: { onlyActive } });
     return response.data;
   },
 
-  async getById(id: string): Promise<VisualIdentityProfile> {
-    return getVisualByIdAPI(id);
+  async getById(id: string): Promise<BrandingProfile> {
+    return getBrandingByIdAPI(id);
   },
 
-  async create(data: CreateVisualIdentityProfileRequest): Promise<VisualIdentityProfile> {
-    return createVisualAPI(data);
+  async create(data: CreateBrandingProfileRequest): Promise<BrandingProfile> {
+    return createBrandingAPI(data);
   },
 
-  async update(id: string, data: UpdateVisualIdentityProfileRequest): Promise<VisualIdentityProfile> {
-    return updateVisualAPI(id, data);
+  async update(id: string, data: UpdateBrandingProfileRequest): Promise<BrandingProfile> {
+    return updateBrandingAPI(id, data);
   },
 
   async archive(id: string): Promise<void> {
-    return archiveVisualAPI(id);
+    return archiveBrandingAPI(id);
   },
 
   async restore(id: string): Promise<void> {
-    return restoreVisualAPI(id);
+    return restoreBrandingAPI(id);
   },
 
   async hardDelete(id: string): Promise<void> {
-    return hardDeleteVisualAPI(id);
+    return hardDeleteBrandingAPI(id);
   },
 };
 

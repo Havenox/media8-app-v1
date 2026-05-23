@@ -6,26 +6,26 @@ using Media8.Domain.Entities;
 namespace Media8.Application.Services;
 
 /// <summary>
-/// Implementação do serviço de perfis de identidade visual
+/// Implementação do serviço de perfis de branding
 /// </summary>
-public class VisualIdentityProfileService : IVisualIdentityProfileService
+public class BrandingProfileService : IBrandingProfileService
 {
-    private readonly IRepository<VisualIdentityProfile> _repository;
+    private readonly IRepository<BrandingProfile> _repository;
     private readonly IRepository<Order> _orderRepository;
 
-    public VisualIdentityProfileService(IRepository<VisualIdentityProfile> repository, IRepository<Order> orderRepository)
+    public BrandingProfileService(IRepository<BrandingProfile> repository, IRepository<Order> orderRepository)
     {
         _repository = repository;
         _orderRepository = orderRepository;
     }
 
-    public async Task<VisualIdentityProfile?> GetByIdAsync(Guid id)
+    public async Task<BrandingProfile?> GetByIdAsync(Guid id)
     {
         var profiles = await _repository.FindAsync(p => p.Id == id);
         return profiles.FirstOrDefault();
     }
 
-    public async Task<List<VisualIdentityProfile>> GetByUserIdAsync(Guid userId, bool onlyActive = true)
+    public async Task<List<BrandingProfile>> GetByUserIdAsync(Guid userId, bool onlyActive = true)
     {
         if (onlyActive)
         {
@@ -39,9 +39,9 @@ public class VisualIdentityProfileService : IVisualIdentityProfileService
         }
     }
 
-    public async Task<VisualIdentityProfile> CreateAsync(Guid userId, CreateVisualIdentityProfileRequest request)
+    public async Task<BrandingProfile> CreateAsync(Guid userId, CreateBrandingProfileRequest request)
     {
-        var profile = new VisualIdentityProfile
+        var profile = new BrandingProfile
         {
             UserId = userId,
             Name = request.Name,
@@ -59,11 +59,11 @@ public class VisualIdentityProfileService : IVisualIdentityProfileService
         return profile;
     }
 
-    public async Task<VisualIdentityProfile> UpdateAsync(Guid id, UpdateVisualIdentityProfileRequest request)
+    public async Task<BrandingProfile> UpdateAsync(Guid id, UpdateBrandingProfileRequest request)
     {
         var profiles = await _repository.FindAsync(p => p.Id == id);
-        var profile = profiles.FirstOrDefault() 
-            ?? throw new KeyNotFoundException($"VisualIdentityProfile with ID {id} not found.");
+        var profile = profiles.FirstOrDefault()
+        ?? throw new KeyNotFoundException($"BrandingProfile with ID {id} not found.");
 
         profile.Name = request.Name;
         profile.SocialHandles = request.SocialHandles;
@@ -80,8 +80,8 @@ public class VisualIdentityProfileService : IVisualIdentityProfileService
     public async Task ArchiveAsync(Guid id)
     {
         var profiles = await _repository.FindAsync(p => p.Id == id);
-        var profile = profiles.FirstOrDefault() 
-            ?? throw new KeyNotFoundException($"VisualIdentityProfile with ID {id} not found.");
+        var profile = profiles.FirstOrDefault()
+        ?? throw new KeyNotFoundException($"BrandingProfile with ID {id} not found.");
 
         profile.IsActive = false;
         profile.UpdatedAt = DateTime.UtcNow;
@@ -92,8 +92,8 @@ public class VisualIdentityProfileService : IVisualIdentityProfileService
     public async Task RestoreAsync(Guid id)
     {
         var profiles = await _repository.FindAsync(p => p.Id == id);
-        var profile = profiles.FirstOrDefault() 
-            ?? throw new KeyNotFoundException($"VisualIdentityProfile with ID {id} not found.");
+        var profile = profiles.FirstOrDefault()
+        ?? throw new KeyNotFoundException($"BrandingProfile with ID {id} not found.");
 
         profile.IsActive = true;
         profile.UpdatedAt = DateTime.UtcNow;
@@ -104,20 +104,20 @@ public class VisualIdentityProfileService : IVisualIdentityProfileService
     public async Task HardDeleteAsync(Guid id)
     {
         var profiles = await _repository.FindAsync(p => p.Id == id);
-        var profile = profiles.FirstOrDefault() 
-            ?? throw new KeyNotFoundException($"VisualIdentityProfile with ID {id} not found.");
+        var profile = profiles.FirstOrDefault()
+        ?? throw new KeyNotFoundException($"BrandingProfile with ID {id} not found.");
 
         // Validação: perfil deve estar inativo para exclusão física
         if (profile.IsActive)
         {
             throw new BusinessRuleException(
-                "O perfil deve estar arquivado (inativo) antes de ser excluído permanentemente.", 
+                "O perfil deve estar arquivado (inativo) antes de ser excluído permanentemente.",
                 "PROFILE_MUST_BE_INACTIVE");
         }
 
         // TODO: Verificar vínculo com pedidos quando o campo for implementado na entidade Order
         // Por enquanto, apenas previne a exclusão se estiver ativo (já feito acima)
-        // Quando o campo VisualIdentityProfileId ou EditingProfileId for adicionado ao Order,
+        // Quando o campo BrandingProfileId ou EditingProfileId for adicionado ao Order,
         // esta validação deve ser implementada aqui.
 
         await _repository.DeleteAsync(id);
