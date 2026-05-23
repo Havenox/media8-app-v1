@@ -27,6 +27,7 @@ import SettingsPage from "@/pages/SettingsPage";
 import NotificationsPage from "@/pages/NotificationsPage";
 import EditsPage from "@/pages/EditsPage";
 import BrandingProfilesPage from "@/pages/BrandingProfilesPage";
+import EditingProfilesPage from "@/pages/EditingProfilesPage";
 import OffersPage from "@/pages/admin/OffersPage";
 import VideoFormatsPage from "@/pages/admin/VideoFormatsPage";
 import EditingStylesPage from "@/pages/admin/EditingStylesPage";
@@ -112,6 +113,13 @@ const App = () => (
 <Route path="/branding-profiles" element={
   <ProtectedRoute allowedRoles={['Admin', 'Client']}>
     <BrandingProfilesPage />
+  </ProtectedRoute>
+} />
+
+{/* Editing Profiles - Client + Admin */}
+<Route path="/editing-profiles" element={
+  <ProtectedRoute allowedRoles={['Admin', 'Client']}>
+    <EditingProfilesPage />
   </ProtectedRoute>
 } />
 </Route>

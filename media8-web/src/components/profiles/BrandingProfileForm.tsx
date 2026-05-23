@@ -140,21 +140,11 @@ export const BrandingProfileForm: React.FC<BrandingProfileFormProps> = ({
             <Label htmlFor="targetAudience">
               Para qual público-alvo este vídeo será direcionado?
             </Label>
-            <Select
-              value={watch('targetAudience')}
-              onValueChange={(value) => setValue('targetAudience', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o público-alvo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Mulheres">Mulheres</SelectItem>
-                <SelectItem value="Homens">Homens</SelectItem>
-                <SelectItem value="Jovens empreendedores">Jovens empreendedores</SelectItem>
-                <SelectItem value="Público corporativo">Público corporativo</SelectItem>
-                <SelectItem value="Outro">Outro</SelectItem>
-              </SelectContent>
-            </Select>
+            <Input
+              id="targetAudience"
+              placeholder="Ex: Mulheres, Homens, Jovens empreendedores, Público corporativo, Outro"
+              {...register('targetAudience', { required: true })}
+            />
           </div>
 
           {/* Assets da Marca */}

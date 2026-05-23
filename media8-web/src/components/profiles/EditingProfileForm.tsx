@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import {
   Dialog,
@@ -20,7 +20,8 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { EditingProfile, CreateEditingProfileRequest, UpdateEditingProfileRequest } from '@/types/profiles';
+import { EditingProfile, CreateEditingProfileRequest, UpdateEditingProfileRequest } from '@/types/brandingProfiles';
+import { X } from 'lucide-react';
 
 interface EditingProfileFormProps {
   open: boolean;
@@ -50,9 +51,16 @@ export const EditingProfileForm: React.FC<EditingProfileFormProps> = ({
     },
   });
 
+  // Multiple reference URLs state
+  const [referenceUrls, setReferenceUrls] = useState<string[]>([]);
+
   React.useEffect(() => {
     if (open) {
       if (profile) {
+        // Parse reference URLs from newline-separated string
+        const urls = profile.referenceUrl ? profile.referenceUrl.split('\n').filter(url => url.trim()) : [];
+        setReferenceUrls(urls.length > 0 ? urls : ['']);
+        
         reset({
           name: profile.name,
           referenceUrl: profile.referenceUrl,
@@ -64,6 +72,7 @@ export const EditingProfileForm: React.FC<EditingProfileFormProps> = ({
           generalNotes: profile.generalNotes,
         });
       } else {
+        setReferenceUrls(['']);
         reset({
           name: '',
           referenceUrl: '',
@@ -79,7 +88,24 @@ export const EditingProfileForm: React.FC<EditingProfileFormProps> = ({
   }, [open, profile, reset]);
 
   const onSubmit = (data: CreateEditingProfileRequest | UpdateEditingProfileRequest) => {
-    onSave(data);
+    // Join reference URLs with newline
+    const referenceString = referenceUrls.filter(url => url.trim()).join('\n');
+    onSave({ ...data, referenceUrl: referenceString } as any);
+  };
+
+  const addReferenceUrl = () => {
+    setReferenceUrls([...referenceUrls, '']);
+  };
+
+  const removeReferenceUrl = (index: number) => {
+    const newUrls = referenceUrls.filter((_, i) => i !== index);
+    setReferenceUrls(newUrls.length > 0 ? newUrls : ['']);
+  };
+
+  const updateReferenceUrl = (index: number, value: string) => {
+    const newUrls = [...referenceUrls];
+    newUrls[index] = value;
+    setReferenceUrls(newUrls);
   };
 
   return (
@@ -105,16 +131,42 @@ export const EditingProfileForm: React.FC<EditingProfileFormProps> = ({
             />
           </div>
 
-          {/* Referência de Edição */}
+          {/* Referências de Edição (Múltiplos Links) */}
           <div className="space-y-2">
-            <Label htmlFor="referenceUrl">
+            <Label>
               Tem alguma referência de edição que você gostaria que eu seguisse? (Adicione o link)
             </Label>
-            <Input
-              id="referenceUrl"
-              placeholder="Ex: https://instagram.com/reel/..."
-              {...register('referenceUrl')}
-            />
+            <div className="space-y-2">
+              {referenceUrls.map((url, index) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    placeholder="Ex: https://instagram.com/reel/..."
+                    value={url}
+                    onChange={(e) => updateReferenceUrl(index, e.target.value)}
+                    className="flex-1"
+                  />
+                  {referenceUrls.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => removeReferenceUrl(index)}
+                      className="shrink-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addReferenceUrl}
+                className="w-full"
+              >
+                <span className="mr-2">+</span> Adicionar Link
+              </Button>
+            </div>
           </div>
 
           {/* Diretrizes de Corte */}

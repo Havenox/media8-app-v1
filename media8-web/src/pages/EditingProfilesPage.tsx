@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Palette,
+  Film,
   Archive,
   Trash2,
   RotateCcw,
@@ -47,33 +47,33 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 
 import {
-  useBrandingProfiles,
-  useArchiveBrandingProfile,
-  useRestoreBrandingProfile,
-  useHardDeleteBrandingProfile,
-  useCreateBrandingProfile,
-  useUpdateBrandingProfile,
+  useEditingProfiles,
+  useArchiveEditingProfile,
+  useRestoreEditingProfile,
+  useHardDeleteEditingProfile,
+  useCreateEditingProfile,
+  useUpdateEditingProfile,
 } from '@/hooks/useBrandingProfiles';
-import { BrandingProfileForm } from '@/components/profiles/BrandingProfileForm';
+import { EditingProfileForm } from '@/components/profiles/EditingProfileForm';
 import { useAuth } from '@/contexts/AuthContext';
-import { BrandingProfile } from '@/types/brandingProfiles';
+import { EditingProfile } from '@/types/brandingProfiles';
 
-const BrandingProfilesPage: React.FC = () => {
+const EditingProfilesPage: React.FC = () => {
   const { user } = useAuth();
   const [showArchived, setShowArchived] = useState(false);
 
-  // Branding Profiles
+  // Editing Profiles
   const {
-    data: brandingProfiles,
-    isLoading: isLoadingBranding,
-    refetch: refetchBranding,
-  } = useBrandingProfiles(!showArchived);
+    data: editingProfiles,
+    isLoading: isLoadingEditing,
+    refetch: refetchEditing,
+  } = useEditingProfiles(!showArchived);
 
-  const archiveBrandingMutation = useArchiveBrandingProfile();
-  const restoreBrandingMutation = useRestoreBrandingProfile();
-  const hardDeleteBrandingMutation = useHardDeleteBrandingProfile();
-  const createBrandingMutation = useCreateBrandingProfile();
-  const updateBrandingMutation = useUpdateBrandingProfile();
+  const archiveEditingMutation = useArchiveEditingProfile();
+  const restoreEditingMutation = useRestoreEditingProfile();
+  const hardDeleteEditingMutation = useHardDeleteEditingProfile();
+  const createEditingMutation = useCreateEditingProfile();
+  const updateEditingMutation = useUpdateEditingProfile();
 
   // Dialog states
   const [profileToDelete, setProfileToDelete] = useState<{
@@ -82,18 +82,18 @@ const BrandingProfilesPage: React.FC = () => {
   } | null>(null);
 
   // Form states
-  const [brandingFormOpen, setBrandingFormOpen] = useState(false);
-  const [selectedBrandingProfile, setSelectedBrandingProfile] = useState<BrandingProfile | null>(null);
+  const [editingFormOpen, setEditingFormOpen] = useState(false);
+  const [selectedEditingProfile, setSelectedEditingProfile] = useState<EditingProfile | null>(null);
 
   const handleArchive = (id: string, name: string) => {
-    archiveBrandingMutation.mutate(id, {
-      onSuccess: () => refetchBranding(),
+    archiveEditingMutation.mutate(id, {
+      onSuccess: () => refetchEditing(),
     });
   };
 
   const handleRestore = (id: string, name: string) => {
-    restoreBrandingMutation.mutate(id, {
-      onSuccess: () => refetchBranding(),
+    restoreEditingMutation.mutate(id, {
+      onSuccess: () => refetchEditing(),
     });
   };
 
@@ -106,47 +106,49 @@ const BrandingProfilesPage: React.FC = () => {
 
     const { id } = profileToDelete;
 
-    hardDeleteBrandingMutation.mutate(id, {
+    hardDeleteEditingMutation.mutate(id, {
       onSuccess: () => {
-        refetchBranding();
+        refetchEditing();
         setProfileToDelete(null);
       },
     });
   };
 
-  const handleOpenBrandingForm = (profile?: BrandingProfile) => {
-    setSelectedBrandingProfile(profile || null);
-    setBrandingFormOpen(true);
+  const handleOpenEditingForm = (profile?: EditingProfile) => {
+    setSelectedEditingProfile(profile || null);
+    setEditingFormOpen(true);
   };
 
-  const handleSaveBranding = (data: any) => {
-    if (selectedBrandingProfile) {
-      updateBrandingMutation.mutate(
-        { id: selectedBrandingProfile.id, data },
+  const handleSaveEditing = (data: any) => {
+    if (selectedEditingProfile) {
+      updateEditingMutation.mutate(
+        { id: selectedEditingProfile.id, data },
         {
           onSuccess: () => {
-            refetchBranding();
-            setBrandingFormOpen(false);
-            setSelectedBrandingProfile(null);
+            refetchEditing();
+            setEditingFormOpen(false);
+            setSelectedEditingProfile(null);
           },
         }
       );
     } else {
-      createBrandingMutation.mutate(data as any, {
+      createEditingMutation.mutate(data as any, {
         onSuccess: () => {
-          refetchBranding();
-          setBrandingFormOpen(false);
+          refetchEditing();
+          setEditingFormOpen(false);
         },
       });
     }
   };
 
-  const renderBrandingProfileRow = (profile: any) => (
+  const renderEditingProfileRow = (profile: any) => (
     <TableRow key={profile.id} className="group">
       <TableCell className="font-medium">{profile.name}</TableCell>
-      <TableCell className="hidden md:table-cell">{profile.brandColors}</TableCell>
-      <TableCell className="hidden lg:table-cell">{profile.brandFonts}</TableCell>
-      <TableCell className="hidden lg:table-cell">{profile.targetAudience}</TableCell>
+      <TableCell className="hidden md:table-cell">{profile.musicStyle}</TableCell>
+      <TableCell className="hidden lg:table-cell">{profile.thumbnailPreference}</TableCell>
+      <TableCell className="hidden lg:table-cell">
+        {profile.useVideoHook ? 'Sim' : 'Não'}
+      </TableCell>
       <TableCell className="text-right">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -155,7 +157,7 @@ const BrandingProfilesPage: React.FC = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleOpenBrandingForm(profile)}>
+            <DropdownMenuItem onClick={() => handleOpenEditingForm(profile)}>
               <Pencil className="mr-2 h-4 w-4" />
               Editar
             </DropdownMenuItem>
@@ -230,15 +232,15 @@ const BrandingProfilesPage: React.FC = () => {
         <div className="flex items-center justify-between mb-2">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              Perfis de Branding
+              Perfis de Edição
             </h1>
             <p className="text-muted-foreground mt-1">
-              Gerencie os perfis de branding da sua marca
+              Gerencie os estilos de edição dos seus vídeos
             </p>
           </div>
           <Button
             variant="default"
-            onClick={() => handleOpenBrandingForm()}
+            onClick={() => handleOpenEditingForm()}
           >
             <Plus className="mr-2 h-4 w-4" />
             Novo Perfil
@@ -249,13 +251,13 @@ const BrandingProfilesPage: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Palette className="h-5 w-5 text-primary" />
-            {showArchived ? 'Perfis de Branding Arquivados' : 'Perfis de Branding Ativos'}
+            <Film className="h-5 w-5 text-primary" />
+            {showArchived ? 'Perfis de Edição Arquivados' : 'Perfis de Edição Ativos'}
           </CardTitle>
           <CardDescription>
             {showArchived
               ? 'Perfis arquivados podem ser restaurados ou excluídos permanentemente'
-              : 'Gerencie os perfis de branding da sua marca'}
+              : 'Gerencie os estilos de edição dos seus vídeos'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -279,33 +281,33 @@ const BrandingProfilesPage: React.FC = () => {
             </Button>
           </div>
 
-          {isLoadingBranding ? (
+          {isLoadingEditing ? (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
-                  <TableHead className="hidden md:table-cell">Cores</TableHead>
-                  <TableHead className="hidden lg:table-cell">Fontes</TableHead>
-                  <TableHead className="hidden lg:table-cell">Público</TableHead>
+                  <TableHead className="hidden md:table-cell">Estilo Musical</TableHead>
+                  <TableHead className="hidden lg:table-cell">Thumbnail</TableHead>
+                  <TableHead className="hidden lg:table-cell">Hook</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>{renderSkeletonRows()}</TableBody>
             </Table>
-          ) : brandingProfiles && brandingProfiles.length > 0 ? (
+          ) : editingProfiles && editingProfiles.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
-                  <TableHead className="hidden md:table-cell">Cores</TableHead>
-                  <TableHead className="hidden lg:table-cell">Fontes</TableHead>
-                  <TableHead className="hidden lg:table-cell">Público</TableHead>
+                  <TableHead className="hidden md:table-cell">Estilo Musical</TableHead>
+                  <TableHead className="hidden lg:table-cell">Thumbnail</TableHead>
+                  <TableHead className="hidden lg:table-cell">Hook</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 <AnimatePresence>
-                  {brandingProfiles.map((profile) => renderBrandingProfileRow(profile))}
+                  {editingProfiles.map((profile) => renderEditingProfileRow(profile))}
                 </AnimatePresence>
               </TableBody>
             </Table>
@@ -315,7 +317,7 @@ const BrandingProfilesPage: React.FC = () => {
                 {showArchived ? (
                   <Archive className="h-8 w-8 text-muted-foreground" />
                 ) : (
-                  <Palette className="h-8 w-8 text-muted-foreground" />
+                  <Film className="h-8 w-8 text-muted-foreground" />
                 )}
               </div>
               <h3 className="text-lg font-semibold mb-1">
@@ -324,7 +326,7 @@ const BrandingProfilesPage: React.FC = () => {
               <p className="text-muted-foreground">
                 {showArchived
                   ? 'Os perfis arquivados aparecerão aqui'
-                  : 'Comece criando um novo perfil de branding'}
+                  : 'Comece criando um novo perfil de edição'}
               </p>
             </div>
           )}
@@ -358,15 +360,15 @@ const BrandingProfilesPage: React.FC = () => {
       </AlertDialog>
 
       {/* Form */}
-      <BrandingProfileForm
-        open={brandingFormOpen}
-        onOpenChange={setBrandingFormOpen}
-        profile={selectedBrandingProfile}
-        onSave={handleSaveBranding}
-        isPending={createBrandingMutation.isPending || updateBrandingMutation.isPending}
+      <EditingProfileForm
+        open={editingFormOpen}
+        onOpenChange={setEditingFormOpen}
+        profile={selectedEditingProfile}
+        onSave={handleSaveEditing}
+        isPending={createEditingMutation.isPending || updateEditingMutation.isPending}
       />
     </div>
   );
 };
 
-export default BrandingProfilesPage;
+export default EditingProfilesPage;
