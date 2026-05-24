@@ -37,7 +37,30 @@ canDeletePermanently?: boolean;
 }
 
 // User
+// PascalCase Pattern - Backend .NET DTO Alignment
 export interface User {
+  Id: string;
+  Name: string;
+  Email: string;
+  Role: UserRole;
+  CreatedAt: string;
+  UpdatedAt: string;
+  IsActive: boolean;
+  Bio?: string;
+  Phone?: string;
+  Preferences?: string; // JSON string
+  AvatarUrl?: string;
+  ActivePackage?: {
+    Name: string;
+    VideoQuantity: number;
+    AdditionalPackagesCount: number;
+    ExpiresAt?: string;
+  };
+}
+
+// Legacy camelCase aliases for backward compatibility (DEPRECATED)
+// These will be removed after full PascalCase migration
+export type UserCamelCase = Omit<User, 'Id' | 'Name' | 'Email' | 'Role' | 'CreatedAt' | 'UpdatedAt' | 'IsActive'> & {
   id: string;
   name: string;
   email: string;
@@ -45,16 +68,7 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   isActive: boolean;
-  bio?: string;
-  phone?: string;
-  preferences?: string; // JSON string
-  activePackage?: {
-    name: string;
-    videoQuantity: number;
-    additionalPackagesCount: number;
-    expiresAt?: string;
-  };
-}
+};
 
 export interface UserLoginRequest {
   email: string;

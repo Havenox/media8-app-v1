@@ -55,7 +55,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
   const { user } = useAuth();
 
   const filteredNavItems = navItems.filter(
-    (item) => !item.roles || (user?.role && item.roles.includes(user.role))
+    (item) => !item.roles || (user?.Role && item.roles.includes(user.Role))
   );
 
   return (

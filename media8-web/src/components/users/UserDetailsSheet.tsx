@@ -104,17 +104,17 @@ return <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
               <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xl">
-                {getInitials(user.name)}
+                {getInitials(user.Name)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
               <SheetTitle className="flex items-center gap-2 text-xl">
-                {user.name}
-                <RoleBadge role={user.role} />
+                {user.Name}
+                <RoleBadge role={user.Role} />
               </SheetTitle>
               <SheetDescription className="flex items-center gap-1 mt-1">
                 <Mail className="h-3.5 w-3.5" />
-                {user.email}
+                {user.Email}
               </SheetDescription>
             </div>
           </div>
@@ -134,14 +134,14 @@ return <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Membro desde</span>
                   <span className="text-sm font-medium text-foreground">
-                    {safeFormatDate(user.createdAt, "dd 'de' MMMM 'de' yyyy")}
+                    {safeFormatDate(user.CreatedAt, "dd 'de' MMMM 'de' yyyy")}
                   </span>
                 </div>
               </div>
             </div>
 
-{/* Contratos Ativos - apenas para clientes */}
-{user.role === 'Client' && (
+            {/* Contratos Ativos - apenas para clientes */}
+            {user.Role === 'Client' && (
 <>
 <div>
 <div className="mb-3">
@@ -213,25 +213,25 @@ Saldos e Serviços
 
         <Separator />
 
-<SheetFooter className="pt-4 gap-2 sm:gap-2">
-  <Button
-    variant="outline"
-    className="flex-1"
-    onClick={() => onEdit(user)}
-  >
-    <Edit className="h-4 w-4 mr-2" />
-    Editar
-  </Button>
-  {user.role === 'Client' && (
-    <Button
-      variant="premium"
-      className="flex-1"
-      onClick={() => onAssignContract(user)}
-    >
-      <Package className="h-4 w-4 mr-2" />
-      Atribuir
-    </Button>
-  )}
+        <SheetFooter className="pt-4 gap-2 sm:gap-2">
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={() => onEdit(user)}
+          >
+            <Edit className="h-4 w-4 mr-2" />
+            Editar
+          </Button>
+          {user.Role === 'Client' && (
+            <Button
+              variant="premium"
+              className="flex-1"
+              onClick={() => onAssignContract(user)}
+            >
+              <Package className="h-4 w-4 mr-2" />
+              Atribuir
+            </Button>
+          )}
         <Button
           variant="destructive"
           size="icon"

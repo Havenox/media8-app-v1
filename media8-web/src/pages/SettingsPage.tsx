@@ -195,28 +195,28 @@ const SettingsPage: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Avatar */}
-            <div className="flex items-center gap-6">
-              <div className="relative">
-                <Avatar className="h-24 w-24">
-                  <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
-                    {user?.name?.split(' ').map((n) => n[0]).join('').toUpperCase() || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <Button
-                  variant="outline"
-                  size="icon-sm"
-                  className="absolute bottom-0 right-0 rounded-full"
-                >
-                  <Camera className="h-4 w-4" />
-                </Button>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-foreground">{user?.name}</h3>
-                <p className="text-muted-foreground">{user?.email}</p>
-                <RoleBadge role={user?.role || 'Client'} className="mt-2" />
-              </div>
+          {/* Avatar */}
+          <div className="flex items-center gap-6">
+            <div className="relative">
+              <Avatar className="h-24 w-24">
+                <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
+                  {user?.Name?.split(' ').map((n) => n[0]).join('').toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                className="absolute bottom-0 right-0 rounded-full"
+              >
+                <Camera className="h-4 w-4" />
+              </Button>
             </div>
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">{user?.Name}</h3>
+              <p className="text-muted-foreground">{user?.Email}</p>
+              <RoleBadge role={user?.Role || 'Client'} className="mt-2" />
+            </div>
+          </div>
 
             <Separator />
 

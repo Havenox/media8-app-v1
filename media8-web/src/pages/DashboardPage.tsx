@@ -134,7 +134,7 @@ const ClientDashboard: React.FC = () => {
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground">
-            Olá, {user?.name?.split(' ')[0]}! 👋
+            Olá, {user?.Name?.split(' ')[0]}! 👋
           </h1>
           <p className="text-muted-foreground mt-1">
             Aqui está o resumo dos seus projetos de edição.
@@ -287,12 +287,12 @@ const EditorDashboard: React.FC = () => {
     >
       {/* Welcome Section */}
       <motion.div variants={itemVariants}>
-        <h1 className="text-3xl font-bold text-foreground">
-          Olá, {user?.name?.split(' ')[0]}! 👋
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Aqui está o resumo das suas edições.
-        </p>
+          <h1 className="text-3xl font-bold text-foreground">
+            Olá, {user?.Name?.split(' ')[0]}! 👋
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Aqui está o resumo das suas edições.
+          </p>
       </motion.div>
 
       {/* Stats Grid */}
@@ -393,7 +393,7 @@ const AdminDashboard: React.FC = () => {
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground">
-            Olá, {user?.name?.split(' ')[0]}! 👋
+            Olá, {user?.Name?.split(' ')[0]}! 👋
           </h1>
           <p className="text-muted-foreground mt-1">
             Visão geral da plataforma Media 8.

@@ -35,7 +35,7 @@ const UserNav: React.FC<UserNavProps> = ({ className }) => {
     navigate('/login');
   };
 
-  const initials = user.name
+  const initials = user.Name
     .split(' ')
     .map((n) => n.charAt(0))
     .join('')
@@ -56,9 +56,9 @@ const UserNav: React.FC<UserNavProps> = ({ className }) => {
           </Avatar>
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent 
-        className="w-64 bg-popover border border-border shadow-xl" 
-        align="end" 
+      <DropdownMenuContent
+        className="w-64 bg-popover border border-border shadow-xl"
+        align="end"
         sideOffset={8}
       >
         {/* User Info Header */}
@@ -71,10 +71,10 @@ const UserNav: React.FC<UserNavProps> = ({ className }) => {
             </Avatar>
             <div className="flex flex-col space-y-0.5 overflow-hidden">
               <p className="text-sm font-semibold text-foreground truncate">
-                {user.name}
+                {user.Name}
               </p>
               <p className="text-xs text-muted-foreground truncate">
-                {user.email}
+                {user.Email}
               </p>
             </div>
           </div>

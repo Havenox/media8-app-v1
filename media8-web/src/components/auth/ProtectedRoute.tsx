@@ -27,7 +27,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // Check if user's role is in allowed roles
-  if (!allowedRoles.includes(user.role)) {
+  if (!allowedRoles.includes(user.Role)) {
     return <Navigate to={redirectTo} replace />;
   }
 

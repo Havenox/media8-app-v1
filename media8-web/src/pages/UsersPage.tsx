@@ -161,10 +161,10 @@ const reactivateUserMutation = useMutation({
   const openEditDialog = (user: UserType) => {
     setSelectedUserForEdit(user);
     setEditUser({
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      phone: user.phone || ''
+      name: user.Name,
+      email: user.Email,
+      role: user.Role,
+      phone: user.Phone || ''
     });
     setIsEditDialogOpen(true);
   };
@@ -173,14 +173,14 @@ const reactivateUserMutation = useMutation({
     if (!selectedUserForEdit) return;
 
     // Role change warning
-    if (selectedUserForEdit.role !== editUser.role) {
-      const confirmChange = window.confirm(`ATENÇÃO: Você está alterando o privilégio de ${selectedUserForEdit.role} para ${editUser.role}. Tem certeza?`);
+    if (selectedUserForEdit.Role !== editUser.Role) {
+      const confirmChange = window.confirm(`ATENÇÃO: Você está alterando o privilégio de ${selectedUserForEdit.Role} para ${editUser.Role}. Tem certeza?`);
       if (!confirmChange) return;
     }
 
     try {
       await updateUserMutation.mutateAsync({
-        id: selectedUserForEdit.id,
+        id: selectedUserForEdit.Id,
         data: {
           name: editUser.name,
           role: editUser.role,
@@ -377,41 +377,41 @@ const handleRestoreUser = async () => {
                     onClick={() => setSelectedUserForDetails(user)}
                     className="flex items-center justify-between p-4 rounded-lg border border-border hover:border-primary/20 hover:bg-muted/50 transition-all cursor-pointer"
                   >
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-12 w-12">
-                        <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                          {user.name.split(' ').map((n) => n[0]).join('').toUpperCase().substring(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-medium text-foreground">{user.name}</h4>
-                          <RoleBadge role={user.role} />
-                        </div>
-                        <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <Mail className="h-3 w-3" />
-                            <span>{user.email}</span>
-                          </div>
-                          
-                          {/* Optimized Active Package Display */}
-                          {user.role === 'Client' && (
-                            <div className="flex items-center gap-1">
-                              <Package className="h-3 w-3" />
-                              {user.activePackage ? (
-                                <span className="text-success">
-                                  {user.activePackage.name} • {user.activePackage.videoQuantity} vídeos
-                                  {user.activePackage.additionalPackagesCount > 0 && (
-                                    <span className="ml-1 text-xs bg-primary/10 px-1 rounded">
-                                      +{user.activePackage.additionalPackagesCount}
-                                    </span>
-                                  )}
-                                </span>
-                              ) : (
-                                <span className="text-muted-foreground/60">Sem pacote ativo</span>
-                              )}
-                            </div>
-                          )}
+          <div className="flex items-center gap-4">
+            <Avatar className="h-12 w-12">
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                {user.Name.split(' ').map((n) => n[0]).join('').toUpperCase().substring(0, 2)}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="font-medium text-foreground">{user.Name}</h4>
+                <RoleBadge role={user.Role} />
+              </div>
+              <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <Mail className="h-3 w-3" />
+                  <span>{user.Email}</span>
+                </div>
+
+                {/* Optimized Active Package Display */}
+                {user.Role === 'Client' && (
+                  <div className="flex items-center gap-1">
+                    <Package className="h-3 w-3" />
+                    {user.ActivePackage ? (
+                      <span className="text-success">
+                        {user.ActivePackage.Name} • {user.ActivePackage.VideoQuantity} vídeos
+                        {user.ActivePackage.AdditionalPackagesCount > 0 && (
+                          <span className="ml-1 text-xs bg-primary/10 px-1 rounded">
+                            +{user.ActivePackage.AdditionalPackagesCount}
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/60">Sem pacote ativo</span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>

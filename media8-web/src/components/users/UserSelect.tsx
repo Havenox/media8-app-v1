@@ -47,14 +47,14 @@ export function UserSelect({
       onChange={onChange}
       placeholder={placeholder}
       className={className}
-      renderItem={(user) => (
-        <div className="flex flex-col">
-          <span className="font-medium">{user.name}</span>
-          <span className="text-xs text-muted-foreground">{user.email}</span>
-        </div>
-      )}
-      getLabel={(user) => user.name}
-      getValue={(user) => user.id}
+        renderItem={(user) => (
+          <div className="flex flex-col">
+            <span className="font-medium">{user.Name}</span>
+            <span className="text-xs text-muted-foreground">{user.Email}</span>
+          </div>
+        )}
+        getLabel={(user) => user.Name}
+        getValue={(user) => user.Id}
     />
   );
 }

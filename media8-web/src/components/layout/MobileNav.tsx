@@ -44,7 +44,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ open, onOpenChange }) => {
   const { user } = useAuth();
 
   const filteredNavItems = navItems.filter(
-    (item) => !item.roles || (user?.role && item.roles.includes(user.role))
+    (item) => !item.roles || (user?.Role && item.roles.includes(user.Role))
   );
 
   const handleNavClick = () => {
