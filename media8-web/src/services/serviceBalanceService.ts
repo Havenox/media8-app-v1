@@ -176,39 +176,21 @@ const getLotsAPI = async (userId: string): Promise<ServiceBalanceLot[]> => {
   return response.data;
 };
 
-// Helper: Sanitiza status para PascalCase (garantia extra)
-const sanitizeStatus = (status: string): string => {
-  const map: Record<string, string> = {
-    'active': 'Active',
-    'Active': 'Active',
-    'expired': 'Expired',
-    'Expired': 'Expired',
-    'all': 'All',
-    'All': 'All'
-  };
-  return map[status] || 'Active';
-};
-
-// NEW: Use Unified API (Snapshot Architecture)
-// PascalCase: Backend usa /ServiceBalances/MyBalances
-// Query params em PascalCase: Page, PageSize, Status (valores enum em PascalCase: Active)
-const getMyBalancesAPI = async (page = 1, pageSize = 50, status = 'Active'): Promise<{ data: import('../types/services').UnifiedServiceBalance[], total: number }> => {
+// Backend usa query params em minúsculo: page, pageSize, status (ver ServiceBalancesController.cs)
+// [FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? status = "active"
+const getMyBalancesAPI = async (page = 1, pageSize = 50, status = 'active'): Promise<{ data: import('../types/services').UnifiedServiceBalance[], total: number }> => {
   const response = await api.get('/ServiceBalances/MyBalances', {
-    params: { Page: page, PageSize: pageSize, Status: sanitizeStatus(status) }
+    params: { page, pageSize, status }
   });
-  // API returns direct array currently in standard controller return, but might be wrapped if we used PaginatedResponse.
-  // Let's check Controller: return Ok(dtos) with Header.
-  // So data is array. Header 'X-Total-Count' is total.
   return {
     data: response.data,
     total: parseInt(response.headers['x-total-count'] || '0', 10)
   };
 };
 
-// PascalCase: Backend usa /ServiceBalances/{clientId}
-const getClientBalancesAPI = async (clientId: string, page = 1, pageSize = 50, status = 'Active'): Promise<{ data: import('../types/services').UnifiedServiceBalance[], total: number }> => {
+const getClientBalancesAPI = async (clientId: string, page = 1, pageSize = 50, status = 'active'): Promise<{ data: import('../types/services').UnifiedServiceBalance[], total: number }> => {
   const response = await api.get(`/ServiceBalances/${clientId}`, {
-    params: { Page: page, PageSize: pageSize, Status: sanitizeStatus(status) }
+    params: { page, pageSize, status }
   });
   return {
     data: response.data,
@@ -235,17 +217,17 @@ export const serviceBalanceService = {
 
   /**
    * Get Paged Balances for Current User (Client Dashboard)
-   * PascalCase: Status='Active' para backend .NET
+   * Backend usa: page, pageSize, status (minúsculo)
    */
-  async getMyBalances(page = 1, pageSize = 50, status = 'Active') {
+  async getMyBalances(page = 1, pageSize = 50, status = 'active') {
     return getMyBalancesAPI(page, pageSize, status);
   },
 
   /**
    * Get Paged Balances for Specific Client (Admin View)
-   * PascalCase: Status='Active' para backend .NET
+   * Backend usa: page, pageSize, status (minúsculo)
    */
-  async getClientBalances(clientId: string, page = 1, pageSize = 50, status = 'Active') {
+  async getClientBalances(clientId: string, page = 1, pageSize = 50, status = 'active') {
     return getClientBalancesAPI(clientId, page, pageSize, status);
   },
 
