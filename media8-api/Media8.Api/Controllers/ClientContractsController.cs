@@ -47,36 +47,46 @@ _serviceBalanceService = serviceBalanceService;
         if (status.HasValue)
             query = query.Where(cc => cc.Status == status.Value);
 
-        var contracts = await query
-            .OrderByDescending(cc => cc.AssignedAt)
-            .Select(cc => new ClientContractResponse
-            {
-                Id = cc.Id,
-                OfferId = cc.OfferId,
-                ClientId = cc.ClientId,
-                AssignedBy = cc.AssignedBy,
-                SnapshotOfferName = cc.SnapshotOfferName,
-                SnapshotVideoQuantity = cc.SnapshotVideoQuantity,
-                SnapshotPrice = cc.SnapshotPrice,
-                SnapshotValidityDays = cc.SnapshotValidityDays,
-                AssignedAt = cc.AssignedAt,
-                ActivatedAt = cc.ActivatedAt,
-                ExpiresAt = cc.ExpiresAt,
-                Status = cc.Status,
-                CreatedAt = cc.CreatedAt,
-                UpdatedAt = cc.UpdatedAt,
-                Offer = new OfferResponse
-                {
-                    Id = cc.Offer.Id,
-                    Name = cc.Offer.Name,
-                    Slug = cc.Offer.Slug,
-                    ContractType = cc.Offer.ContractType,
-                    Price = cc.Offer.Price,
-                    VideoQuantity = cc.Offer.VideoQuantity,
-                    MaxDurationSeconds = cc.Offer.MaxDurationSeconds
-                }
-            })
-            .ToListAsync();
+var contracts = await query
+.OrderByDescending(cc => cc.AssignedAt)
+.Select(cc => new ClientContractResponse
+{
+Id = cc.Id,
+OfferId = cc.OfferId,
+ClientId = cc.ClientId,
+AssignedBy = cc.AssignedBy,
+
+// Snapshot Comercial
+SnapshotOfferName = cc.SnapshotOfferName,
+SnapshotVideoQuantity = cc.SnapshotVideoQuantity,
+SnapshotPrice = cc.SnapshotPrice,
+SnapshotValidityDays = cc.SnapshotValidityDays,
+SnapshotDeliveryDays = cc.SnapshotDeliveryDays,
+SnapshotWarrantyDays = cc.SnapshotWarrantyDays,
+
+// Snapshot Técnico
+SnapshotVideoFormatName = cc.SnapshotVideoFormatName,
+SnapshotEditingStyleName = cc.SnapshotEditingStyleName,
+SnapshotMaxDurationSeconds = cc.SnapshotMaxDurationSeconds,
+
+AssignedAt = cc.AssignedAt,
+ActivatedAt = cc.ActivatedAt,
+ExpiresAt = cc.ExpiresAt,
+Status = cc.Status,
+CreatedAt = cc.CreatedAt,
+UpdatedAt = cc.UpdatedAt,
+Offer = new OfferResponse
+{
+Id = cc.Offer.Id,
+Name = cc.Offer.Name,
+Slug = cc.Offer.Slug,
+ContractType = cc.Offer.ContractType,
+Price = cc.Offer.Price,
+VideoQuantity = cc.Offer.VideoQuantity,
+MaxDurationSeconds = cc.Offer.MaxDurationSeconds
+}
+})
+.ToListAsync();
 
         return Ok(contracts);
     }
@@ -92,28 +102,38 @@ _serviceBalanceService = serviceBalanceService;
         var userIdClaim = User.FindFirst("sub")?.Value;
         var isClient = User.IsInRole("Client");
 
-        var contract = await _context.ClientContracts
-            .Include(cc => cc.Offer)
-            .Include(cc => cc.Client)
-            .Where(cc => cc.Id == id)
-            .Select(cc => new ClientContractResponse
-            {
-                Id = cc.Id,
-                OfferId = cc.OfferId,
-                ClientId = cc.ClientId,
-                AssignedBy = cc.AssignedBy,
-                SnapshotOfferName = cc.SnapshotOfferName,
-                SnapshotVideoQuantity = cc.SnapshotVideoQuantity,
-                SnapshotPrice = cc.SnapshotPrice,
-                SnapshotValidityDays = cc.SnapshotValidityDays,
-                AssignedAt = cc.AssignedAt,
-                ActivatedAt = cc.ActivatedAt,
-                ExpiresAt = cc.ExpiresAt,
-                Status = cc.Status,
-                CreatedAt = cc.CreatedAt,
-                UpdatedAt = cc.UpdatedAt
-            })
-            .FirstOrDefaultAsync();
+var contract = await _context.ClientContracts
+.Include(cc => cc.Offer)
+.Include(cc => cc.Client)
+.Where(cc => cc.Id == id)
+.Select(cc => new ClientContractResponse
+{
+Id = cc.Id,
+OfferId = cc.OfferId,
+ClientId = cc.ClientId,
+AssignedBy = cc.AssignedBy,
+
+// Snapshot Comercial
+SnapshotOfferName = cc.SnapshotOfferName,
+SnapshotVideoQuantity = cc.SnapshotVideoQuantity,
+SnapshotPrice = cc.SnapshotPrice,
+SnapshotValidityDays = cc.SnapshotValidityDays,
+SnapshotDeliveryDays = cc.SnapshotDeliveryDays,
+SnapshotWarrantyDays = cc.SnapshotWarrantyDays,
+
+// Snapshot Técnico
+SnapshotVideoFormatName = cc.SnapshotVideoFormatName,
+SnapshotEditingStyleName = cc.SnapshotEditingStyleName,
+SnapshotMaxDurationSeconds = cc.SnapshotMaxDurationSeconds,
+
+AssignedAt = cc.AssignedAt,
+ActivatedAt = cc.ActivatedAt,
+ExpiresAt = cc.ExpiresAt,
+Status = cc.Status,
+CreatedAt = cc.CreatedAt,
+UpdatedAt = cc.UpdatedAt
+})
+.FirstOrDefaultAsync();
 
         if (contract == null) return NotFound();
 
@@ -212,10 +232,20 @@ Id = contract.Id,
 OfferId = contract.OfferId,
 ClientId = contract.ClientId,
 AssignedBy = contract.AssignedBy,
+
+// Snapshot Comercial
 SnapshotOfferName = contract.SnapshotOfferName,
 SnapshotVideoQuantity = contract.SnapshotVideoQuantity,
 SnapshotPrice = contract.SnapshotPrice,
 SnapshotValidityDays = contract.SnapshotValidityDays,
+SnapshotDeliveryDays = contract.SnapshotDeliveryDays,
+SnapshotWarrantyDays = contract.SnapshotWarrantyDays,
+
+// Snapshot Técnico
+SnapshotVideoFormatName = contract.SnapshotVideoFormatName,
+SnapshotEditingStyleName = contract.SnapshotEditingStyleName,
+SnapshotMaxDurationSeconds = contract.SnapshotMaxDurationSeconds,
+
 AssignedAt = contract.AssignedAt,
 ActivatedAt = contract.ActivatedAt,
 ExpiresAt = contract.ExpiresAt,

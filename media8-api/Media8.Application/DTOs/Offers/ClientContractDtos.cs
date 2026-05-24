@@ -47,24 +47,35 @@ public class UpdateClientContractRequest
 /// </summary>
 public class ClientContractResponse
 {
-    public Guid Id { get; set; }
-    public Guid OfferId { get; set; }
-    public Guid ClientId { get; set; }
-    public Guid AssignedBy { get; set; }
+public Guid Id { get; set; }
+public Guid OfferId { get; set; }
+public Guid ClientId { get; set; }
+public Guid AssignedBy { get; set; }
 
-    // Snapshot Imutável (cópia dos dados da oferta no momento da contratação)
-    public string? SnapshotOfferName { get; set; }
-    public int? SnapshotVideoQuantity { get; set; }
-    public decimal? SnapshotPrice { get; set; }
-    public int? SnapshotValidityDays { get; set; }
+// ==========================================
+// SNAPSHOT COMERCIAL (Imutável)
+// ==========================================
+public string? SnapshotOfferName { get; set; }
+public int? SnapshotVideoQuantity { get; set; }
+public decimal? SnapshotPrice { get; set; }
+public int? SnapshotValidityDays { get; set; }
+public int? SnapshotDeliveryDays { get; set; }
+public int? SnapshotWarrantyDays { get; set; }
 
-    public DateTime AssignedAt { get; set; }
-    public DateTime ActivatedAt { get; set; }
-    public DateTime? ExpiresAt { get; set; }
-    public Domain.Enums.AssignmentStatus Status { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
+// ==========================================
+// SNAPSHOT TÉCNICO (Imutável - Sem FKs)
+// ==========================================
+public string? SnapshotVideoFormatName { get; set; }
+public string? SnapshotEditingStyleName { get; set; }
+public int? SnapshotMaxDurationSeconds { get; set; }
 
-    // Navegação (opcional no response)
-    public OfferResponse? Offer { get; set; }
+public DateTime AssignedAt { get; set; }
+public DateTime ActivatedAt { get; set; }
+public DateTime? ExpiresAt { get; set; }
+public Domain.Enums.AssignmentStatus Status { get; set; }
+public DateTime CreatedAt { get; set; }
+public DateTime UpdatedAt { get; set; }
+
+// Navegação (opcional no response)
+public OfferResponse? Offer { get; set; }
 }
