@@ -178,9 +178,10 @@ const getLotsAPI = async (userId: string): Promise<ServiceBalanceLot[]> => {
 
 // NEW: Use Unified API (Snapshot Architecture)
 // PascalCase: Backend usa /ServiceBalances/MyBalances
-const getMyBalancesAPI = async (page = 1, pageSize = 50, status = 'active'): Promise<{ data: import('../types/services').UnifiedServiceBalance[], total: number }> => {
+// Query params em PascalCase: Page, PageSize, Status (valores enum em PascalCase: Active)
+const getMyBalancesAPI = async (page = 1, pageSize = 50, status = 'Active'): Promise<{ data: import('../types/services').UnifiedServiceBalance[], total: number }> => {
   const response = await api.get('/ServiceBalances/MyBalances', {
-    params: { page, pageSize, status }
+    params: { Page: page, PageSize: pageSize, Status: status }
   });
   // API returns direct array currently in standard controller return, but might be wrapped if we used PaginatedResponse.
   // Let's check Controller: return Ok(dtos) with Header.
@@ -192,9 +193,9 @@ const getMyBalancesAPI = async (page = 1, pageSize = 50, status = 'active'): Pro
 };
 
 // PascalCase: Backend usa /ServiceBalances/{clientId}
-const getClientBalancesAPI = async (clientId: string, page = 1, pageSize = 50, status = 'active'): Promise<{ data: import('../types/services').UnifiedServiceBalance[], total: number }> => {
+const getClientBalancesAPI = async (clientId: string, page = 1, pageSize = 50, status = 'Active'): Promise<{ data: import('../types/services').UnifiedServiceBalance[], total: number }> => {
   const response = await api.get(`/ServiceBalances/${clientId}`, {
-    params: { page, pageSize, status }
+    params: { Page: page, PageSize: pageSize, Status: status }
   });
   return {
     data: response.data,

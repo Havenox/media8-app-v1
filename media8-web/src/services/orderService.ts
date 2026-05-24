@@ -28,18 +28,19 @@ const response = await api.get(`/Orders/${id}`);
 return response.data;
 };
 
+// PascalCase query params: ClientId, EditorId, Status
 const getByClientAPI = async (clientId: string): Promise<Order[]> => {
-const response = await api.get(`/Orders?clientId=${clientId}`);
+const response = await api.get('/Orders', { params: { ClientId: clientId } });
 return response.data;
 };
 
 const getByEditorAPI = async (editorId: string): Promise<Order[]> => {
-const response = await api.get(`/Orders?editorId=${editorId}`);
+const response = await api.get('/Orders', { params: { EditorId: editorId } });
 return response.data;
 };
 
 const getByStatusAPI = async (status: OrderStatus): Promise<Order[]> => {
-const response = await api.get(`/Orders?status=${status}`);
+const response = await api.get('/Orders', { params: { Status: status } });
 return response.data;
 };
 
