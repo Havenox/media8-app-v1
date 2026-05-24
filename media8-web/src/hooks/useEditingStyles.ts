@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { EditingStyle } from '@/types/services';
-import { editingStyleService, CreateEditingStyleRequest, UpdateEditingStyleRequest } from '@/services/editingStyleService';
+import { EditingStyle, CreateEditingStyleRequest, UpdateEditingStyleRequest } from '@/types/services';
+import { editingStyleService } from '@/services/editingStyleService';
 import { toast } from 'sonner';
 
 // ==========================================
@@ -54,8 +54,8 @@ export const useCreateEditingStyle = () => {
     mutationFn: (data: CreateEditingStyleRequest) => editingStyleService.create(data),
     onSuccess: (newStyle) => {
       queryClient.invalidateQueries({ queryKey: editingStyleKeys.all });
-      queryClient.invalidateQueries({ queryKey: editingStyleKeys.detail(newStyle.id) });
-      toast.success(`Estilo "${newStyle.name}" criado com sucesso!`);
+      queryClient.invalidateQueries({ queryKey: editingStyleKeys.detail(newStyle.Id) });
+      toast.success(`Estilo "${newStyle.Name}" criado com sucesso!`);
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Erro ao criar estilo de edição');
@@ -74,7 +74,7 @@ export const useUpdateEditingStyle = () => {
       editingStyleService.update(id, data),
     onSuccess: (updatedStyle) => {
       queryClient.invalidateQueries({ queryKey: editingStyleKeys.all });
-      queryClient.invalidateQueries({ queryKey: editingStyleKeys.detail(updatedStyle.id) });
+      queryClient.invalidateQueries({ queryKey: editingStyleKeys.detail(updatedStyle.Id) });
       toast.success('Estilo atualizado com sucesso!');
     },
     onError: (error: Error) => {
