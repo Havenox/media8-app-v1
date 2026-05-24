@@ -180,14 +180,22 @@ Focado em **Segurança** e **Integridade de Dados**.
 * **Impacto**: Experiência educada e transparente, consistência entre páginas, admins podem ajustar janela de cancelamento dinamicamente.
 * *Implementação*: Ver `docs/implementations/059-ux-cancelamento-pedidos-com-timer-e-validacao.md`.
 
-### 14. Briefing Profiles Lifecycle - Épico 4.5
-**Problema**: Necessidade de gerenciar briefings de forma dinâmica e reutilizável, separando elementos estáticos da marca (Identidade Visual) de preferências artísticas (Edição), com governança de ciclo de vida (arquivamento, restauração, exclusão condicional).
-**Solução**: Criação de duas entidades (`VisualIdentityProfile` e `EditingProfile`) com coluna `IsActive`, endpoints REST de ciclo de vida, e validação de vínculos com pedidos.
-* **Backend**: Entidades de domínio com `IsActive`, migration, serviços com `ArchiveAsync`, `RestoreAsync`, `HardDeleteAsync`, controllers com rotas `/restore` e `/hard-delete`.
-* **Frontend**: (Futuro) UI para CRUD de perfis, lixeira de arquivados, botões de restaurar e excluir permanentemente.
-* **Segurança**: Validação de propriedade via JWT, `BusinessRuleException` para exclusão de ativos ou vinculados a pedidos.
-* **Impacto**: Redução de retrabalho do cliente, dados limpos para editores, governança de dados com soft delete e validação de vínculos.
-* *Implementação*: Ver `docs/implementations/060-roadmap-briefing-profiles.md`, `docs/implementations/061-perfis-briefing-ciclo-de-vida-completo.md`.
+### 14. Branding & Editing Profiles - Épico 4.5 (Completo)
+**Problema**: Necessidade de gerenciar briefings de forma dinâmica e reutilizável, separando elementos estáticos da marca (Branding) de preferências artísticas (Edição), com governança de ciclo de vida, atomicidade em transações e fluxo em cascata no frontend.
+**Solução Completa**:
+1. **Renomeação**: `VisualIdentityProfile` → `BrandingProfile` (nomenclatura de mercado)
+2. **Ciclo de Vida**: `IsActive`, arquivação, restauração, hard delete com validação de vínculos
+3. **UI Separada**: `BrandingProfilesPage` e `EditingProfilesPage` com toggle de arquivados
+4. **Fluxo em Cascata**: `NewOrderPage` com 4 passos (saldo → branding → edição → dados)
+5. **Reutilização**: Mesmos formulários (`BrandingProfileForm`, `EditingProfileForm`) em listagem e pedidos
+6. **Transação Atômica**: `ITransaction` abstraction, rollback em caso de falha de FK
+7. **Trava de Exclusão**: Impede hard delete de perfis vinculados a pedidos (`PROFILE_IN_USE`)
+
+* **Backend**: Entidades `BrandingProfile` e `EditingProfile` com `IsActive`, endpoints PascalCase (`/BrandingProfiles`), `Order` com FKs opcionais, `OrderService` com transação explícita
+* **Frontend**: Hooks TanStack Query (`useBrandingProfiles`), formulários reutilizados, cascata com auto-advance, inputs flexíveis (texto livre, múltiplos links)
+* **Segurança**: Validação de propriedade via JWT, `BusinessRuleException` para `PROFILE_MUST_BE_INACTIVE` e `PROFILE_IN_USE`, transação com rollback
+* **Impacto**: Redução de retrabalho, dados estruturados, governança completa, atomicidade garantida, UX guiada em cascata.
+* *Implementação*: Ver `docs/implementations/063-sistema-completo-perfis-briefing.md`
 
 ---
 

@@ -25,7 +25,7 @@ Este projeto demonstra a aplicação prática de conceitos avançados de Engenha
 * **User Governance Pipeline**: Gerenciamento estrito de ciclo de vida de usuários (Ativo → Arquivado → Reativado) com invalidação reativa de cache e sem reload. [Ler Case Study](docs/implementations/054-correcao-completa-governanca-usuarios.md).
 * **Dynamic Settings System**: Sistema de configurações dinâmicas com cache Singleton, persistência em banco, e UI admin para gestão de regras de negócio sem deploy. [Ler Case Study](docs/implementations/058-configuracoes-dinamicas-sistema-completo.md).
 * **Order Cancellation UX**: Fluxo educado de cancelamento com timer regressivo, modal de confirmação, validação de regras de negócio (422), e sincronização com configurações dinâmicas. [Ler Case Study](docs/implementations/059-ux-cancelamento-pedidos-com-timer-e-validacao.md).
-* **Briefing Profiles Lifecycle**: Perfis de briefing (Identidade Visual e Edição) com ciclo de vida completo (IsActive), arquivação, restauração e exclusão física condicional com validação de vínculos. [Ler Case Study](docs/implementations/061-perfis-briefing-ciclo-de-vida-completo.md).
+* **Branding & Editing Profiles**: Sistema completo de perfis de briefing com `BrandingProfile` e `EditingProfile`, ciclo de vida (IsActive), endpoints PascalCase, UI em cascata, transação atômica e trava de exclusão. [Ler Case Study](docs/implementations/063-sistema-completo-perfis-briefing.md).
 
 ### ⚡ Performance e UX
 *   **Virtualização (Infinite Scroll)**: Componentes UI otimizados para listar milhares de registros sem travar o DOM. [Ler Case Study](docs/implementations/010-refatoracao-infinite-scroll-generico.md).
