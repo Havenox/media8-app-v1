@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Order, OrderStatus, CreateOrderRequest, VideoFormat, ServiceBalanceLot } from '@/types/api';
-import { ServiceType } from '@/types/services';
 import { orderService } from '@/services/orderService';
 import { toast } from 'sonner';
 
@@ -92,13 +91,13 @@ export const useOrderStats = () => {
 // ==========================================
 
 interface CreateOrderData {
-clientId: string;
-title: string;
-briefing: string;
-sourceFilesUrl: string;
-deadline: string;
-videoFormatId: string;
-serviceBalanceLotId: string;
+  clientId: string;
+  Title: string;
+  Briefing: string;
+  SourceFilesUrl: string;
+  Deadline: string;
+  VideoFormatId: string;
+  ServiceBalanceLotId: string;
 }
 
 /**
@@ -132,7 +131,7 @@ export const useUpdateOrder = () => {
       orderService.update(id, data),
     onSuccess: (updatedOrder) => {
       queryClient.invalidateQueries({ queryKey: orderKeys.all });
-      queryClient.invalidateQueries({ queryKey: orderKeys.detail(updatedOrder.id) });
+      queryClient.invalidateQueries({ queryKey: orderKeys.detail(updatedOrder.Id) });
       toast.success('Pedido atualizado com sucesso!');
     },
     onError: (error: Error) => {
@@ -152,8 +151,8 @@ export const useUpdateOrderStatus = () => {
       orderService.updateStatus(id, status),
     onSuccess: (updatedOrder) => {
       queryClient.invalidateQueries({ queryKey: orderKeys.all });
-      queryClient.invalidateQueries({ queryKey: orderKeys.detail(updatedOrder.id) });
-      toast.success(`Status atualizado para ${updatedOrder.status}`);
+      queryClient.invalidateQueries({ queryKey: orderKeys.detail(updatedOrder.Id) });
+      toast.success(`Status atualizado para ${updatedOrder.Status}`);
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Erro ao atualizar status');
@@ -172,7 +171,7 @@ export const useAssignEditor = () => {
       orderService.assignEditor(orderId, editorId),
     onSuccess: (updatedOrder) => {
       queryClient.invalidateQueries({ queryKey: orderKeys.all });
-      queryClient.invalidateQueries({ queryKey: orderKeys.detail(updatedOrder.id) });
+      queryClient.invalidateQueries({ queryKey: orderKeys.detail(updatedOrder.Id) });
       toast.success('Editor atribuído com sucesso!');
     },
     onError: (error: Error) => {
@@ -209,7 +208,7 @@ return useMutation({
 mutationFn: (id: string) => orderService.cancel(id),
 onSuccess: (data) => {
 queryClient.invalidateQueries({ queryKey: orderKeys.all });
-queryClient.invalidateQueries({ queryKey: orderKeys.detail(data.id) });
+queryClient.invalidateQueries({ queryKey: orderKeys.detail(data.Id) });
 toast.success('Pedido cancelado com sucesso! Saldo estornado.');
 },
 onError: (error: Error) => {
