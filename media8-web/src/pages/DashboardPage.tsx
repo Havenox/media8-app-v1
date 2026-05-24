@@ -505,12 +505,12 @@ const AdminDashboard: React.FC = () => {
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
 
-  // Render dashboard based on user role
-  if (user?.role === 'Editor') {
+  // Render dashboard based on user role (PascalCase: user.Role)
+  if (user?.Role === 'Editor') {
     return <EditorDashboard />;
   }
 
-  if (user?.role === 'Admin') {
+  if (user?.Role === 'Admin') {
     return <AdminDashboard />;
   }
 

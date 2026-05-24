@@ -519,7 +519,7 @@ Aprovar Vídeo
 )}
 
 {/* Cancel Order Button (Client only, with timer) */}
-{user?.role === 'Client' && (order.status === 'Draft' || order.status === 'Pending') && (
+{user?.Role === 'Client' && (order.status === 'Draft' || order.status === 'Pending') && (
 <CancelOrderButton
 orderId={order.id}
 createdAt={order.createdAt}

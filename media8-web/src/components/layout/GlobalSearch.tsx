@@ -28,11 +28,12 @@ const mockUsers = [
 ];
 
 const GlobalSearch: React.FC = () => {
-  const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
-  const { user } = useAuth();
+const [open, setOpen] = useState(false);
+const navigate = useNavigate();
+const { user } = useAuth();
 
-  const isStaff = user?.role === 'Admin' || user?.role === 'Editor';
+// PascalCase: user.Role
+const isStaff = user?.Role === 'Admin' || user?.Role === 'Editor';
 
   // Keyboard shortcut to open search
   useEffect(() => {

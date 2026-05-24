@@ -49,7 +49,7 @@ const OrdersPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   // For clients, show only their orders; for admin/editor, show all
-  const isClient = user?.role === 'Client';
+  const isClient = user?.Role === 'Client';
   const { data: allOrders = [], isLoading: isLoadingAll } = useOrders();
   const { data: clientOrders = [], isLoading: isLoadingClient } = useOrdersByClient(isClient ? user?.id : undefined);
 

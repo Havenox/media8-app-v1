@@ -45,7 +45,7 @@ const EditsPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   // For editors, show orders assigned to them; for admin, show all
-  const isEditor = user?.role === 'Editor';
+  const isEditor = user?.Role === 'Editor';
   const { data: allOrders = [], isLoading: isLoadingAll } = useOrders();
   const { data: editorOrders = [], isLoading: isLoadingEditor } = useOrdersByEditor(isEditor ? user?.id : undefined);
   const { data: users = [] } = useUsers();
