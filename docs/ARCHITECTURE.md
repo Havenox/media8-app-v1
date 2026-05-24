@@ -1,8 +1,8 @@
 # Media 8 - Arquitetura do Sistema
 
 > **Visão Técnica**: Este documento detalha as decisões de design, padrões e fluxos de dados que compõem a plataforma Media 8.
-> 
-> **Última Atualização**: 20/05/2026 - Épico 3 concluído: Refatoração completa de domínio (Packages → Offers/ClientContracts) e purga do legado.
+>
+> **Última Atualização**: 24/05/2026 - Pós-colapso PascalCase: Migração completa para PascalCase nativo (.NET), correção de 6 erros bloqueadores, 6 falhas de segurança mitigadas, e restauração de CRUDs via 18 commits atômicos. Ver [Case Study #065](implementations/065-correcao-colapso-migracao-pascalcase.md).
 
 ---
 
