@@ -19,25 +19,8 @@ public class ServiceBalancesController : ControllerBase
         _balanceRepository = balanceRepository;
     }
 
-// Admin Endpoint to see client balances - MUST come FIRST to avoid conflict with "my-balances"
-[HttpGet("{clientId}")]
-[Authorize(Roles = "Admin")]
-public async Task<ActionResult<IEnumerable<UnifiedServiceBalanceDto>>> GetClientBalances(
-  Guid clientId,
-  [FromQuery] int page = 1,
-  [FromQuery] int pageSize = 20,
-  [FromQuery] string? status = "active")
-{
-  var (balances, total) = await _balanceRepository.GetPagedByUserIdAsync(clientId, page, pageSize, status);
-
-  var dtos = balances.Select(MapToUnifiedDto);
-
-  Response.Headers.Append("X-Total-Count", total.ToString());
-  return Ok(dtos);
-}
-
-// User's own balances - comes AFTER to avoid "my-balances" being interpreted as clientId
-[HttpGet("my-balances")]
+// User's own balances - HIGHER priority (Order = 1) to avoid "my-balances" being interpreted as clientId
+[HttpGet("my-balances", Order = 1)]
 public async Task<ActionResult<IEnumerable<UnifiedServiceBalanceDto>>> GetMyBalances(
   [FromQuery] int page = 1,
   [FromQuery] int pageSize = 20,
@@ -50,6 +33,23 @@ public async Task<ActionResult<IEnumerable<UnifiedServiceBalanceDto>>> GetMyBala
   }
 
   var (balances, total) = await _balanceRepository.GetPagedByUserIdAsync(currentUserId, page, pageSize, status);
+
+  var dtos = balances.Select(MapToUnifiedDto);
+
+  Response.Headers.Append("X-Total-Count", total.ToString());
+  return Ok(dtos);
+}
+
+// Admin Endpoint to see client balances - LOWER priority (Order = 2) so it doesn't intercept "my-balances"
+[HttpGet("{clientId}", Order = 2)]
+[Authorize(Roles = "Admin")]
+public async Task<ActionResult<IEnumerable<UnifiedServiceBalanceDto>>> GetClientBalances(
+  Guid clientId,
+  [FromQuery] int page = 1,
+  [FromQuery] int pageSize = 20,
+  [FromQuery] string? status = "active")
+{
+  var (balances, total) = await _balanceRepository.GetPagedByUserIdAsync(clientId, page, pageSize, status);
 
   var dtos = balances.Select(MapToUnifiedDto);
 
