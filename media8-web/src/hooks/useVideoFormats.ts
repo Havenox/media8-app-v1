@@ -54,7 +54,7 @@ export const useCreateVideoFormat = () => {
     mutationFn: (data: CreateVideoFormatRequest) => videoFormatService.create(data),
     onSuccess: (newFormat) => {
       queryClient.invalidateQueries({ queryKey: videoFormatKeys.all });
-      toast.success(`Formato "${newFormat.name}" criado com sucesso!`);
+      toast.success(`Formato "${newFormat.Name}" criado com sucesso!`);
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Erro ao criar formato de vídeo');
@@ -73,7 +73,7 @@ export const useUpdateVideoFormat = () => {
       videoFormatService.update(id, data),
     onSuccess: (updatedFormat) => {
       queryClient.invalidateQueries({ queryKey: videoFormatKeys.all });
-      queryClient.invalidateQueries({ queryKey: videoFormatKeys.detail(updatedFormat.id) });
+      queryClient.invalidateQueries({ queryKey: videoFormatKeys.detail(updatedFormat.Id) });
       toast.success('Formato atualizado com sucesso!');
     },
     onError: (error: Error) => {
