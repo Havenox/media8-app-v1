@@ -148,7 +148,7 @@ const reactivateUserMutation = useMutation({
       await createUserMutation.mutateAsync({
         name: newUser.name.trim(),
         email: newUser.email.trim(),
-        role: newUser.role,
+        role: newuser.Role,
         password: newUser.password // Now supported by frontend service
       });
       setIsCreateDialogOpen(false);
@@ -173,8 +173,8 @@ const reactivateUserMutation = useMutation({
     if (!selectedUserForEdit) return;
 
     // Role change warning
-    if (selectedUserForEdit.Role !== editUser.Role) {
-      const confirmChange = window.confirm(`ATENÇÃO: Você está alterando o privilégio de ${selectedUserForEdit.Role} para ${editUser.Role}. Tem certeza?`);
+    if (selectedUserForEdit.Role !== edituser.Role) {
+      const confirmChange = window.confirm(`ATENÇÃO: Você está alterando o privilégio de ${selectedUserForEdit.Role} para ${edituser.Role}. Tem certeza?`);
       if (!confirmChange) return;
     }
 
@@ -183,7 +183,7 @@ const reactivateUserMutation = useMutation({
         id: selectedUserForEdit.Id,
         data: {
           name: editUser.name,
-          role: editUser.role,
+          role: edituser.Role,
           phone: editUser.phone
           // Email update might be restricted by backend logic for safety
         }
@@ -329,7 +329,7 @@ const handleRestoreUser = async () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="create-role">Função</Label>
-                <Select value={newUser.role} onValueChange={(value: UserRole) => setNewUser({ ...newUser, role: value })}>
+                <Select value={newuser.Role} onValueChange={(value: UserRole) => setNewUser({ ...newUser, role: value })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Client">Cliente</SelectItem>
@@ -372,7 +372,7 @@ const handleRestoreUser = async () => {
               <div className="space-y-4">
                 {filteredUsers.map((user) => (
                   <motion.div
-                    key={user.id}
+                    key={user.Id}
                     whileHover={{ x: 4 }}
                     onClick={() => setSelectedUserForDetails(user)}
                     className="flex items-center justify-between p-4 rounded-lg border border-border hover:border-primary/20 hover:bg-muted/50 transition-all cursor-pointer"
@@ -459,7 +459,7 @@ const handleRestoreUser = async () => {
              </div>
              <div className="space-y-2">
                 <Label>Função (Role)</Label>
-                <Select value={editUser.role} onValueChange={(val: UserRole) => setEditUser({...editUser, role: val})}>
+                <Select value={edituser.Role} onValueChange={(val: UserRole) => setEditUser({...editUser, role: val})}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Client">Cliente</SelectItem>
@@ -467,7 +467,7 @@ const handleRestoreUser = async () => {
                     <SelectItem value="Admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
-                {selectedUserForEdit?.role !== editUser.role && (
+                {selectedUserForEdit?.role !== edituser.Role && (
                   <div className="flex items-center gap-2 text-amber-500 text-sm mt-2">
                     <AlertTriangle className="h-4 w-4" />
                     <span>Alterar a função requer confirmação.</span>

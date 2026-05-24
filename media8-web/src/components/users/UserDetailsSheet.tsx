@@ -62,7 +62,7 @@ const UserDetailsSheet: React.FC<UserDetailsSheetProps> = ({
 }) => {
   if (!user) return null;
 
-  const { data: contracts = [], isLoading: isLoadingContracts } = useClientContracts(user.id);
+  const { data: contracts = [], isLoading: isLoadingContracts } = useClientContracts(user.Id);
 
 const getInitials = (name: string) => {
 return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -204,7 +204,7 @@ Saldos e Serviços
 </h4>
 </div>
 
-<ServiceBalanceList clientId={user.id} className="grid-cols-1" variant="list" />
+<ServiceBalanceList clientId={user.Id} className="grid-cols-1" variant="list" />
 </div>
 </>
 )}
@@ -237,7 +237,7 @@ Saldos e Serviços
           size="icon"
           onClick={(e) => {
             e.stopPropagation();
-            onDelete(user.id);
+            onDelete(user.Id);
           }}
           disabled={isDeleting}
         >

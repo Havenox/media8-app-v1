@@ -97,7 +97,7 @@ const DashboardSkeleton: React.FC = () => (
 // Dashboard for Client role
 const ClientDashboard: React.FC = () => {
   const { user } = useAuth();
-  const { data: orders = [], isLoading } = useOrdersByClient(user?.id);
+  const { data: orders = [], isLoading } = useOrdersByClient(user?.Id);
 
   const stats = useMemo(() => ({
     total: orders.length,
@@ -252,7 +252,7 @@ const ClientDashboard: React.FC = () => {
 // Dashboard for Editor role
 const EditorDashboard: React.FC = () => {
   const { user } = useAuth();
-  const { data: orders = [], isLoading } = useOrdersByEditor(user?.id);
+  const { data: orders = [], isLoading } = useOrdersByEditor(user?.Id);
 
   const stats = useMemo(() => ({
     pending: orders.filter((o) => o.status === 'Pending').length,

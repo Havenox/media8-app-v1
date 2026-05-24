@@ -75,7 +75,7 @@ setNewStatus(order.status);
     const newEntry: OrderTimeline = {
       id: `temp-${Date.now()}`,
       orderId: id!,
-      userId: user.id,
+      userId: user.Id,
       actionType: 'Comment',
       content: newComment,
       timestamp: new Date().toISOString(),
@@ -100,7 +100,7 @@ setNewStatus(order.status);
           const newEntry: OrderTimeline = {
             id: `temp-${Date.now()}`,
             orderId: id,
-            userId: user?.id || '',
+            userId: user?.Id || '',
             actionType: 'StatusChange',
             content: `Status alterado para "${getStatusLabel(newStatus)}"`,
             timestamp: new Date().toISOString(),
@@ -121,7 +121,7 @@ setNewStatus(order.status);
           const newEntry: OrderTimeline = {
             id: `temp-${Date.now()}`,
             orderId: id,
-            userId: user?.id || '',
+            userId: user?.Id || '',
             actionType: 'StatusChange',
             content: 'Vídeo aprovado pelo cliente',
             timestamp: new Date().toISOString(),
@@ -302,7 +302,7 @@ setNewStatus(order.status);
                   ) : (
                     allTimeline.map((entry, index) => {
                       const isComment = entry.actionType === 'Comment';
-                      const isCurrentUser = entry.userId === user?.id;
+                      const isCurrentUser = entry.userId === user?.Id;
 
                       return (
                         <motion.div

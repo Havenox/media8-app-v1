@@ -44,7 +44,7 @@ export function ContractAssignDialog({
       return;
     }
 
-    if (!user?.id) {
+    if (!user?.Id) {
       toast.error('Usuário não autenticado');
       return;
     }
@@ -53,7 +53,7 @@ export function ContractAssignDialog({
       {
         offerId: selectedOfferId,
         clientId,
-        assignedByUserId: user.id,
+        assignedByUserId: user.Id,
       },
       {
         onSuccess: () => {

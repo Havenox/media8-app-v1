@@ -31,7 +31,7 @@ type SortOption = 'urgency' | 'recent' | 'alphabetical';
 
 const ServicesPage: React.FC = () => {
   const { user } = useAuth();
-  const { data: services, isLoading, error } = useAllServiceBalances(user?.id);
+  const { data: services, isLoading, error } = useAllServiceBalances(user?.Id);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');

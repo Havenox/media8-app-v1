@@ -35,7 +35,7 @@ const AdminSettingsSection: React.FC = () => {
       const response = await api.get<SystemSettingsResponse>('/admin/settings');
       return response.data;
     },
-    enabled: user?.role === 'Admin',
+    enabled: user?.Role === 'Admin',
   });
 
   // Initialize local state when data loads
@@ -97,7 +97,7 @@ const AdminSettingsSection: React.FC = () => {
   };
 
   // Render null if not admin
-  if (user?.role !== 'Admin') {
+  if (user?.Role !== 'Admin') {
     return null;
   }
 

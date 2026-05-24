@@ -260,7 +260,7 @@ const PackagesPage: React.FC = () => {
           packageId: selectedPackage.id,
           clientId: selectedClientId,
         },
-        assignedBy: currentUser.id,
+        assignedBy: currentuser.Id,
       });
       setIsAssignDialogOpen(false);
       setSelectedPackage(null);

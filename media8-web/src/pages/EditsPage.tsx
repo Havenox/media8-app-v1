@@ -47,7 +47,7 @@ const EditsPage: React.FC = () => {
   // For editors, show orders assigned to them; for admin, show all
   const isEditor = user?.Role === 'Editor';
   const { data: allOrders = [], isLoading: isLoadingAll } = useOrders();
-  const { data: editorOrders = [], isLoading: isLoadingEditor } = useOrdersByEditor(isEditor ? user?.id : undefined);
+  const { data: editorOrders = [], isLoading: isLoadingEditor } = useOrdersByEditor(isEditor ? user?.Id : undefined);
   const { data: users = [] } = useUsers();
   
   const orders = isEditor ? editorOrders : allOrders;
