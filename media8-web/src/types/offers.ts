@@ -36,6 +36,7 @@ export interface Offer {
   IsPublic: boolean;
   CreatedAt: string;
   UpdatedAt: string;
+  CanDeletePermanently?: boolean;
 }
 
 // ==========================================
@@ -66,76 +67,60 @@ export interface ClientContract {
 }
 
 // ==========================================
-// Request DTOs
+// Request DTOs — PascalCase to match .NET backend
 // ==========================================
 export interface CreateOfferRequest {
-  name: string;
-  slug: string;
-  contractType: ContractType;
-  price: number;
-  videoQuantity: number;
-  maxDurationSeconds: number;
-  validityDays?: number;
-  loyaltyMonths: number;
-  deliveryDays: number;
-  videoFormatId?: string;
-  editingStyleId?: string;
-  description?: string;
-  features: string[];
-  disclaimer?: string;
-  badge?: string;
-  isPublic?: boolean;
+  Name: string;
+  Slug: string;
+  ContractType: ContractType;
+  Price: number;
+  VideoQuantity: number;
+  MaxDurationSeconds: number;
+  ValidityDays?: number;
+  LoyaltyMonths: number;
+  DeliveryDays: number;
+  VideoFormatId?: string;
+  EditingStyleId?: string;
+  Description?: string;
+  Features: string[];
+  Disclaimer?: string;
+  Badge?: string;
+  IsPublic?: boolean;
 }
 
 export interface UpdateOfferRequest {
-  name?: string;
-  slug?: string;
-  contractType?: ContractType;
-  price?: number;
-  videoQuantity?: number;
-  maxDurationSeconds?: number;
-  validityDays?: number;
-  loyaltyMonths?: number;
-  deliveryDays?: number;
-  videoFormatId?: string;
-  editingStyleId?: string;
-  description?: string;
-  features?: string[];
-  disclaimer?: string;
-  badge?: string;
-  isPublic?: boolean;
+  Name?: string;
+  Slug?: string;
+  ContractType?: ContractType;
+  Price?: number;
+  VideoQuantity?: number;
+  MaxDurationSeconds?: number;
+  ValidityDays?: number;
+  LoyaltyMonths?: number;
+  DeliveryDays?: number;
+  VideoFormatId?: string;
+  EditingStyleId?: string;
+  Description?: string;
+  Features?: string[];
+  Disclaimer?: string;
+  Badge?: string;
+  IsPublic?: boolean;
 }
 
 export interface CreateClientContractRequest {
-  offerId: string;
-  clientId: string;
-  assignedByUserId: string;
+  OfferId: string;
+  ClientId: string;
+  AssignedByUserId: string;
 }
 
 export interface UpdateClientContractRequest {
-  status?: AssignmentStatus;
-  expiresAt?: string;
+  Status?: AssignmentStatus;
+  ExpiresAt?: string;
 }
 
 // ==========================================
-// Response DTOs
+// Response DTOs — PascalCase
 // ==========================================
 export type OfferResponse = Offer;
 
-export interface ClientContractResponse {
-  id: string;
-  offerId: string;
-  clientId: string;
-  assignedBy: string;
-  snapshotOfferName?: string;
-  snapshotVideoQuantity?: number;
-  snapshotPrice?: number;
-  snapshotValidityDays?: number;
-  assignedAt: string;
-  activatedAt: string;
-  expiresAt?: string;
-  status: AssignmentStatus;
-  createdAt: string;
-  updatedAt: string;
-  offer?: Offer;
-}
+export type ClientContractResponse = ClientContract;

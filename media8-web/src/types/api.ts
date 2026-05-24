@@ -7,15 +7,15 @@
 export type UserRole = 'Admin' | 'Client' | 'Editor';
 
 export type OrderStatus =
-| 'Draft'
-| 'Pending'
-| 'Processing'
-| 'InProgress'
-| 'InReview'
-| 'ChangesRequested'
-| 'Approved'
-| 'Completed'
-| 'Cancelled';
+  | 'Draft'
+  | 'Pending'
+  | 'Processing'
+  | 'InProgress'
+  | 'InReview'
+  | 'ChangesRequested'
+  | 'Approved'
+  | 'Completed'
+  | 'Cancelled';
 
 export type TimelineActionType =
   | 'StatusChange'
@@ -59,18 +59,6 @@ export interface User {
   };
 }
 
-// Legacy camelCase aliases for backward compatibility (DEPRECATED)
-// These will be removed after full PascalCase migration
-export type UserCamelCase = Omit<User, 'Id' | 'Name' | 'Email' | 'Role' | 'CreatedAt' | 'UpdatedAt' | 'IsActive'> & {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  createdAt: string;
-  updatedAt: string;
-  isActive: boolean;
-};
-
 export interface UserLoginRequest {
   Email: string;
   Password: string;
@@ -82,10 +70,10 @@ export interface UserLoginResponse {
 }
 
 export interface UserRegisterRequest {
-  name: string;
-  email: string;
-  password: string;
-  role?: UserRole;
+  Name: string;
+  Email: string;
+  Password: string;
+  Role?: UserRole;
 }
 
 // Order
@@ -180,15 +168,15 @@ export interface PaginatedResponse<T> {
 
 // Dashboard Stats
 export interface DashboardStats {
-  totalOrders: number;
-  pendingOrders: number;
-  inProgressOrders: number;
-  completedOrders: number;
+  TotalOrders: number;
+  PendingOrders: number;
+  InProgressOrders: number;
+  CompletedOrders: number;
 }
 
 export interface UserStats {
-  totalUsers: number;
-  totalAdmins: number;
-  totalClients: number;
-  totalEditors: number;
+  TotalUsers: number;
+  TotalAdmins: number;
+  TotalClients: number;
+  TotalEditors: number;
 }
