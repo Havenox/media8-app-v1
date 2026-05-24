@@ -107,12 +107,12 @@ export const useCreateUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: { name: string; email: string; role: UserRole; password?: string; phone?: string }) =>
+    mutationFn: (data: { Name: string; Email: string; Role: UserRole; Password?: string; Phone?: string }) =>
       userService.create(data),
     onSuccess: (newUser) => {
       // Invalidate all user queries
       queryClient.invalidateQueries({ queryKey: userKeys.all });
-      toast.success(`Usuário ${newUser.name} criado com sucesso!`);
+      toast.success(`Usuário ${newUser.Name} criado com sucesso!`);
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Erro ao criar usuário');
@@ -132,7 +132,7 @@ export const useUpdateUser = () => {
     onSuccess: (updatedUser) => {
       // Invalidate queries
       queryClient.invalidateQueries({ queryKey: userKeys.all });
-      queryClient.invalidateQueries({ queryKey: userKeys.detail(updatedUser.id) });
+      queryClient.invalidateQueries({ queryKey: userKeys.detail(updatedUser.Id) });
       toast.success('Usuário atualizado com sucesso!');
     },
     onError: (error: Error) => {
