@@ -40,11 +40,14 @@ const getByRoleAPI = async (role: UserRole): Promise<User[]> => {
   return getAllAPI(1, 1000, role); // Backwards compatibility for role helpers
 };
 
-const createAPI = async (data: { name: string; email: string; role: UserRole; password?: string; phone?: string }): Promise<User> => {
-  // Use the admin create endpoint
+const createAPI = async (data: { Name: string; Email: string; Role: UserRole; Password?: string; Phone?: string }): Promise<User> => {
+  // Use the admin create endpoint - PascalCase payload
   const response = await api.post('/users', {
-    ...data,
-    password: data.password || 'MudaSenha123!' // Default password if empty (should check frontend validation)
+    Name: data.Name,
+    Email: data.Email,
+    Role: data.Role,
+    Password: data.Password || 'MudaSenha123!', // Default password if empty
+    Phone: data.Phone
   });
   return response.data;
 };
@@ -66,8 +69,13 @@ const reactivateAPI = async (id: string): Promise<{ success: boolean; message: s
 };
 
 // ... existing auth methods ...
+// Login API - PascalCase payload to match .NET backend DTOs
 const loginAPI = async (email: string, password: string): Promise<UserLoginResponse> => {
-  const response = await api.post('/auth/login', { email, password });
+  // Backend expects: { Email: string, Password: string }
+  const response = await api.post('/auth/login', {
+    Email: email,
+    Password: password
+  });
   return response.data;
 };
 
@@ -120,13 +128,13 @@ export const userService = {
     return response.data;
   },
 
-  async create(data: { name: string; email: string; role: UserRole; password?: string; phone?: string }): Promise<User> {
-    return createAPI(data);
-  },
+async create(data: { Name: string; Email: string; Role: UserRole; Password?: string; Phone?: string }): Promise<User> {
+  return createAPI(data);
+},
 
-  async update(id: string, data: Partial<User>): Promise<User> {
-    return updateAPI(id, data);
-  },
+async update(id: string, data: Partial<User>): Promise<User> {
+  return updateAPI(id, data);
+},
 
 async delete(id: string): Promise<void> {
   return deleteAPI(id);
