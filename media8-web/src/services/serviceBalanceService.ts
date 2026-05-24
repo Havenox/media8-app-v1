@@ -201,6 +201,15 @@ const getMyBalancesAPI = async (page = 1, pageSize = 50, status = 'active'): Pro
         params: error.config?.params
       }
     });
+    
+    // EXIBE ERROS DE VALIDAÇÃO DO .NET
+    if (error.response?.data?.errors) {
+      console.error('>>> ERROS DE VALIDAÇÃO DO .NET:', error.response.data.errors);
+      Object.entries(error.response.data.errors).forEach(([key, value]: [string, any]) => {
+        console.error(`  - ${key}: ${Array.isArray(value) ? value.join(', ') : value}`);
+      });
+    }
+    
     throw error;
   }
 };
