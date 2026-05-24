@@ -65,7 +65,7 @@ export const useCreateBrandingProfile = () => {
       brandingProfileService.create(data),
     onSuccess: (newProfile) => {
       queryClient.invalidateQueries({ queryKey: brandingKeys.all });
-      toast.success(`Perfil "${newProfile.name}" criado com sucesso!`);
+      toast.success(`Perfil "${newProfile.Name}" criado com sucesso!`);
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Erro ao criar perfil de branding');
@@ -84,7 +84,7 @@ export const useUpdateBrandingProfile = () => {
       brandingProfileService.update(id, data),
     onSuccess: (updatedProfile) => {
       queryClient.invalidateQueries({ queryKey: brandingKeys.all });
-      queryClient.invalidateQueries({ queryKey: brandingKeys.detail(updatedProfile.id) });
+      queryClient.invalidateQueries({ queryKey: brandingKeys.detail(updatedProfile.Id) });
       toast.success('Perfil atualizado com sucesso!');
     },
     onError: (error: Error) => {
@@ -209,7 +209,7 @@ export const useCreateEditingProfile = () => {
     mutationFn: (data: CreateEditingProfileRequest) => editingProfileService.create(data),
     onSuccess: (newProfile) => {
       queryClient.invalidateQueries({ queryKey: editingKeys.all });
-      toast.success(`Perfil "${newProfile.name}" criado com sucesso!`);
+      toast.success(`Perfil "${newProfile.Name}" criado com sucesso!`);
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Erro ao criar perfil de edição');
@@ -228,7 +228,7 @@ export const useUpdateEditingProfile = () => {
       editingProfileService.update(id, data),
     onSuccess: (updatedProfile) => {
       queryClient.invalidateQueries({ queryKey: editingKeys.all });
-      queryClient.invalidateQueries({ queryKey: editingKeys.detail(updatedProfile.id) });
+      queryClient.invalidateQueries({ queryKey: editingKeys.detail(updatedProfile.Id) });
       toast.success('Perfil atualizado com sucesso!');
     },
     onError: (error: Error) => {
