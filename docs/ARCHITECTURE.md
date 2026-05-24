@@ -101,6 +101,13 @@ O catálogo pode mudar, mas o contrato é imutável e auditável. `ClientContrac
 3. Extrai os snapshots (`SnapshotVideoFormatName`, `SnapshotEditingStyleName`, `SnapshotMaxDurationSeconds`)
 4. Valida o pedido contra os dados imutáveis do contrato
 
+**API PascalCase & DTO Enrichment:** 
+- Endpoints em PascalCase nativo (.NET): `/ClientContracts`, `/ServiceBalances/MyBalances`
+- JSON Serializer configurado com `PropertyNamingPolicy = null` para preservar PascalCase
+- `UnifiedServiceBalanceDto` enriquecido com 6 campos de snapshot (comercial + técnico)
+- Frontend recebe dashboard rico em única chamada, sem N+1 queries
+- *Implementação*: Ver `docs/implementations/064-api-pascal-case-snapshot-saldo.md`.
+
 ### 4. Data-Driven Catalog (VideoFormat Entity)
 **Problema**: Enums estáticos (`ServiceType`) exigiam deploy de código para adicionar novos formatos de vídeo, limitando a agilidade do time de produto.
 **Solução**: Migração para entidade dinâmica `VideoFormat` com cache em memória (`IMemoryCache`) no backend e hook dedicado (`useVideoFormats`) no frontend. O catálogo é agora gerenciável via banco de dados.
