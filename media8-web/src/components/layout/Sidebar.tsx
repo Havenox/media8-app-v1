@@ -53,9 +53,12 @@ const navItems: NavItem[] = [
 const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
   const location = useLocation();
   const { user } = useAuth();
-
+  
+  // FIX: Use user?.Role || (user as any)?.role for backwards compatibility
+  const userRole = user?.Role || (user as any)?.role || 'Client';
+  
   const filteredNavItems = navItems.filter(
-    (item) => !item.roles || (user?.Role && item.roles.includes(user.Role))
+    (item) => !item.roles || (userRole && item.roles.includes(userRole))
   );
 
   return (

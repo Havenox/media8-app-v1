@@ -11,7 +11,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { BrandLogo } from '../BrandLogo';
 
 const MainLayout: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const isMobile = useIsMobile();
@@ -21,7 +21,7 @@ const MainLayout: React.FC = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="space-y-4 text-center">
-            <BrandLogo variant="wine" size="lg" />
+          <BrandLogo variant="wine" size="lg" />
           <Skeleton className="h-4 w-32 mx-auto" />
         </div>
       </div>

@@ -32,7 +32,6 @@ public class UserDto
     public string Phone { get; set; } = string.Empty;
     public string Preferences { get; set; } = string.Empty; // JSON
     public string? AvatarUrl { get; set; }
-    [JsonPropertyName("role")]
     public string Role { get; set; } = string.Empty;
     public List<string> Roles { get; set; } = new List<string>();
 }
