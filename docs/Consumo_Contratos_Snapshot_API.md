@@ -237,7 +237,7 @@ Authorization: Bearer {token}
 
 **Endpoint:** `GET /api/v1/ServiceBalances/MyBalances`  
 **Acesso:** Authenticated  
-**Descrição:** Lista saldos de serviço do usuário autenticado
+**Descrição:** Lista saldos de serviço do usuário autenticado com snapshot completo
 
 #### Parâmetros de Query (Opcionais)
 
@@ -259,14 +259,18 @@ Authorization: Bearer {token}
 ```json
 [
   {
-    "id": "balance-id-guid",
-    "serviceName": "Reels Premium",
-    "packageName": "Plano Growth",
-    "remainingQuantity": 8,
-    "totalQuantity": 10,
-    "expiresAt": "2026-06-23T10:00:00Z",
-    "purchaseDate": "2026-05-24T10:00:00Z",
-    "status": "active"
+    "Id": "balance-id-guid",
+    "SnapshotOfferName": "Plano Growth",
+    "SnapshotVideoQuantity": 10,
+    "SnapshotVideoFormatName": "Reels Premium",
+    "SnapshotEditingStyleName": "Corporativo",
+    "SnapshotMaxDurationSeconds": 60,
+    "ContractType": "Assinatura",
+    "RemainingQuantity": 8,
+    "TotalQuantity": 10,
+    "ExpiresAt": "2026-06-23T10:00:00Z",
+    "PurchaseDate": "2026-05-24T10:00:00Z",
+    "Status": "active"
   }
 ]
 ```
@@ -275,6 +279,19 @@ Authorization: Bearer {token}
 ```
 X-Total-Count: 1
 ```
+
+#### Campos de Snapshot no Saldo
+
+| Campo | Tipo | Descrição | Exemplo |
+|-------|------|-----------|---------|
+| `SnapshotOfferName` | `string` | Nome da oferta original | `"Plano Growth"` |
+| `SnapshotVideoQuantity` | `int` | Quantidade total de vídeos | `10` |
+| `SnapshotVideoFormatName` | `string` | Formato de vídeo (snapshot) | `"Reels Premium"` |
+| `SnapshotEditingStyleName` | `string` | Estilo de edição (snapshot) | `"Corporativo"` |
+| `SnapshotMaxDurationSeconds` | `int` | Duração máxima em segundos | `60` |
+| `ContractType` | `string` | Tipo de contrato | `"Assinatura"` ou `"Pacote"` |
+| `RemainingQuantity` | `int` | Saldo restante para consumo | `8` |
+| `TotalQuantity` | `int` | Total original do contrato | `10` |
 
 ---
 
