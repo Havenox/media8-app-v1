@@ -4,73 +4,75 @@
 // ==========================================
 
 // Branding Profile (formerly Visual Identity Profile)
+// PascalCase Pattern - Backend .NET DTO Alignment
 export interface BrandingProfile {
-  id: string;
-  userId: string;
-  name: string;
-  socialHandles: string;
-  brandColors: string;
-  brandFonts: string;
-  targetAudience: string;
-  brandAssetsUrl: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  Id: string;
+  UserId: string;
+  Name: string;
+  SocialHandles: string;
+  BrandColors: string;
+  BrandFonts: string;
+  TargetAudience: string;
+  BrandAssetsUrl: string;
+  IsActive: boolean;
+  CreatedAt: string;
+  UpdatedAt: string;
 }
 
 export interface CreateBrandingProfileRequest {
-  name: string;
-  socialHandles: string;
-  brandColors: string;
-  brandFonts: string;
-  targetAudience: string;
-  brandAssetsUrl: string;
+  Name: string;
+  SocialHandles: string;
+  BrandColors: string;
+  BrandFonts: string;
+  TargetAudience: string;
+  BrandAssetsUrl: string;
 }
 
 export interface UpdateBrandingProfileRequest {
-  name?: string;
-  socialHandles?: string;
-  brandColors?: string;
-  brandFonts?: string;
-  targetAudience?: string;
-  brandAssetsUrl?: string;
+  Name?: string;
+  SocialHandles?: string;
+  BrandColors?: string;
+  BrandFonts?: string;
+  TargetAudience?: string;
+  BrandAssetsUrl?: string;
 }
 
 // Editing Profile
+// PascalCase Pattern - Backend .NET DTO Alignment
 export interface EditingProfile {
-  id: string;
-  userId: string;
-  name: string;
-  referenceUrl: string;
-  cutGuidelines: string;
-  thumbnailPreference: string;
-  musicStyle: string;
-  useVideoHook: boolean;
-  textHighlightStyle: string;
-  generalNotes: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  Id: string;
+  UserId: string;
+  Name: string;
+  ReferenceUrl: string;
+  CutGuidelines: string;
+  ThumbnailPreference: string;
+  MusicStyle: string;
+  UseVideoHook: boolean;
+  TextHighlightStyle: string;
+  GeneralNotes: string;
+  IsActive: boolean;
+  CreatedAt: string;
+  UpdatedAt: string;
 }
 
 export interface CreateEditingProfileRequest {
-  name: string;
-  referenceUrl: string;
-  cutGuidelines: string;
-  thumbnailPreference: string;
-  musicStyle: string;
-  useVideoHook: boolean;
-  textHighlightStyle: string;
-  generalNotes: string;
+  Name: string;
+  ReferenceUrl: string;
+  CutGuidelines: string;
+  ThumbnailPreference: string;
+  MusicStyle: string;
+  UseVideoHook: boolean;
+  TextHighlightStyle: string;
+  GeneralNotes: string;
 }
 
 export interface UpdateEditingProfileRequest {
-  name?: string;
-  referenceUrl?: string;
-  cutGuidelines?: string;
-  thumbnailPreference?: string;
-  musicStyle?: string;
-  useVideoHook?: boolean;
-  textHighlightStyle?: string;
-  generalNotes?: string;
+  Name?: string;
+  ReferenceUrl?: string;
+  CutGuidelines?: string;
+  ThumbnailPreference?: string;
+  MusicStyle?: string;
+  UseVideoHook?: boolean;
+  TextHighlightStyle?: string;
+  GeneralNotes?: string;
 }
