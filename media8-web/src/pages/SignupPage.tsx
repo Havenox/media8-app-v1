@@ -50,52 +50,53 @@ const SignupPage: React.FC = () => {
     },
   });
 
-  const onSubmit = async (data: SignupFormData) => {
-    setIsLoading(true);
-    try {
-      await signup({
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        password: data.password,
-      });
-      toast({
-        title: 'Conta criada!',
-        description: 'Sua conta foi criada com sucesso. Bem-vindo!',
-      });
-      navigate('/dashboard');
-    } catch (error: any) {
-      if (error.response?.status === 409) {
-        if (error.message?.includes('já está cadastrado') || error.response?.data?.message?.includes('já está cadastrado')) {
-          toast({
-            title: 'Conta já existente',
-            description: 'Este email já está sendo usado. Deseja fazer login?',
-            variant: 'destructive',
-            action: (
-              <ToastAction altText="Fazer Login" onClick={() => navigate('/login', { state: { email: data.email } })}>
-                Fazer Login
-              </ToastAction>
-            ),
-          });
-        } else if (error.message?.includes('telefone já está em uso') || error.response?.data?.message?.includes('telefone já está em uso')) {
-           toast({
-            title: 'Telefone em uso',
-            description: 'Este número de telefone já está associado a outra conta.',
-            variant: 'destructive',
-            // No Login Action as requested for Phone duplication privacy/usability
-          });
-        }
-      } else {
+const onSubmit = async (data: SignupFormData) => {
+  setIsLoading(true);
+  try {
+    // PascalCase: Backend espera { Name, Email, Phone, Password }
+    await signup({
+      Name: data.name,
+      Email: data.email,
+      Phone: data.phone,
+      Password: data.password,
+    });
+    toast({
+      title: 'Conta criada!',
+      description: 'Sua conta foi criada com sucesso. Bem-vindo!',
+    });
+    navigate('/dashboard');
+  } catch (error: any) {
+    if (error.response?.status === 409) {
+      if (error.message?.includes('já está cadastrado') || error.response?.data?.message?.includes('já está cadastrado')) {
         toast({
-          title: 'Erro ao criar conta',
-          description: 'Verifique os dados e tente novamente.',
+          title: 'Conta já existente',
+          description: 'Este email já está sendo usado. Deseja fazer login?',
           variant: 'destructive',
+          action: (
+            <ToastAction altText="Fazer Login" onClick={() => navigate('/login', { state: { email: data.email } })}>
+              Fazer Login
+            </ToastAction>
+          ),
+        });
+      } else if (error.message?.includes('telefone já está em uso') || error.response?.data?.message?.includes('telefone já está em uso')) {
+        toast({
+          title: 'Telefone em uso',
+          description: 'Este número de telefone já está associado a outra conta.',
+          variant: 'destructive',
+          // No Login Action as requested for Phone duplication privacy/usability
         });
       }
-    } finally {
-      setIsLoading(false);
+    } else {
+      toast({
+        title: 'Erro ao criar conta',
+        description: 'Verifique os dados e tente novamente.',
+        variant: 'destructive',
+      });
     }
-  };
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex">

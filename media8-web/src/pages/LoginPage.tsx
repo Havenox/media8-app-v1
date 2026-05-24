@@ -78,25 +78,26 @@ const LoginPage: React.FC = () => {
     }
   }, [location.state, setValue]);
 
-  const onSubmit = async (data: LoginFormData) => {
-    setIsLoading(true);
-    try {
-      await login({ email: data.email, password: data.password });
-      toast({
-        title: 'Bem-vindo!',
-        description: 'Login realizado com sucesso.',
-      });
-      navigate('/dashboard');
-    } catch (error) {
-      toast({
-        title: 'Erro no login',
-        description: 'Verifique suas credenciais e tente novamente.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+const onSubmit = async (data: LoginFormData) => {
+  setIsLoading(true);
+  try {
+    // PascalCase: Backend espera { Email, Password }
+    await login({ Email: data.email, Password: data.password });
+    toast({
+      title: 'Bem-vindo!',
+      description: 'Login realizado com sucesso.',
+    });
+    navigate('/dashboard');
+  } catch (error) {
+    toast({
+      title: 'Erro no login',
+      description: 'Verifique suas credenciais e tente novamente.',
+      variant: 'destructive',
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex">
