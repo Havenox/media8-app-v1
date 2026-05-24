@@ -40,11 +40,28 @@ public class ServiceBalancesController : ControllerBase
         return Ok(dtos);
     }
 
-    // Admin Endpoint - PascalCase follows Media8 standard
+    // Admin Endpoint - Query parameter style
     [HttpGet("Client")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<UnifiedServiceBalanceDto>>> GetClientBalances(
         [FromQuery] Guid clientId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? status = "active")
+    {
+        var (balances, total) = await _balanceRepository.GetPagedByUserIdAsync(clientId, page, pageSize, status);
+
+        var dtos = balances.Select(MapToUnifiedDto);
+
+        Response.Headers.Append("X-Total-Count", total.ToString());
+        return Ok(dtos);
+    }
+
+    // Admin Endpoint - Path parameter style (frontend compatibility: GET /ServiceBalances/{clientId})
+    [HttpGet("{clientId:guid}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<IEnumerable<UnifiedServiceBalanceDto>>> GetClientBalancesById(
+        Guid clientId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         [FromQuery] string? status = "active")
