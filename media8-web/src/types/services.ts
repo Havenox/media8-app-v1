@@ -87,15 +87,23 @@ export interface ServiceBalanceAggregated {
 }
 
 // NOVO: Interface Unificada vinda da API /service-balances/my-balances
+// Snapshot Pattern - Campos em PascalCase nativo (.NET)
 export interface UnifiedServiceBalance {
-  id: string;
-  serviceName: string;
-  packageName: string;
-  remainingQuantity: number;
-  totalQuantity: number;
-  expiresAt?: string;
-  purchaseDate: string;
-  status: 'active' | 'expired' | 'depleted';
+  Id: string; // Balance Lot ID
+  // SNAPSHOT COMERCIAL (Imutável)
+  SnapshotOfferName: string; // e.g. "Plano Growth"
+  SnapshotVideoQuantity: number; // Quantidade de vídeos no snapshot
+  ContractType: string; // "Assinatura" ou "Pacote"
+  // SNAPSHOT TÉCNICO (Imutável - Sem FKs)
+  SnapshotVideoFormatName: string; // e.g. "Reels Premium"
+  SnapshotEditingStyleName: string; // e.g. "Corporativo"
+  SnapshotMaxDurationSeconds: number; // Duração máxima em segundos
+  // DADOS DE ESTADO DO LOTE
+  RemainingQuantity: number; // Saldo restante
+  TotalQuantity: number; // Total original
+  ExpiresAt: string | null; // Data de expiração
+  PurchaseDate: string; // Data de compra
+  Status: string; // "active", "expired", "depleted"
 }
 
 // Resultado do consumo de serviço
