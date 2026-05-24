@@ -176,26 +176,57 @@ const getLotsAPI = async (userId: string): Promise<ServiceBalanceLot[]> => {
   return response.data;
 };
 
+// NEW: Use Unified API (Snapshot Architecture)
 // Backend usa query params em minúsculo: page, pageSize, status (ver ServiceBalancesController.cs)
-// [FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? status = "active"
 const getMyBalancesAPI = async (page = 1, pageSize = 50, status = 'active'): Promise<{ data: import('../types/services').UnifiedServiceBalance[], total: number }> => {
-  const response = await api.get('/ServiceBalances/MyBalances', {
-    params: { page, pageSize, status }
-  });
-  return {
-    data: response.data,
-    total: parseInt(response.headers['x-total-count'] || '0', 10)
-  };
+  try {
+    const response = await api.get('/ServiceBalances/MyBalances', {
+      params: { page, pageSize, status }
+    });
+    // API returns direct array currently in standard controller return, but might be wrapped if we used PaginatedResponse.
+    // Let's check Controller: return Ok(dtos) with Header.
+    // So data is array. Header 'X-Total-Count' is total.
+    return {
+      data: response.data,
+      total: parseInt(response.headers['x-total-count'] || '0', 10)
+    };
+  } catch (error: any) {
+    // DIAGNÓSTICO: Exibe erro real do .NET ProblemDetails
+    console.error('>>> ERRO 400 REAL DO .NET 10:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      headers: error.response?.headers,
+      config: {
+        url: error.config?.url,
+        params: error.config?.params
+      }
+    });
+    throw error;
+  }
 };
 
 const getClientBalancesAPI = async (clientId: string, page = 1, pageSize = 50, status = 'active'): Promise<{ data: import('../types/services').UnifiedServiceBalance[], total: number }> => {
-  const response = await api.get(`/ServiceBalances/${clientId}`, {
-    params: { page, pageSize, status }
-  });
-  return {
-    data: response.data,
-    total: parseInt(response.headers['x-total-count'] || '0', 10)
-  };
+  try {
+    const response = await api.get(`/ServiceBalances/${clientId}`, {
+      params: { page, pageSize, status }
+    });
+    return {
+      data: response.data,
+      total: parseInt(response.headers['x-total-count'] || '0', 10)
+    };
+  } catch (error: any) {
+    // DIAGNÓSTICO: Exibe erro real do .NET ProblemDetails
+    console.error('>>> ERRO 400 REAL DO .NET 10 (Client):', {
+      status: error.response?.status,
+      data: error.response?.data,
+      headers: error.response?.headers,
+      config: {
+        url: error.config?.url,
+        params: error.config?.params
+      }
+    });
+    throw error;
+  }
 };
 
 const consumeServiceAPI = async (userId: string, videoFormatId: string): Promise<ConsumeResult> => {
