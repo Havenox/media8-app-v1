@@ -76,10 +76,15 @@ Focado em **Segurança** e **Integridade de Dados**.
 
 ## Padrões Arquiteturais (Design Patterns)
 
-### 1. Snapshot Pattern (Immutabilidade)
+### 1. Snapshot Pattern (Imutabilidade Completa)
 **Problema**: Se alterarmos o preço de um pacote no catálogo hoje, como garantir que o cliente que comprou ontem não tenha seu contrato alterado?
-**Solução**: Implementamos o padrão **Snapshot** na entidade `PackageAssignment`. Ao criar um contrato, copiamos os dados vitais (Nome, Preço, Validade) para dentro da atribuição. O catálogo pode mudar, mas o contrato é imutável.
-*   *Implementação*: Ver `docs/implementations/016-arquitetura-snapshot-contratos.md`.
+**Solução**: Implementamos o padrão **Snapshot** na entidade `ClientContract`. Ao criar um contrato, copiamos **todos** os dados vitais como valores primitivos (texto/número):
+
+- **Snapshot Comercial**: `SnapshotOfferName`, `SnapshotPrice`, `SnapshotVideoQuantity`, `SnapshotValidityDays`
+- **Snapshot Técnico**: `SnapshotVideoFormatName`, `SnapshotEditingStyleName`, `SnapshotMaxDurationSeconds`
+
+O catálogo pode mudar, mas o contrato é imutável e auditável. `ClientContract` **NÃO** possui FKs para `VideoFormats` ou `EditingStyles`.
+* *Implementação*: Ver `docs/implementations/016-arquitetura-snapshot-contratos.md`.
 
 ### 2. DTO Pattern (Data Transfer Objects)
 **Problema**: Circular References e Over-posting de dados sensíveis (`PasswordHash`, `InternalFlags`).
@@ -89,6 +94,12 @@ Focado em **Segurança** e **Integridade de Dados**.
 ### 3. Service Balance & FIFO Strategy
 **Problema**: Clientes acumulam créditos de diferentes compras com validades diferentes.
 **Solução**: O sistema utiliza uma tabela de Lotes (`ServiceBalanceLots`). Ao consumir um serviço, o algoritmo consome automaticamente do lote mais antigo para o mais novo (**First-In, First-Out**), otimizando o uso dos créditos do cliente antes que expirem.
+
+**Regra Arquitetural:** `ServiceBalanceLot` é uma entidade **numérica pura**. Possui `ContractId` e `UserId`, mas **NÃO** possui `VideoFormatId` ou `EditingStyleId`. Para validar um pedido, o sistema:
+1. Lê o `ContractId` do lote
+2. Busca o `ClientContract` pai
+3. Extrai os snapshots (`SnapshotVideoFormatName`, `SnapshotEditingStyleName`, `SnapshotMaxDurationSeconds`)
+4. Valida o pedido contra os dados imutáveis do contrato
 
 ### 4. Data-Driven Catalog (VideoFormat Entity)
 **Problema**: Enums estáticos (`ServiceType`) exigiam deploy de código para adicionar novos formatos de vídeo, limitando a agilidade do time de produto.

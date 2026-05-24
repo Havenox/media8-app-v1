@@ -82,17 +82,23 @@ Regras de negócio mutáveis **nunca** devem ser fixadas no código como `Enums`
 
 ### 3.3. Snapshot Pattern (Imutabilidade de Contratos)
 
-Quando um cliente adquire um pacote (`PackageAssignment`), o sistema copia os dados vitais para dentro do contrato:
+Quando um cliente adquire uma oferta (`ClientContract`), o sistema copia **todos os dados vitais** como valores primitivos (texto/número) para dentro do contrato:
 
 ```csharp
-// PackageAssignment — Campos de Snapshot (Imutáveis após criação)
-public string? SnapshotPackageName { get; set; }
-public decimal? SnapshotPrice { get; set; }
-public int? SnapshotVideoQuantity { get; set; }
-public int? SnapshotValidityDays { get; set; }
+// ClientContract — Campos de Snapshot (Imutáveis após criação)
+// Snapshot Comercial
+public string SnapshotOfferName { get; set; }        // Nome da oferta
+public decimal SnapshotPrice { get; set; }           // Preço pago
+public int SnapshotVideoQuantity { get; set; }       // Quantidade de vídeos
+public int? SnapshotValidityDays { get; set; }       // Validade em dias
+
+// Snapshot Técnico (NÃO usa FKs - são strings puras)
+public string SnapshotVideoFormatName { get; set; }   // Ex: "Reels Premium"
+public string SnapshotEditingStyleName { get; set; }  // Ex: "Corporativo"
+public int SnapshotMaxDurationSeconds { get; set; }  // Ex: 60
 ```
 
-**Regra:** Se o admin alterar o catálogo amanhã, o contrato do cliente permanece intacto. O Frontend lê **sempre** os campos `Snapshot*` e nunca faz JOIN direto com o catálogo para exibir dados do cliente.
+**Regra de Ouro:** `ClientContract` **NÃO** possui chaves estrangeiras para `VideoFormats` ou `EditingStyles`. Se o admin alterar o catálogo amanhã (ex: renomear "Reels Premium" para "Reels 2.0"), o contrato do cliente permanece intacto com os dados originais. O Frontend lê **sempre** os campos `Snapshot*` e nunca faz JOIN direto com o catálogo para exibir dados do cliente.
 
 ### 3.4. Motor FIFO de Consumo de Créditos
 
@@ -102,11 +108,72 @@ O consumo de saldo (`ServiceBalanceLot`) obedece estritamente ao First-In, First
 - `RemainingQuantity` é decrementado com **Row Lock transacional** para evitar Race Conditions.
 - Se o consumo falha (sem saldo), o pedido **não** é criado — atomicidade garantida.
 
+### 3.5. Lote de Saldo como Entidade Numérica
+
+**Regra Arquitetural:** `ServiceBalanceLot` é uma entidade **estritamente numérica**.
+
+```csharp
+public class ServiceBalanceLot {
+    public Guid Id { get; set; }
+    public Guid ContractId { get; set; }      // FK para ClientContract
+    public Guid UserId { get; set; }          // FK para User
+
+    // Dados numéricos puros
+    public int Quantity { get; set; }         // Quantidade original
+    public int RemainingQuantity { get; set; } // Saldo disponível
+
+    public DateTime? ExpiresAt { get; set; }
+    public LotSource Source { get; set; }
+}
+```
+
+**Importante:** `ServiceBalanceLot` **NÃO** possui `VideoFormatId` ou `EditingStyleId`. Para validar um pedido:
+1. O sistema lê o `ContractId` do lote
+2. Busca o `ClientContract` pai
+3. Extrai os snapshots (`SnapshotVideoFormatName`, `SnapshotEditingStyleName`, etc.)
+4. Valida o pedido contra os dados imutáveis do contrato
+
+Isso garante que mesmo que `VideoFormat` ou `EditingStyle` sejam alterados/excluídos do catálogo, o lote de saldo do cliente permanece íntegro e auditável.
+
 ### 3.5. Anti Over-Posting (DTOs Estritos)
 
 - Requisições HTTP jamais mapeiam diretamente para entidades de domínio.
 - Cada endpoint tem DTOs específicos de entrada e saída (ex: `CreateOrderRequest`, `AdminUserDto`).
 - Propriedades sensíveis (`PasswordHash`, `Role`, `Balance`) **não existem** nos DTOs de entrada.
+
+### 3.6. Ordem Correta das Entidades (Hierarquia de Dependência)
+
+```
+[Offer] (Catálogo Comercial)
+    │
+    ├── (FK) ───────────────────────┐
+    │                               │
+    ▼                               │
+[ClientContract] (Snapshot Imutável) │
+│ - SnapshotOfferName (string)      │
+│ - SnapshotPrice (decimal)         │
+│ - SnapshotVideoFormatName (string)│
+│ - SnapshotEditingStyleName (string) │
+│                                   │
+│ (Gera)                            │
+▼                                   │
+[ServiceBalanceLot] (Carteira) ◄─────┘
+- ContractId (FK)
+- UserId (FK)
+- Quantity (int)
+- RemainingQuantity (int)
+- ExpiresAt (DateTime?)
+
+(Debita 1 crédito)
+│
+▼
+[Order] (Pedido de Edição)
+- ServiceBalanceLotId (FK)
+- VideoFormatId (FK, herdado do contrato)
+- EditingStyleId (FK, herdado do contrato)
+```
+
+**Regra:** Apenas `Offer` possui FKs ativas para `VideoFormat` e `EditingStyle`. `ClientContract` armazena snapshots de texto. `ServiceBalanceLot` conhece apenas `ContractId`. `Order` herda `VideoFormatId` do lote de saldo.
 
 ### 3.6. Autenticação e Autorização
 
@@ -114,6 +181,28 @@ O consumo de saldo (`ServiceBalanceLot`) obedece estritamente ao First-In, First
 - **RBAC** com 3 roles: `Client`, `Editor`, `Admin`.
 - Roles ficam em tabela segregada (`user_roles`), não na tabela `users`.
 - IDs de usuário no payload são ignorados — o sistema usa **sempre** o `sub` do token JWT.
+
+### 3.7. Transação Atômica com `ITransaction`
+
+Para garantir atomicidade sem acoplamento com EF Core, a camada `Application` usa abstração `ITransaction`:
+
+```csharp
+public interface ITransaction {
+    Task BeginAsync(CancellationToken cancellationToken);
+    Task CommitAsync(CancellationToken cancellationToken);
+    Task RollbackAsync(CancellationToken cancellationToken);
+    void Dispose();
+}
+```
+
+**Uso em Criação de Pedidos:**
+1. `BeginAsync()` inicia transação
+2. Decrementa `RemainingQuantity` do lote
+3. Cria `Order` com FK herdada do contrato
+4. Se falhar: `RollbackAsync()` preserva saldo
+5. Se sucesso: `CommitAsync()` persiste mudanças
+
+Isso previne cenários onde saldo é debitado mas pedido falha por FK inválida.
 
 ---
 
