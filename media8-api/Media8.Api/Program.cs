@@ -12,10 +12,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
-    });
+.AddJsonOptions(options =>
+{
+// Manter PascalCase nativo do C# (não converter para camelCase)
+options.JsonSerializerOptions.PropertyNamingPolicy = null;
+options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+});
 builder.Services.AddEndpointsApiExplorer();
 
 // Add CORS

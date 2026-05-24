@@ -61,15 +61,21 @@ private static UnifiedServiceBalanceDto MapToUnifiedDto(ServiceBalanceLot lot)
 return new UnifiedServiceBalanceDto
 {
 Id = lot.Id,
-// ServiceName vem do snapshot do contrato (não do VideoFormat FK)
-ServiceName = lot.Contract?.SnapshotVideoFormatName ?? "Formato Desconhecido",
-// PackageName vem do snapshot do contrato
-PackageName = lot.Contract?.SnapshotOfferName ?? "Contrato Sem Nome",
+
+// Snapshot Comercial
+SnapshotOfferName = lot.Contract?.SnapshotOfferName ?? "Contrato Sem Nome",
+SnapshotVideoQuantity = lot.Contract?.SnapshotVideoQuantity ?? lot.Quantity,
+ContractType = lot.Contract?.Offer?.ContractType.ToString() ?? "Desconhecido",
+
+// Snapshot Técnico
+SnapshotVideoFormatName = lot.Contract?.SnapshotVideoFormatName ?? "Formato Desconhecido",
+SnapshotEditingStyleName = lot.Contract?.SnapshotEditingStyleName ?? "Estilo Desconhecido",
+SnapshotMaxDurationSeconds = lot.Contract?.SnapshotMaxDurationSeconds ?? 0,
+
+// Dados do Lote
 RemainingQuantity = lot.RemainingQuantity,
-// Snapshot Quantity is stored in Contract
 TotalQuantity = lot.Contract?.SnapshotVideoQuantity ?? lot.Quantity,
 ExpiresAt = lot.ExpiresAt,
-// Usar CreatedAt ao invés de PurchasedAt (removido)
 PurchaseDate = lot.CreatedAt,
 Status = lot.ExpiresAt.HasValue && lot.ExpiresAt.Value < DateTime.UtcNow ? "expired" : "active"
 };

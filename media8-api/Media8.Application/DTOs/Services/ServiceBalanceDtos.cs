@@ -23,12 +23,28 @@ public class ConsumeServiceResponse
 
 public class UnifiedServiceBalanceDto
 {
-    public Guid Id { get; set; } // Balance Lot ID
-    public string ServiceName { get; set; } = string.Empty; // e.g. "Reels Estratégico"
-    public string PackageName { get; set; } = string.Empty; // e.g. "Plano Growth" (Snapshot)
-    public int RemainingQuantity { get; set; }
-    public int TotalQuantity { get; set; } // Snapshot Quantity
-    public DateTime? ExpiresAt { get; set; }
-    public DateTime PurchaseDate { get; set; }
-    public string Status { get; set; } = "active"; // active, expired, depleted
+public Guid Id { get; set; } // Balance Lot ID
+
+// ==========================================
+// SNAPSHOT COMERCIAL (Imutável)
+// ==========================================
+public string SnapshotOfferName { get; set; } = string.Empty; // e.g. "Plano Growth"
+public int SnapshotVideoQuantity { get; set; } // Snapshot Quantity
+public string ContractType { get; set; } = string.Empty; // e.g. "Assinatura", "Pacote"
+
+// ==========================================
+// SNAPSHOT TÉCNICO (Imutável - Sem FKs)
+// ==========================================
+public string SnapshotVideoFormatName { get; set; } = string.Empty; // e.g. "Reels Premium"
+public string SnapshotEditingStyleName { get; set; } = string.Empty; // e.g. "Corporativo"
+public int SnapshotMaxDurationSeconds { get; set; } // Duração máxima em segundos
+
+// ==========================================
+// DADOS DE ESTADO DO LOTE
+// ==========================================
+public int RemainingQuantity { get; set; } // Saldo restante
+public int TotalQuantity { get; set; } // Total original
+public DateTime? ExpiresAt { get; set; } // Data de expiração
+public DateTime PurchaseDate { get; set; } // Data de compra
+public string Status { get; set; } = "active"; // active, expired, depleted
 }
