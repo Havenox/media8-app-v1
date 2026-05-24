@@ -193,6 +193,30 @@ var order = await _orderRepository.GetByIdAsync(id);
 return order == null ? null : MapToResponse(order);
 }
 
+public async Task<OrderResponse?> UpdateAsync(Guid id, UpdateOrderRequest request, Guid requestingUserId, bool isAdmin)
+{
+    var order = await _orderRepository.GetByIdAsync(id);
+    if (order == null) return null;
+
+    // Authorization: only admin or order owner can update
+    if (!isAdmin && order.ClientId != requestingUserId && order.EditorId != requestingUserId)
+    {
+        throw new BusinessRuleException("Você não tem permissão para atualizar este pedido.", "UNAUTHORIZED");
+    }
+
+    if (request.Title != null) order.Title = request.Title;
+    if (request.Briefing != null) order.Briefing = request.Briefing;
+    if (request.SourceFilesUrl != null) order.SourceFilesUrl = request.SourceFilesUrl;
+    if (request.FinalVideoUrl != null) order.FinalVideoUrl = request.FinalVideoUrl;
+
+    order.UpdatedAt = DateTime.UtcNow;
+    await _orderRepository.UpdateAsync(order);
+
+    _logger.LogInformation("✅ Pedido {OrderId} atualizado por {UserId}.", id, requestingUserId);
+
+    return MapToResponse(order);
+}
+
 private static OrderResponse MapToResponse(Order order)
 {
 return new OrderResponse
