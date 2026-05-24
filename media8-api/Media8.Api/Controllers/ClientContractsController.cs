@@ -135,10 +135,21 @@ _serviceBalanceService = serviceBalanceService;
 [Authorize(Roles = "Admin")]
 public async Task<ActionResult<ClientContractResponse>> CreateContract([FromBody] CreateClientContractRequest request)
 {
-// Buscar oferta para copiar dados do snapshot
-var offer = await _context.Offers.FindAsync(request.OfferId);
+// Buscar oferta COM relacionamentos para capturar snapshot completo
+var offer = await _context.Offers
+.Include(o => o.VideoFormat)
+.Include(o => o.EditingStyle)
+.FirstOrDefaultAsync(o => o.Id == request.OfferId);
+
 if (offer == null)
 return NotFound(new { message = $"Oferta com ID {request.OfferId} não encontrada." });
+
+// Validar se a oferta possui formato de vídeo e estilo de edição
+if (offer.VideoFormat == null)
+return BadRequest(new { message = "Oferta não possui formato de vídeo associado." });
+
+if (offer.EditingStyle == null)
+return BadRequest(new { message = "Oferta não possui estilo de edição associado." });
 
 // Calcular data de expiração baseada no ValidityDays da oferta
 DateTime? expiresAt = null;
@@ -157,11 +168,23 @@ ActivatedAt = DateTime.UtcNow,
 ExpiresAt = expiresAt,
 Status = AssignmentStatus.Active,
 
-// SNAPSHOT IMUTÁVEL - Cópia dos dados da oferta no momento da contratação
+// ==========================================
+// SNAPSHOT COMERCIAL (Imutável)
+// ==========================================
 SnapshotOfferName = offer.Name,
 SnapshotVideoQuantity = offer.VideoQuantity,
 SnapshotPrice = offer.Price,
 SnapshotValidityDays = offer.ValidityDays,
+SnapshotDeliveryDays = offer.DeliveryDays,
+SnapshotWarrantyDays = offer.LoyaltyMonths * 30, // Converte meses para dias
+
+// ==========================================
+// SNAPSHOT TÉCNICO (Imutável - Sem FKs)
+// ==========================================
+// Copia o NOME (string), não o ID. Se o formato/estilo mudar, o contrato permanece intacto.
+SnapshotVideoFormatName = offer.VideoFormat.Name,
+SnapshotEditingStyleName = offer.EditingStyle.Name,
+SnapshotMaxDurationSeconds = offer.MaxDurationSeconds,
 
 CreatedAt = DateTime.UtcNow,
 UpdatedAt = DateTime.UtcNow
