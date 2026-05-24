@@ -176,12 +176,25 @@ const getLotsAPI = async (userId: string): Promise<ServiceBalanceLot[]> => {
   return response.data;
 };
 
+// Helper: Sanitiza status para PascalCase (garantia extra)
+const sanitizeStatus = (status: string): string => {
+  const map: Record<string, string> = {
+    'active': 'Active',
+    'Active': 'Active',
+    'expired': 'Expired',
+    'Expired': 'Expired',
+    'all': 'All',
+    'All': 'All'
+  };
+  return map[status] || 'Active';
+};
+
 // NEW: Use Unified API (Snapshot Architecture)
 // PascalCase: Backend usa /ServiceBalances/MyBalances
 // Query params em PascalCase: Page, PageSize, Status (valores enum em PascalCase: Active)
 const getMyBalancesAPI = async (page = 1, pageSize = 50, status = 'Active'): Promise<{ data: import('../types/services').UnifiedServiceBalance[], total: number }> => {
   const response = await api.get('/ServiceBalances/MyBalances', {
-    params: { Page: page, PageSize: pageSize, Status: status }
+    params: { Page: page, PageSize: pageSize, Status: sanitizeStatus(status) }
   });
   // API returns direct array currently in standard controller return, but might be wrapped if we used PaginatedResponse.
   // Let's check Controller: return Ok(dtos) with Header.
@@ -195,7 +208,7 @@ const getMyBalancesAPI = async (page = 1, pageSize = 50, status = 'Active'): Pro
 // PascalCase: Backend usa /ServiceBalances/{clientId}
 const getClientBalancesAPI = async (clientId: string, page = 1, pageSize = 50, status = 'Active'): Promise<{ data: import('../types/services').UnifiedServiceBalance[], total: number }> => {
   const response = await api.get(`/ServiceBalances/${clientId}`, {
-    params: { Page: page, PageSize: pageSize, Status: status }
+    params: { Page: page, PageSize: pageSize, Status: sanitizeStatus(status) }
   });
   return {
     data: response.data,
@@ -222,15 +235,17 @@ export const serviceBalanceService = {
 
   /**
    * Get Paged Balances for Current User (Client Dashboard)
+   * PascalCase: Status='Active' para backend .NET
    */
-  async getMyBalances(page = 1, pageSize = 50, status = 'active') {
+  async getMyBalances(page = 1, pageSize = 50, status = 'Active') {
     return getMyBalancesAPI(page, pageSize, status);
   },
 
   /**
    * Get Paged Balances for Specific Client (Admin View)
+   * PascalCase: Status='Active' para backend .NET
    */
-  async getClientBalances(clientId: string, page = 1, pageSize = 50, status = 'active') {
+  async getClientBalances(clientId: string, page = 1, pageSize = 50, status = 'Active') {
     return getClientBalancesAPI(clientId, page, pageSize, status);
   },
 

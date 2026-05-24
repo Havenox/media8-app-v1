@@ -16,20 +16,36 @@ interface UseServiceBalancesOptions {
 
 import { getNextPageParam } from '@/lib/pagination';
 
+// Helper: Converte status para PascalCase (backend .NET enum)
+const mapStatusToPascalCase = (status: string): string => {
+  const statusMap: Record<string, string> = {
+    'active': 'Active',
+    'expired': 'Expired',
+    'all': 'All',
+    'Active': 'Active',
+    'Expired': 'Expired',
+    'All': 'All'
+  };
+  return statusMap[status] || 'Active';
+};
+
 export const useServiceBalances = ({
   clientId,
   status = 'active',
   pageSize = 20,
   enabled = true
 }: UseServiceBalancesOptions = {}) => {
+  // Sanitiza status para PascalCase antes de enviar
+  const pascalStatus = mapStatusToPascalCase(status);
+  
   return useInfiniteQuery({
     queryKey: ['service-balances', clientId || 'me', status],
     queryFn: async ({ pageParam = 1 }) => {
       // Determine which service method to call
       if (clientId) {
-        return serviceBalanceService.getClientBalances(clientId, pageParam, pageSize, status);
+        return serviceBalanceService.getClientBalances(clientId, pageParam, pageSize, pascalStatus);
       } else {
-        return serviceBalanceService.getMyBalances(pageParam, pageSize, status);
+        return serviceBalanceService.getMyBalances(pageParam, pageSize, pascalStatus);
       }
     },
     getNextPageParam: (lastPage, allPages) => getNextPageParam(lastPage, allPages, pageSize),
@@ -55,7 +71,8 @@ export const useAllServiceBalances = (userId?: string) => {
     queryFn: async () => {
       // Fetch large page to simulate "All" for client-side filtering
       // Ideal fix: Refactor ServicesPage to server-side filtering
-      const result = await serviceBalanceService.getMyBalances(1, 100, 'all');
+      // PascalCase: 'All' para backend .NET
+      const result = await serviceBalanceService.getMyBalances(1, 100, 'All');
       return result.data;
     },
     enabled: !!userId
