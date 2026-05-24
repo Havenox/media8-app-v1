@@ -65,7 +65,7 @@ const [sessionTimeline, setSessionTimeline] = useState<OrderTimeline[]>([]);
 // Set initial status when order loads
 React.useEffect(() => {
 if (order && newStatus === null) {
-setNewStatus(order.status);
+setNewStatus(order.Status);
 }
 }, [order, newStatus]);
 
@@ -246,11 +246,11 @@ setNewStatus(order.status);
           </Button>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-foreground">{order.title}</h1>
-              <StatusBadge status={order.status} />
+              <h1 className="text-2xl font-bold text-foreground">{order.Title}</h1>
+              <StatusBadge status={order.Status} />
             </div>
             <p className="text-muted-foreground text-sm mt-1">
-              Pedido #{order.id} • Criado em {format(new Date(order.createdAt), "dd 'de' MMMM", { locale: ptBR })}
+              Pedido #{order.Id} • Criado em {format(new Date(order.CreatedAt), "dd 'de' MMMM", { locale: ptBR })}
             </p>
           </div>
         </div>
@@ -271,7 +271,7 @@ setNewStatus(order.status);
               <CardContent>
                 <div className="prose prose-sm max-w-none">
                   <pre className="whitespace-pre-wrap font-sans text-foreground bg-muted/50 p-4 rounded-lg">
-                    {order.briefing}
+                    {order.Briefing}
                   </pre>
                 </div>
               </CardContent>
@@ -301,8 +301,8 @@ setNewStatus(order.status);
                     </div>
                   ) : (
                     allTimeline.map((entry, index) => {
-                      const isComment = entry.actionType === 'Comment';
-                      const isCurrentUser = entry.userId === user?.Id;
+                      const isComment = entry.ActionType === 'Comment';
+                      const isCurrentUser = entry.UserId === user?.Id;
 
                       return (
                         <motion.div
@@ -312,8 +312,8 @@ setNewStatus(order.status);
                           transition={{ delay: index * 0.05 }}
                           className={`flex gap-4 ${isComment ? 'items-start' : 'items-center'}`}
                         >
-                          <div className={`p-2 rounded-lg border ${getTimelineColor(entry.actionType)}`}>
-                            {getTimelineIcon(entry.actionType)}
+                          <div className={`p-2 rounded-lg border ${getTimelineColor(entry.ActionType)}`}>
+                            {getTimelineIcon(entry.ActionType)}
                           </div>
                           <div className="flex-1">
                             {isComment ? (
@@ -323,16 +323,16 @@ setNewStatus(order.status);
                                     {isCurrentUser ? 'Você' : 'Editor'}
                                   </span>
                                   <span className="text-xs text-muted-foreground">
-                                    {format(new Date(entry.timestamp), "dd MMM 'às' HH:mm", { locale: ptBR })}
+                                    {format(new Date(entry.Timestamp), "dd MMM 'às' HH:mm", { locale: ptBR })}
                                   </span>
                                 </div>
-                                <p className="text-foreground text-sm">{entry.content}</p>
+                                <p className="text-foreground text-sm">{entry.Content}</p>
                               </div>
                             ) : (
                               <div className="flex items-center justify-between">
-                                <p className="text-sm text-foreground">{entry.content}</p>
+                                <p className="text-sm text-foreground">{entry.Content}</p>
                                 <span className="text-xs text-muted-foreground">
-                                  {format(new Date(entry.timestamp), "dd MMM 'às' HH:mm", { locale: ptBR })}
+                                  {format(new Date(entry.Timestamp), "dd MMM 'às' HH:mm", { locale: ptBR })}
                                 </span>
                               </div>
                             )}
@@ -385,7 +385,7 @@ setNewStatus(order.status);
                     <span className="text-sm">Prazo</span>
                   </div>
                   <span className="font-medium text-foreground text-sm">
-                    {format(new Date(order.deadline), "dd 'de' MMM", { locale: ptBR })}
+                    {format(new Date(order.Deadline), "dd 'de' MMM", { locale: ptBR })}
                   </span>
                 </div>
                 <Separator />
@@ -405,7 +405,7 @@ setNewStatus(order.status);
                     <span className="text-sm">Criado em</span>
                   </div>
                   <span className="font-medium text-foreground text-sm">
-                    {format(new Date(order.createdAt), "dd/MM/yy", { locale: ptBR })}
+                    {format(new Date(order.CreatedAt), "dd/MM/yy", { locale: ptBR })}
                   </span>
                 </div>
                 {order.serviceType && (
@@ -434,7 +434,7 @@ setNewStatus(order.status);
               </CardHeader>
               <CardContent className="space-y-3">
                 <a
-                  href={order.sourceFilesUrl}
+                  href={order.SourceFilesUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/20 hover:bg-muted/50 transition-all group"
@@ -451,9 +451,9 @@ setNewStatus(order.status);
                   <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                 </a>
 
-                {order.finalVideoUrl && (
+                {order.FinalVideoUrl && (
                   <a
-                    href={order.finalVideoUrl}
+                    href={order.FinalVideoUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 p-3 rounded-lg border border-success/20 bg-success/5 hover:bg-success/10 transition-all group"
@@ -483,7 +483,7 @@ setNewStatus(order.status);
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">Alterar Status</label>
-                  <Select value={newStatus || order.status} onValueChange={(v) => setNewStatus(v as OrderStatus)}>
+                  <Select value={newStatus || order.Status} onValueChange={(v) => setNewStatus(v as OrderStatus)}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -500,13 +500,13 @@ setNewStatus(order.status);
 variant="outline"
 className="w-full"
 onClick={handleUpdateStatus}
-disabled={!newStatus || newStatus === order.status || updateStatusMutation.isPending}
+disabled={!newStatus || newStatus === order.Status || updateStatusMutation.isPending}
 >
 <Edit className="h-4 w-4" />
 Atualizar Status
 </Button>
 
-{order.status === 'InReview' && (
+{order.Status === 'InReview' && (
 <Button
 variant="premium"
 className="w-full"
@@ -519,10 +519,10 @@ Aprovar Vídeo
 )}
 
 {/* Cancel Order Button (Client only, with timer) */}
-{user?.Role === 'Client' && (order.status === 'Draft' || order.status === 'Pending') && (
+{user?.Role === 'Client' && (order.Status === 'Draft' || order.Status === 'Pending') && (
 <CancelOrderButton
-orderId={order.id}
-createdAt={order.createdAt}
+orderId={order.Id}
+createdAt={order.CreatedAt}
 cancellationWindowHours={cancellationWindowHours}
 onSuccess={() => navigate('/orders')}
 />

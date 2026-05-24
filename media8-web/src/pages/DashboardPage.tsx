@@ -205,7 +205,7 @@ const ClientDashboard: React.FC = () => {
             <div className="space-y-4">
               {orders.slice(0, 4).map((order) => (
                 <motion.div
-                  key={order.id}
+                  key={order.Id}
                   whileHover={{ x: 4 }}
                   className="flex items-center justify-between p-4 rounded-lg border border-border hover:border-primary/20 hover:bg-muted/50 transition-all cursor-pointer"
                 >
@@ -214,16 +214,16 @@ const ClientDashboard: React.FC = () => {
                       <Video className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-foreground">{order.title}</h4>
+                      <h4 className="font-medium text-foreground">{order.Title}</h4>
                       <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                         <Calendar className="h-3 w-3" />
                         <span>
-                          Prazo: {format(new Date(order.deadline), "dd 'de' MMM", { locale: ptBR })}
+                          Prazo: {format(new Date(order.Deadline), "dd 'de' MMM", { locale: ptBR })}
                         </span>
                       </div>
                     </div>
                   </div>
-                  <StatusBadge status={order.status} />
+                  <StatusBadge status={order.Status} />
                 </motion.div>
               ))}
               {orders.length === 0 && (
@@ -464,7 +464,7 @@ const AdminDashboard: React.FC = () => {
             <div className="space-y-4">
               {orders.slice(0, 4).map((order) => (
                 <motion.div
-                  key={order.id}
+                  key={order.Id}
                   whileHover={{ x: 4 }}
                   className="flex items-center justify-between p-4 rounded-lg border border-border hover:border-primary/20 hover:bg-muted/50 transition-all cursor-pointer"
                 >
@@ -473,16 +473,16 @@ const AdminDashboard: React.FC = () => {
                       <Video className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-foreground">{order.title}</h4>
+                      <h4 className="font-medium text-foreground">{order.Title}</h4>
                       <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                         <Calendar className="h-3 w-3" />
                         <span>
-                          Prazo: {format(new Date(order.deadline), "dd 'de' MMM", { locale: ptBR })}
+                          Prazo: {format(new Date(order.Deadline), "dd 'de' MMM", { locale: ptBR })}
                         </span>
                       </div>
                     </div>
                   </div>
-                  <StatusBadge status={order.status} />
+                  <StatusBadge status={order.Status} />
                 </motion.div>
               ))}
               {orders.length === 0 && (

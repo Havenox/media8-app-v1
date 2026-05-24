@@ -59,7 +59,7 @@ const EditsPage: React.FC = () => {
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
       if (statusFilter === 'all') return true;
-      return order.status === statusFilter;
+      return order.Status === statusFilter;
     });
   }, [orders, statusFilter]);
 
@@ -231,7 +231,7 @@ const EditsPage: React.FC = () => {
             <div className="space-y-4">
               {filteredOrders.map((order) => (
                 <motion.div
-                  key={order.id}
+                  key={order.Id}
                   whileHover={{ x: 4 }}
                   className="flex items-center justify-between p-4 rounded-lg border border-border hover:border-primary/20 hover:bg-muted/50 transition-all"
                 >
@@ -240,16 +240,16 @@ const EditsPage: React.FC = () => {
                       <Scissors className="h-6 w-6 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-foreground truncate">{order.title}</h4>
+                      <h4 className="font-medium text-foreground truncate">{order.Title}</h4>
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <User className="h-3 w-3" />
-                          <span>Cliente: {getClientName(order.clientId)}</span>
+                          <span>Cliente: {getClientName(order.ClientId)}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
                           <span>
-                            Prazo: {format(new Date(order.deadline), "dd/MM/yyyy", { locale: ptBR })}
+                            Prazo: {format(new Date(order.Deadline), "dd/MM/yyyy", { locale: ptBR })}
                           </span>
                         </div>
                       </div>
@@ -257,7 +257,7 @@ const EditsPage: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <StatusBadge status={order.status} />
+                    <StatusBadge status={order.Status} />
                     
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -270,15 +270,15 @@ const EditsPage: React.FC = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'InProgress')}>
+                        <DropdownMenuItem onClick={() => handleStatusChange(order.Id, 'InProgress')}>
                           <Play className="h-4 w-4 mr-2" />
                           Iniciar Edição
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'InReview')}>
+                        <DropdownMenuItem onClick={() => handleStatusChange(order.Id, 'InReview')}>
                           <Eye className="h-4 w-4 mr-2" />
                           Enviar para Revisão
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'Approved')}>
+                        <DropdownMenuItem onClick={() => handleStatusChange(order.Id, 'Approved')}>
                           <CheckCircle2 className="h-4 w-4 mr-2" />
                           Marcar Aprovado
                         </DropdownMenuItem>

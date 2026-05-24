@@ -62,8 +62,8 @@ const OrdersPage: React.FC = () => {
   // Filter orders based on search and status
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
-      const matchesSearch = order.title.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+      const matchesSearch = order.Title.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || order.Status === statusFilter;
       return matchesSearch && matchesStatus;
     });
   }, [orders, searchQuery, statusFilter]);
@@ -163,7 +163,7 @@ const OrdersPage: React.FC = () => {
       {/* Orders Grid */}
       <motion.div variants={containerVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredOrders.map((order) => (
-          <motion.div key={order.id} variants={itemVariants}>
+          <motion.div key={order.Id} variants={itemVariants}>
             <Card variant="elevated" className="hover:border-primary/20 transition-all group">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
@@ -172,9 +172,9 @@ const OrdersPage: React.FC = () => {
                       <Video className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <CardTitle className="text-base line-clamp-1">{order.title}</CardTitle>
+                      <CardTitle className="text-base line-clamp-1">{order.Title}</CardTitle>
                       <div className="flex items-center gap-2 mt-1">
-                        <StatusBadge status={order.status} />
+                        <StatusBadge status={order.Status} />
                       </div>
                     </div>
                   </div>
@@ -186,7 +186,7 @@ const OrdersPage: React.FC = () => {
                     </DropdownMenuTrigger>
 <DropdownMenuContent align="end" className="w-48">
 <DropdownMenuItem asChild>
-<Link to={`/orders/${order.id}`}>
+<Link to={`/orders/${order.Id}`}>
 <Eye className="h-4 w-4 mr-2" />
 Ver Detalhes
 </Link>
@@ -195,19 +195,19 @@ Ver Detalhes
 <Edit className="h-4 w-4 mr-2" />
 Editar
 </DropdownMenuItem>
-              {order.finalVideoUrl && (
+              {order.FinalVideoUrl && (
                 <DropdownMenuItem>
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Ver Vídeo Final
                 </DropdownMenuItem>
               )}
-              {canCancelOrder(order.status) && (
+              {canCancelOrder(order.Status) && (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <CancelOrderButton
-                      orderId={order.id}
-                      createdAt={order.createdAt}
+                      orderId={order.Id}
+                      createdAt={order.CreatedAt}
                       cancellationWindowHours={cancellationWindowHours}
                       variant="menu"
                       onSuccess={() => {}}
@@ -215,12 +215,12 @@ Editar
                   </DropdownMenuItem>
                 </>
               )}
-              {!canCancelOrder(order.status) && (
+              {!canCancelOrder(order.Status) && (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     className="text-destructive"
-                    onClick={() => handleDeleteOrder(order.id)}
+                    onClick={() => handleDeleteOrder(order.Id)}
                     disabled={deleteOrderMutation.isPending}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
@@ -234,15 +234,15 @@ Editar
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                  {order.briefing}
+                  {order.Briefing}
                 </p>
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-4 text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      <span>{format(new Date(order.deadline), "dd MMM", { locale: ptBR })}</span>
+                      <span>{format(new Date(order.Deadline), "dd MMM", { locale: ptBR })}</span>
                     </div>
-                    {order.editorId && (
+                    {order.EditorId && (
                       <div className="flex items-center gap-1">
                         <User className="h-4 w-4" />
                         <span>Editor atribuído</span>
@@ -250,7 +250,7 @@ Editar
                     )}
                   </div>
                   <Button variant="ghost" size="sm" asChild>
-                    <Link to={`/orders/${order.id}`}>
+                    <Link to={`/orders/${order.Id}`}>
                       Ver mais
                       <ExternalLink className="h-3 w-3 ml-1" />
                     </Link>
