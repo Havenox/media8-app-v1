@@ -17,9 +17,10 @@ _context = context;
 _dbSet = context.Set<T>();
 }
 
-public async Task<IDbContextTransaction> BeginTransactionAsync()
+public async Task<ITransaction> BeginTransactionAsync()
 {
-return await _context.Database.BeginTransactionAsync();
+var dbContextTransaction = await _context.Database.BeginTransactionAsync();
+return new Transaction(dbContextTransaction);
 }
 
     public virtual async Task<T?> GetByIdAsync(Guid id)

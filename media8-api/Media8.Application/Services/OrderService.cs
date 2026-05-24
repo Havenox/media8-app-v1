@@ -30,7 +30,14 @@ if (balanceLot.RemainingQuantity <= 0)
 throw new InvalidOperationException("Saldo insuficiente.");
 }
 
-// 1. Decrementa o saldo
+// Inicia transação para garantir atomicidade
+ITransaction? transaction = null;
+
+try
+{
+transaction = await _balanceRepository.BeginTransactionAsync();
+
+// 1. Decrementa o saldo dentro da transação
 balanceLot.RemainingQuantity -= 1;
 await _balanceRepository.UpdateAsync(balanceLot);
 
@@ -59,7 +66,22 @@ await _orderRepository.AddAsync(order);
 
 _logger.LogInformation("✅ Pedido {OrderId} criado com sucesso.", order.Id);
 
+// 3. Commit da transação
+await transaction.CommitAsync();
+
 return MapToResponse(order);
+}
+catch (Exception ex)
+{
+// Rollback em caso de erro
+if (transaction != null)
+{
+await transaction.RollbackAsync();
+}
+
+_logger.LogError(ex, "❌ Erro ao criar pedido. Rollback executado.");
+throw;
+}
 }
 
 public async Task<OrderResponse> CancelOrderAsync(Guid orderId)
