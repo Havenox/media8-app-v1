@@ -81,7 +81,7 @@ export const useUpdateClientContract = () => {
       clientContractService.update(id, data),
     onSuccess: (updatedContract) => {
       queryClient.invalidateQueries({ queryKey: clientContractKeys.all });
-      queryClient.invalidateQueries({ queryKey: clientContractKeys.detail(updatedContract.id) });
+      queryClient.invalidateQueries({ queryKey: clientContractKeys.detail(updatedContract.Id) });
       toast.success('Contrato atualizado com sucesso!');
     },
     onError: (error) => {
