@@ -19,42 +19,43 @@ public class ServiceBalancesController : ControllerBase
         _balanceRepository = balanceRepository;
     }
 
-    [HttpGet("my-balances")]
-    public async Task<ActionResult<IEnumerable<UnifiedServiceBalanceDto>>> GetMyBalances(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
-        [FromQuery] string? status = "active")
-    {
-        var currentUserIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (currentUserIdString == null || !Guid.TryParse(currentUserIdString, out var currentUserId))
-        {
-            return Unauthorized();
-        }
+// Admin Endpoint to see client balances - MUST come FIRST to avoid conflict with "my-balances"
+[HttpGet("{clientId}")]
+[Authorize(Roles = "Admin")]
+public async Task<ActionResult<IEnumerable<UnifiedServiceBalanceDto>>> GetClientBalances(
+  Guid clientId,
+  [FromQuery] int page = 1,
+  [FromQuery] int pageSize = 20,
+  [FromQuery] string? status = "active")
+{
+  var (balances, total) = await _balanceRepository.GetPagedByUserIdAsync(clientId, page, pageSize, status);
 
-        var (balances, total) = await _balanceRepository.GetPagedByUserIdAsync(currentUserId, page, pageSize, status);
+  var dtos = balances.Select(MapToUnifiedDto);
 
-        var dtos = balances.Select(MapToUnifiedDto);
+  Response.Headers.Append("X-Total-Count", total.ToString());
+  return Ok(dtos);
+}
 
-        Response.Headers.Append("X-Total-Count", total.ToString());
-        return Ok(dtos);
-    }
-    
-    // Admin Endpoint to see client balances
-    [HttpGet("{clientId}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<IEnumerable<UnifiedServiceBalanceDto>>> GetClientBalances(
-        Guid clientId,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
-        [FromQuery] string? status = "active")
-    {
-         var (balances, total) = await _balanceRepository.GetPagedByUserIdAsync(clientId, page, pageSize, status);
+// User's own balances - comes AFTER to avoid "my-balances" being interpreted as clientId
+[HttpGet("my-balances")]
+public async Task<ActionResult<IEnumerable<UnifiedServiceBalanceDto>>> GetMyBalances(
+  [FromQuery] int page = 1,
+  [FromQuery] int pageSize = 20,
+  [FromQuery] string? status = "active")
+{
+  var currentUserIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+  if (currentUserIdString == null || !Guid.TryParse(currentUserIdString, out var currentUserId))
+  {
+    return Unauthorized();
+  }
 
-        var dtos = balances.Select(MapToUnifiedDto);
+  var (balances, total) = await _balanceRepository.GetPagedByUserIdAsync(currentUserId, page, pageSize, status);
 
-        Response.Headers.Append("X-Total-Count", total.ToString());
-        return Ok(dtos);
-    }
+  var dtos = balances.Select(MapToUnifiedDto);
+
+  Response.Headers.Append("X-Total-Count", total.ToString());
+  return Ok(dtos);
+}
 
 private static UnifiedServiceBalanceDto MapToUnifiedDto(ServiceBalanceLot lot)
 {
