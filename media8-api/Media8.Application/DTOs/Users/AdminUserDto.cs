@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace Media8.Application.DTOs.Users;
 
 public class AdminUserDto
@@ -11,7 +9,6 @@ public class AdminUserDto
   public DateTime CreatedAt { get; set; }
   public bool IsActive { get; set; }
 
-  [JsonPropertyName("role")]
   public string Role { get; set; } = string.Empty;
   public List<string> Roles { get; set; } = new List<string>();
 
