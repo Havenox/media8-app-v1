@@ -19,43 +19,43 @@ public class ServiceBalancesController : ControllerBase
         _balanceRepository = balanceRepository;
     }
 
-// User's own balances - HIGHER priority (Order = 1) to avoid "my-balances" being interpreted as clientId
-[HttpGet("my-balances", Order = 1)]
-public async Task<ActionResult<IEnumerable<UnifiedServiceBalanceDto>>> GetMyBalances(
-  [FromQuery] int page = 1,
-  [FromQuery] int pageSize = 20,
-  [FromQuery] string? status = "active")
-{
-  var currentUserIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-  if (currentUserIdString == null || !Guid.TryParse(currentUserIdString, out var currentUserId))
-  {
-    return Unauthorized();
-  }
+    // User's own balances - rota específica para evitar conflito
+    [HttpGet("my-balances")]
+    public async Task<ActionResult<IEnumerable<UnifiedServiceBalanceDto>>> GetMyBalances(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? status = "active")
+    {
+        var currentUserIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (currentUserIdString == null || !Guid.TryParse(currentUserIdString, out var currentUserId))
+        {
+            return Unauthorized();
+        }
 
-  var (balances, total) = await _balanceRepository.GetPagedByUserIdAsync(currentUserId, page, pageSize, status);
+        var (balances, total) = await _balanceRepository.GetPagedByUserIdAsync(currentUserId, page, pageSize, status);
 
-  var dtos = balances.Select(MapToUnifiedDto);
+        var dtos = balances.Select(MapToUnifiedDto);
 
-  Response.Headers.Append("X-Total-Count", total.ToString());
-  return Ok(dtos);
-}
+        Response.Headers.Append("X-Total-Count", total.ToString());
+        return Ok(dtos);
+    }
 
-// Admin Endpoint to see client balances - LOWER priority (Order = 2) so it doesn't intercept "my-balances"
-[HttpGet("{clientId}", Order = 2)]
-[Authorize(Roles = "Admin")]
-public async Task<ActionResult<IEnumerable<UnifiedServiceBalanceDto>>> GetClientBalances(
-  Guid clientId,
-  [FromQuery] int page = 1,
-  [FromQuery] int pageSize = 20,
-  [FromQuery] string? status = "active")
-{
-  var (balances, total) = await _balanceRepository.GetPagedByUserIdAsync(clientId, page, pageSize, status);
+    // Admin Endpoint - usa GUID explícito na query string, não na rota
+    [HttpGet("client")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<IEnumerable<UnifiedServiceBalanceDto>>> GetClientBalances(
+        [FromQuery] Guid clientId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? status = "active")
+    {
+        var (balances, total) = await _balanceRepository.GetPagedByUserIdAsync(clientId, page, pageSize, status);
 
-  var dtos = balances.Select(MapToUnifiedDto);
+        var dtos = balances.Select(MapToUnifiedDto);
 
-  Response.Headers.Append("X-Total-Count", total.ToString());
-  return Ok(dtos);
-}
+        Response.Headers.Append("X-Total-Count", total.ToString());
+        return Ok(dtos);
+    }
 
 private static UnifiedServiceBalanceDto MapToUnifiedDto(ServiceBalanceLot lot)
 {
