@@ -27,101 +27,141 @@ public class OrdersController : ControllerBase
         _settingsService = settingsService;
     }
 
-[HttpGet("available-balances")]
-public async Task<ActionResult<List<ServiceBalanceLot>>> GetAvailableBalances()
-{
-var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
-{
-return Unauthorized();
-}
+    [HttpGet("available-balances")]
+    [HttpGet("AvailableBalances")] // PascalCase alias for frontend compatibility
+    public async Task<ActionResult<List<ServiceBalanceLot>>> GetAvailableBalances()
+    {
+        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
+        {
+            return Unauthorized();
+        }
 
-try
-{
-var now = DateTime.UtcNow;
-var allLots = await _balanceRepository.FindAsync(l => l.UserId == userId);
+        try
+        {
+            var now = DateTime.UtcNow;
+            var allLots = await _balanceRepository.FindAsync(l => l.UserId == userId);
     
-var availableLots = allLots
-  .Where(l => l.RemainingQuantity > 0 
-              && (!l.ExpiresAt.HasValue || l.ExpiresAt.Value > now))
-  .ToList();
+            var availableLots = allLots
+                .Where(l => l.RemainingQuantity > 0 
+                            && (!l.ExpiresAt.HasValue || l.ExpiresAt.Value > now))
+                .ToList();
 
-return Ok(availableLots);
-}
-catch (Exception ex)
-{
-return BadRequest(new { message = ex.Message });
-}
-}
+            return Ok(availableLots);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 
-[HttpPost]
-public async Task<ActionResult<OrderResponse>> Create(CreateOrderRequest request)
-{
-var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
-{
-return Unauthorized();
-}
+    [HttpPost]
+    public async Task<ActionResult<OrderResponse>> Create(CreateOrderRequest request)
+    {
+        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
+        {
+            return Unauthorized();
+        }
 
-try
-{
-var balanceLot = await _balanceRepository.GetByIdAsync(request.ServiceBalanceLotId);
+        try
+        {
+            var balanceLot = await _balanceRepository.GetByIdAsync(request.ServiceBalanceLotId);
 
-if (balanceLot == null)
-{
-throw new BusinessRuleException("Lote de saldo não encontrado.", "BALANCE_LOT_NOT_FOUND");
-}
+            if (balanceLot == null)
+            {
+                throw new BusinessRuleException("Lote de saldo não encontrado.", "BALANCE_LOT_NOT_FOUND");
+            }
 
-if (balanceLot.UserId != userId)
-{
-throw new BusinessRuleException("Lote de saldo não pertence ao usuário.", "BALANCE_LOT_NOT_USER");
-}
+            if (balanceLot.UserId != userId)
+            {
+                throw new BusinessRuleException("Lote de saldo não pertence ao usuário.", "BALANCE_LOT_NOT_USER");
+            }
 
-if (balanceLot.RemainingQuantity <= 0)
-{
-throw new BusinessRuleException("Saldo insuficiente.", "INSUFFICIENT_BALANCE");
-}
+            if (balanceLot.RemainingQuantity <= 0)
+            {
+                throw new BusinessRuleException("Saldo insuficiente.", "INSUFFICIENT_BALANCE");
+            }
 
-if (balanceLot.ExpiresAt.HasValue && balanceLot.ExpiresAt.Value < DateTime.UtcNow)
-{
-throw new BusinessRuleException("Lote de saldo expirado.", "BALANCE_LOT_EXPIRED");
-}
+            if (balanceLot.ExpiresAt.HasValue && balanceLot.ExpiresAt.Value < DateTime.UtcNow)
+            {
+                throw new BusinessRuleException("Lote de saldo expirado.", "BALANCE_LOT_EXPIRED");
+            }
 
-var response = await _orderService.CreateAsync(request, userId, request.ServiceBalanceLotId);
-return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
-}
-catch (BusinessRuleException)
-{
-// Deixa o middleware global tratar e retornar 422
-throw;
-}
-catch (Exception ex)
-{
-return BadRequest(new { message = ex.Message });
-}
-}
+            var response = await _orderService.CreateAsync(request, userId, request.ServiceBalanceLotId);
+            return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
+        }
+        catch (BusinessRuleException)
+        {
+            // Deixa o middleware global tratar e retornar 422
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 
     [HttpGet]
-    public async Task<ActionResult<List<OrderResponse>>> GetAll()
+    public async Task<ActionResult<List<OrderResponse>>> GetAll(
+        [FromQuery] Guid? ClientId = null,
+        [FromQuery] Guid? EditorId = null,
+        [FromQuery] string? Status = null)
     {
-        // TODO: Filter based on role (Admin sees all, Client sees own via service logic)
-        // For now returning all for simplicity or implementation specific logic needs to be added to service
-        // Ideally service should have GetAllForUser(userId, role)
-        
+        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var currentUserId))
+            return Unauthorized();
+
+        var isAdmin = User.IsInRole("Admin");
         var orders = await _orderService.GetAllAsync();
+
+        // RBAC: Non-admin users can only see their own orders
+        if (!isAdmin)
+        {
+            orders = orders.Where(o => o.ClientId == currentUserId || o.EditorId == currentUserId).ToList();
+        }
+
+        // Apply optional filters
+        if (ClientId.HasValue)
+            orders = orders.Where(o => o.ClientId == ClientId.Value).ToList();
+        if (EditorId.HasValue)
+            orders = orders.Where(o => o.EditorId == EditorId.Value).ToList();
+        if (!string.IsNullOrEmpty(Status) && Enum.TryParse<Domain.Enums.OrderStatus>(Status, true, out var statusEnum))
+            orders = orders.Where(o => o.Status == statusEnum).ToList();
+
         return Ok(orders);
     }
 
-[HttpGet("{id}")]
-public async Task<ActionResult<OrderResponse>> GetById(Guid id)
-{
-var order = await _orderService.GetByIdAsync(id);
-if (order == null)
-{
-return NotFound();
-}
-return Ok(order);
-}
+    [HttpPut("{id}")]
+    public async Task<ActionResult<OrderResponse>> Update(Guid id, [FromBody] UpdateOrderRequest request)
+    {
+        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var currentUserId))
+            return Unauthorized();
+
+        try
+        {
+            var response = await _orderService.UpdateAsync(id, request, currentUserId, User.IsInRole("Admin"));
+            if (response == null) return NotFound();
+            return Ok(response);
+        }
+        catch (BusinessRuleException) { throw; }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<OrderResponse>> GetById(Guid id)
+    {
+        var order = await _orderService.GetByIdAsync(id);
+        if (order == null)
+        {
+            return NotFound();
+        }
+        return Ok(order);
+    }
 
     [HttpPost("{id}/cancel")]
     public async Task<ActionResult<OrderResponse>> Cancel(Guid id)
