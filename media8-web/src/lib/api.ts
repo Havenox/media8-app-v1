@@ -1,4 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { User } from '@/types/api';
 
 // API Base URL - configured via environment variable
 // Throws error if VITE_API_URL is not defined, preventing silent failures
@@ -34,13 +35,29 @@ export const removeStoredToken = (): void => {
   localStorage.removeItem(USER_KEY);
 };
 
-export const getStoredUser = () => {
-  const user = localStorage.getItem(USER_KEY);
-  return user ? JSON.parse(user) : null;
+export const getStoredUser = (): User | null => {
+  const userStr = localStorage.getItem(USER_KEY);
+  
+  // Segurança: previne parse de string vazia, "undefined" ou null
+  if (!userStr || userStr === 'undefined' || userStr.trim() === '') {
+    return null;
+  }
+  
+  try {
+    const parsed = JSON.parse(userStr);
+    return parsed as User;
+  } catch (error) {
+    console.error('[API] Failed to parse stored user:', error);
+    return null;
+  }
 };
 
-export const setStoredUser = (user: object): void => {
-  localStorage.setItem(USER_KEY, JSON.stringify(user));
+export const setStoredUser = (user: User): void => {
+  try {
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  } catch (error) {
+    console.error('[API] Failed to store user:', error);
+  }
 };
 
 // Request interceptor - add auth token

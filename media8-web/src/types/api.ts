@@ -72,13 +72,13 @@ export type UserCamelCase = Omit<User, 'Id' | 'Name' | 'Email' | 'Role' | 'Creat
 };
 
 export interface UserLoginRequest {
-  email: string;
-  password: string;
+  Email: string;
+  Password: string;
 }
 
 export interface UserLoginResponse {
-  token: string;
-  user: User;
+  Token: string;
+  User: User;
 }
 
 export interface UserRegisterRequest {

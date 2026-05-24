@@ -4,10 +4,10 @@ import { setStoredToken, setStoredUser, removeStoredToken, getStoredToken, getSt
 import { userService } from '@/services/userService';
 
 interface SignupData {
-  name: string;
-  email: string;
-  phone: string;
-  password: string;
+  Name: string;
+  Email: string;
+  Phone: string;
+  Password: string;
 }
 
 interface AuthContextType {
@@ -42,11 +42,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const checkAuth = async () => {
       const token = getStoredToken();
       const storedUser = getStoredUser();
-      
+
       if (token && storedUser) {
         // Verify user still exists in system
         try {
-          const existingUser = await userService.getById(storedUser.id);
+          // User is already in PascalCase from storage
+          const existingUser = await userService.getById(storedUser.Id);
           if (existingUser) {
             setUser(existingUser);
           } else {
@@ -66,8 +67,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (credentials: UserLoginRequest): Promise<void> => {
     try {
-      const { token, user } = await userService.login(credentials.email, credentials.password);
-      
+      // Backend returns PascalCase: Token, User
+      const response = await userService.login(credentials.Email, credentials.Password);
+      const token = response.Token;
+      const user = response.User;
+
       setStoredToken(token);
       setStoredUser(user);
       setUser(user);
@@ -80,15 +84,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signup = async (data: SignupData): Promise<void> => {
     // Create new user using userService (calls API)
     await userService.create({
-      name: data.name,
-      email: data.email,
-      role: 'Client',
-      password: data.password,
-      phone: data.phone,
+      Name: data.Name,
+      Email: data.Email,
+      Role: 'Client' as any,
+      Password: data.Password,
+      Phone: data.Phone,
     });
-    
+
     // After creation, perform login to get the valid JWT
-    const { token, user } = await userService.login(data.email, data.password);
+    const response = await userService.login(data.Email, data.Password);
+    const token = response.Token;
+    const user = response.User;
+    
     setStoredToken(token);
     setStoredUser(user);
     setUser(user);
