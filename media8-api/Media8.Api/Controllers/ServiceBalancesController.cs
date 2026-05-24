@@ -19,8 +19,8 @@ public class ServiceBalancesController : ControllerBase
         _balanceRepository = balanceRepository;
     }
 
-    // User's own balances - rota específica para evitar conflito
-    [HttpGet("my-balances")]
+    // User's own balances - PascalCase follows Media8 standard
+    [HttpGet("MyBalances")]
     public async Task<ActionResult<IEnumerable<UnifiedServiceBalanceDto>>> GetMyBalances(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
@@ -40,8 +40,8 @@ public class ServiceBalancesController : ControllerBase
         return Ok(dtos);
     }
 
-    // Admin Endpoint - usa GUID explícito na query string, não na rota
-    [HttpGet("client")]
+    // Admin Endpoint - PascalCase follows Media8 standard
+    [HttpGet("Client")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<UnifiedServiceBalanceDto>>> GetClientBalances(
         [FromQuery] Guid clientId,
