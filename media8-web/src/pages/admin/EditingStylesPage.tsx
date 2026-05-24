@@ -100,16 +100,16 @@ const EditingStylesPage: React.FC = () => {
   const filteredStyles = useMemo(() => {
     const tabFiltered = editingStyles.filter((style) => {
       if (activeTab === 'active') {
-        return style.isActive;
+        return style.IsActive;
       } else {
-        return !style.isActive;
+        return !style.IsActive;
       }
     });
 
     return tabFiltered.filter(
       (style) =>
-        style.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        style.description?.toLowerCase().includes(searchTerm.toLowerCase())
+        style.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        style.Description?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [editingStyles, activeTab, searchTerm]);
 
@@ -126,9 +126,9 @@ const EditingStylesPage: React.FC = () => {
   // Handle Edit
   const handleEdit = (style: EditingStyle) => {
     setSelectedStyle(style);
-    registerForm('name', { value: style.name });
-    if (style.description) {
-      registerForm('description', { value: style.description });
+    registerForm('name', { value: style.Name });
+    if (style.Description) {
+      registerForm('description', { value: style.Description });
     }
     setIsEditOpen(true);
   };
@@ -136,7 +136,7 @@ const EditingStylesPage: React.FC = () => {
   const handleUpdate = (data: FormData) => {
     if (!selectedStyle) return;
     updateMutation.mutate({
-      id: selectedStyle.id,
+      id: selectedstyle.Id,
       data: {
         name: data.name,
         description: data.description,
@@ -349,13 +349,13 @@ const EditingStylesPage: React.FC = () => {
               </TableRow>
             ) : (
               filteredStyles.map((style) => (
-                <TableRow key={style.id}>
-                  <TableCell className="font-medium">{style.name}</TableCell>
+                <TableRow key={style.Id}>
+                  <TableCell className="font-medium">{style.Name}</TableCell>
                   <TableCell className="max-w-xs truncate">
-                    {style.description || '—'}
+                    {style.Description || '—'}
                   </TableCell>
                   <TableCell>
-                    {style.isActive ? (
+                    {style.IsActive ? (
                       <Badge variant="success" className="gap-1">
                         <CheckCircle2 className="h-3 w-3" />
                         Ativo
@@ -379,7 +379,7 @@ const EditingStylesPage: React.FC = () => {
                           <Edit className="h-4 w-4 mr-2" />
                           Editar
                         </DropdownMenuItem>
-                        {style.isActive ? (
+                        {style.IsActive ? (
                           <DropdownMenuItem
                             onClick={() => handleSoftDelete(style)}
                             className="text-destructive"

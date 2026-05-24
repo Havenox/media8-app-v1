@@ -134,16 +134,16 @@ const filteredOffers = useMemo(() => {
 // First filter by active/archived tab
 const tabFiltered = offers.filter((offer) => {
 if (activeTab === 'active') {
-return offer.isPublic;
+return offer.IsPublic;
 } else {
-return !offer.isPublic;
+return !offer.IsPublic;
 }
 });
 
 // Then filter by search and category
 return tabFiltered.filter((offer) => {
-const matchesSearch = offer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-offer.slug.toLowerCase().includes(searchTerm.toLowerCase());
+const matchesSearch = offer.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+offer.Slug.toLowerCase().includes(searchTerm.toLowerCase());
 const matchesCategory = categoryFilter === 'all' || offer.contractType === categoryFilter;
 return matchesSearch && matchesCategory;
 });
@@ -170,10 +170,10 @@ return matchesSearch && matchesCategory;
 
 const handleEditOffer = (offer: Offer) => {
   setNewOffer({
-    name: offer.name,
-    slug: offer.slug,
+    name: offer.Name,
+    slug: offer.Slug,
     contractType: offer.contractType,
-    price: offer.price,
+    price: offer.Price,
     videoQuantity: offer.videoQuantity,
     maxDurationSeconds: offer.maxDurationSeconds,
     validityDays: offer.validityDays || 0,
@@ -183,7 +183,7 @@ const handleEditOffer = (offer: Offer) => {
     features: offer.features,
     disclaimer: offer.disclaimer || '',
     badge: offer.badge || '',
-    isPublic: offer.isPublic,
+    isPublic: offer.IsPublic,
     videoFormatId: offer.videoFormatId,
     editingStyleId: offer.editingStyleId || undefined,
   });
@@ -193,15 +193,15 @@ const handleEditOffer = (offer: Offer) => {
 
   const handleCreateOffer = async () => {
     // Validation
-    if (!newOffer.name.trim()) {
+    if (!newoffer.Name.trim()) {
       toast.error('O nome da oferta é obrigatório');
       return;
     }
-    if (!newOffer.slug.trim()) {
+    if (!newoffer.Slug.trim()) {
       toast.error('O slug é obrigatório');
       return;
     }
-    if (newOffer.price <= 0) {
+    if (newoffer.Price <= 0) {
       toast.error('O preço deve ser maior que zero');
       return;
     }
@@ -215,10 +215,10 @@ const handleEditOffer = (offer: Offer) => {
     }
 
 const offerData: CreateOfferRequest = {
-  name: newOffer.name,
-  slug: newOffer.slug,
+  name: newoffer.Name,
+  slug: newoffer.Slug,
   contractType: newOffer.contractType,
-  price: newOffer.price,
+  price: newoffer.Price,
   videoQuantity: newOffer.videoQuantity,
   maxDurationSeconds: newOffer.maxDurationSeconds,
   validityDays: newOffer.validityDays || undefined,
@@ -228,13 +228,13 @@ const offerData: CreateOfferRequest = {
   features: newOffer.features.filter((f) => f.trim()),
   disclaimer: newOffer.disclaimer || undefined,
   badge: newOffer.badge || undefined,
-  isPublic: newOffer.isPublic,
+  isPublic: newoffer.IsPublic,
   videoFormatId: newOffer.videoFormatId || undefined,
   editingStyleId: newOffer.editingStyleId || undefined,
 };
 
     if (selectedOffer) {
-      updateOfferMutation.mutate({ id: selectedOffer.id, data: offerData });
+      updateOfferMutation.mutate({ id: selectedoffer.Id, data: offerData });
     } else {
       createOfferMutation.mutate(offerData);
     }
@@ -278,7 +278,7 @@ setDeleteCountdown(5);
 
 const handleRestoreOffer = (offer: Offer) => {
 updateOfferMutation.mutate({
-id: offer.id,
+id: offer.Id,
 data: { isPublic: true },
 });
 };
@@ -401,12 +401,12 @@ onValueChange={(value: any) => setCategoryFilter(value)}
           </Card>
         ) : (
           filteredOffers.map((offer) => (
-            <Card key={offer.id} className="relative">
+            <Card key={offer.Id} className="relative">
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="flex items-center gap-2">
-                      {offer.name}
+                      {offer.Name}
                       {offer.badge && (
                         <Badge variant="secondary" className="text-xs">
                           {offer.badge}
@@ -414,7 +414,7 @@ onValueChange={(value: any) => setCategoryFilter(value)}
                       )}
                     </CardTitle>
                     <CardDescription className="text-xs text-muted-foreground">
-                      {offer.slug}
+                      {offer.Slug}
                     </CardDescription>
                   </div>
                   <Badge
@@ -428,7 +428,7 @@ onValueChange={(value: any) => setCategoryFilter(value)}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-sm">
                     <DollarSign className="w-4 h-4 text-green-600" />
-                    <span className="font-semibold">{formatPrice(offer.price)}</span>
+                    <span className="font-semibold">{formatPrice(offer.Price)}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Video className="w-4 h-4 text-blue-600" />
@@ -508,7 +508,7 @@ onValueChange={(value: any) => setCategoryFilter(value)}
               <div>
                 <Label>Nome *</Label>
                 <Input
-                  value={newOffer.name}
+                  value={newoffer.Name}
                   onChange={(e) => setNewOffer({ ...newOffer, name: e.target.value })}
                   placeholder="Ex: Plano Mensal"
                 />
@@ -516,7 +516,7 @@ onValueChange={(value: any) => setCategoryFilter(value)}
               <div>
                 <Label>Slug *</Label>
                 <Input
-                  value={newOffer.slug}
+                  value={newoffer.Slug}
                   onChange={(e) =>
                     setNewOffer({
                       ...newOffer,
@@ -557,7 +557,7 @@ onValueChange={(value: any) => setCategoryFilter(value)}
                 <Label>Preço (R$) *</Label>
                 <Input
                   type="number"
-                  value={newOffer.price}
+                  value={newoffer.Price}
                   onChange={(e) =>
                     setNewOffer({ ...newOffer, price: parseFloat(e.target.value) || 0 })
                   }
@@ -598,8 +598,8 @@ onValueChange={(value: any) => setCategoryFilter(value)}
           </div>
         ) : (
           videoFormats.map((format) => (
-            <SelectItem key={format.id} value={format.id}>
-              {format.name}
+            <SelectItem key={format.Id} value={format.Id}>
+              {format.Name}
             </SelectItem>
           ))
         )}
@@ -624,8 +624,8 @@ onValueChange={(value: any) => setCategoryFilter(value)}
           </div>
         ) : (
           editingStyles.map((style) => (
-            <SelectItem key={style.id} value={style.id}>
-              {style.name}
+            <SelectItem key={style.Id} value={style.Id}>
+              {style.Name}
             </SelectItem>
           ))
         )}
@@ -743,7 +743,7 @@ onValueChange={(value: any) => setCategoryFilter(value)}
       </Dialog>
 
 {/* Restore Confirmation Dialog */}
-<Dialog open={!!selectedOffer && !selectedOffer.isPublic} onOpenChange={(open) => !open && setSelectedOffer(null)}>
+<Dialog open={!!selectedOffer && !selectedoffer.IsPublic} onOpenChange={(open) => !open && setSelectedOffer(null)}>
 <DialogContent>
 <DialogHeader>
 <DialogTitle>Reativar Oferta</DialogTitle>

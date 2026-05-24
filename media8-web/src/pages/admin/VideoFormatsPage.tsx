@@ -127,16 +127,16 @@ const VideoFormatsPage: React.FC = () => {
   const filteredFormats = useMemo(() => {
     const tabFiltered = videoFormats.filter((format) => {
       if (activeTab === 'active') {
-        return format.isActive;
+        return format.IsActive;
       } else {
-        return !format.isActive;
+        return !format.IsActive;
       }
     });
 
     return tabFiltered.filter(
       (format) =>
-        format.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        format.slug.toLowerCase().includes(searchTerm.toLowerCase())
+        format.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        format.Slug.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [videoFormats, activeTab, searchTerm]);
 
@@ -155,8 +155,8 @@ const VideoFormatsPage: React.FC = () => {
   // Handle Edit
   const handleEdit = (format: VideoFormat) => {
     setSelectedFormat(format);
-    setValue('name', format.name);
-    setValue('slug', format.slug);
+    setValue('name', format.Name);
+    setValue('slug', format.Slug);
     setValue('maxDurationSeconds', format.maxDurationSeconds);
     setValue('tier', format.tier as any);
     setIsEditOpen(true);
@@ -165,7 +165,7 @@ const VideoFormatsPage: React.FC = () => {
   const handleUpdate = (data: FormData) => {
     if (!selectedFormat) return;
     updateMutation.mutate({
-      id: selectedFormat.id,
+      id: selectedformat.Id,
       data: {
         name: data.name,
         slug: data.slug,
@@ -401,9 +401,9 @@ const VideoFormatsPage: React.FC = () => {
               </TableRow>
             ) : (
               filteredFormats.map((format) => (
-                <TableRow key={format.id}>
-                  <TableCell className="font-medium">{format.name}</TableCell>
-                  <TableCell className="text-muted-foreground font-mono text-sm">{format.slug}</TableCell>
+                <TableRow key={format.Id}>
+                  <TableCell className="font-medium">{format.Name}</TableCell>
+                  <TableCell className="text-muted-foreground font-mono text-sm">{format.Slug}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3 text-muted-foreground" />
@@ -414,7 +414,7 @@ const VideoFormatsPage: React.FC = () => {
                     <Badge variant={getTierBadgeVariant(format.tier)}>{format.tier}</Badge>
                   </TableCell>
                   <TableCell>
-                    {format.isActive ? (
+                    {format.IsActive ? (
                       <Badge variant="outline" className="flex items-center gap-1">
                         <CheckCircle2 className="h-3 w-3" />
                         Ativo
@@ -438,7 +438,7 @@ const VideoFormatsPage: React.FC = () => {
                           <Edit className="h-4 w-4 mr-2" />
                           Editar
                         </DropdownMenuItem>
-                        {format.isActive ? (
+                        {format.IsActive ? (
                           <DropdownMenuItem
                             onClick={() => handleSoftDelete(format)}
                             className="text-destructive"
