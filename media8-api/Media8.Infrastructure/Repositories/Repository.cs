@@ -69,8 +69,13 @@ return new Transaction(dbContextTransaction);
         return await _dbSet.CountAsync(predicate);
     }
 
-    public async Task SaveChangesAsync()
-    {
-        await _context.SaveChangesAsync();
-    }
+public async Task SaveChangesAsync()
+{
+await _context.SaveChangesAsync();
+}
+
+public IQueryable<TEntity> Query<TEntity>() where TEntity : class
+{
+return _context.Set<TEntity>();
+}
 }

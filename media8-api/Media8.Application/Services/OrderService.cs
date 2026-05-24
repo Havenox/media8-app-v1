@@ -3,6 +3,7 @@ using Media8.Application.Interfaces;
 using Media8.Domain.Common;
 using Media8.Domain.Entities;
 using Media8.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Media8.Application.Services;
@@ -46,17 +47,40 @@ _logger.LogInformation(
 serviceBalanceLotId,
 balanceLot.RemainingQuantity);
 
-// 2. Cria o pedido herdando VideoFormatId do lote de saldo (não do request)
+// 2. Cria o pedido herdando VideoFormatId do contrato via snapshot
+// O lote de saldo NÃO possui VideoFormatId - quem tem é o contrato (snapshot)
+var contract = await _balanceRepository.Query<ClientContract>()
+.FirstOrDefaultAsync(c => c.Id == balanceLot.ContractId);
+
+if (contract == null)
+{
+throw new InvalidOperationException("Contrato não encontrado para este lote de saldo.");
+}
+
+// Valida se o contrato possui snapshot técnico
+if (string.IsNullOrWhiteSpace(contract.SnapshotVideoFormatName))
+{
+throw new InvalidOperationException("Contrato sem formato de vídeo definido no snapshot.");
+}
+
+// Busca o VideoFormatId pelo nome do snapshot (imutável)
+var videoFormat = await _balanceRepository.Query<VideoFormat>()
+.FirstOrDefaultAsync(v => v.Name == contract.SnapshotVideoFormatName);
+
+if (videoFormat == null)
+{
+throw new InvalidOperationException($"Formato de vídeo '{contract.SnapshotVideoFormatName}' não encontrado.");
+}
+
 var order = new Order
 {
 ClientId = userId,
 Title = request.Title,
 Briefing = request.Briefing,
 SourceFilesUrl = request.SourceFilesUrl,
-VideoFormatId = balanceLot.VideoFormatId, // Herda do lote, não do request
+VideoFormatId = videoFormat.Id, // Herda do snapshot do contrato
 Deadline = request.Deadline,
 ServiceBalanceLotId = serviceBalanceLotId,
-AssignmentId = balanceLot.AssignmentId,
 BrandingProfileId = request.BrandingProfileId,
 EditingProfileId = request.EditingProfileId,
 Status = OrderStatus.Draft

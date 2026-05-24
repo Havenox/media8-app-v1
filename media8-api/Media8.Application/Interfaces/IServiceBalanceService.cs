@@ -5,12 +5,14 @@ namespace Media8.Application.Interfaces;
 public interface IServiceBalanceService
 {
 /// <summary>
-/// Consome saldo de um formato de vídeo específico para o usuário
+/// Consome saldo do usuário baseado no contrato (sem FK para VideoFormat)
+/// O lote de saldo é estritamente numérico - a validação técnica é feita via snapshot do contrato
 /// </summary>
-Task<bool> ConsumeAsync(Guid userId, Guid videoFormatId, int quantity = 1);
+Task<bool> ConsumeAsync(Guid userId, Guid contractId, int quantity = 1);
 
 /// <summary>
-/// Provisiona saldos de serviço com base em um ClientContract recém-criado
+/// Provisiona saldo de serviço baseado em contrato com snapshot
+/// Cria lote de saldo APENAS com dados numéricos e ContractId
 /// </summary>
 Task ProvisionContractBalanceAsync(ClientContract contract, Offer offer);
 }

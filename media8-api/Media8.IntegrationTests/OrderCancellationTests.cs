@@ -45,17 +45,34 @@ context.UserRoles.Add(userRole);
 await context.SaveChangesAsync();
 
 var pastDate = DateTime.UtcNow.AddDays(-60);
-var videoFormatId = Guid.NewGuid();
+var contract = new ClientContract
+{
+Id = Guid.NewGuid(),
+OfferId = Guid.NewGuid(),
+ClientId = userId,
+AssignedBy = userId,
+SnapshotOfferName = "Test Contract",
+SnapshotVideoFormatName = "Test Format",
+SnapshotEditingStyleName = "Test Style",
+SnapshotMaxDurationSeconds = 60,
+SnapshotVideoQuantity = 5,
+SnapshotPrice = 100,
+Status = AssignmentStatus.Active,
+ActivatedAt = pastDate
+};
+context.ClientContracts.Add(contract);
+await context.SaveChangesAsync();
+
 var balanceLot = new ServiceBalanceLot
 {
 UserId = userId,
-VideoFormatId = videoFormatId,
+ContractId = contract.Id,
 Quantity = 5,
 RemainingQuantity = 4,
-PurchasedAt = pastDate,
+CreatedAt = pastDate,
 ExpiresAt = DateTime.UtcNow.AddDays(-10),
 Source = LotSource.Purchase,
-AssignmentId = null
+AssignmentId = contract.Id
 };
 context.ServiceBalanceLots.Add(balanceLot);
 await context.SaveChangesAsync();
@@ -66,7 +83,7 @@ ClientId = userId,
 Title = "Test Order",
 Briefing = "Test Briefing",
 SourceFilesUrl = "https://example.com/source",
-VideoFormatId = videoFormatId,
+VideoFormatId = contract.Id, // Usa o ID do contrato como VideoFormatId para teste
 ServiceBalanceLotId = balanceLot.Id,
 Deadline = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7)),
 Status = OrderStatus.Pending

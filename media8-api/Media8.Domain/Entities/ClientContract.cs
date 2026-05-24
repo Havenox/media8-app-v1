@@ -48,26 +48,60 @@ public class ClientContract
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-    // Snapshot Properties (Immutable Contract) - Renomeados para refletir Offer
-    /// <summary>
-    /// Nome da oferta no momento da contratação (imutável)
-    /// </summary>
-    public string? SnapshotOfferName { get; set; }
+// ==========================================
+// SNAPSHOT COMERCIAL (Imutável)
+// ==========================================
 
-    /// <summary>
-    /// Quantidade de vídeos no momento da contratação (imutável)
-    /// </summary>
-    public int? SnapshotVideoQuantity { get; set; }
+/// <summary>
+/// Nome da oferta no momento da contratação (imutável)
+/// </summary>
+public string? SnapshotOfferName { get; set; }
 
-    /// <summary>
-    /// Preço no momento da contratação (imutável)
-    /// </summary>
-    public decimal? SnapshotPrice { get; set; }
+/// <summary>
+/// Quantidade de vídeos no momento da contratação (imutável)
+/// </summary>
+public int? SnapshotVideoQuantity { get; set; }
 
-    /// <summary>
-    /// Dias de validade no momento da contratação (imutável)
-    /// </summary>
-    public int? SnapshotValidityDays { get; set; }
+/// <summary>
+/// Preço no momento da contratação (imutável)
+/// </summary>
+public decimal? SnapshotPrice { get; set; }
+
+/// <summary>
+/// Dias de validade no momento da contratação (imutável)
+/// </summary>
+public int? SnapshotValidityDays { get; set; }
+
+/// <summary>
+/// Prazo de entrega em dias no momento da contratação (imutável)
+/// </summary>
+public int? SnapshotDeliveryDays { get; set; }
+
+/// <summary>
+/// Tempo de garantia/fidelidade em meses no momento da contratação (imutável)
+/// </summary>
+public int? SnapshotWarrantyDays { get; set; }
+
+// ==========================================
+// SNAPSHOT TÉCNICO (Imutável - Sem FKs)
+// ==========================================
+
+/// <summary>
+/// Nome do formato de vídeo no momento da contratação (imutável)
+/// Ex: "Reels Premium", "YouTube Short"
+/// </summary>
+public string? SnapshotVideoFormatName { get; set; }
+
+/// <summary>
+/// Nome do estilo de edição no momento da contratação (imutável)
+/// Ex: "Corporativo", "Dinâmico", "Minimalista"
+/// </summary>
+public string? SnapshotEditingStyleName { get; set; }
+
+/// <summary>
+/// Duração máxima em segundos no momento da contratação (imutável)
+/// </summary>
+public int? SnapshotMaxDurationSeconds { get; set; }
 
     // Navigation properties
     public Offer? Offer { get; set; }

@@ -141,12 +141,27 @@ modelBuilder.Entity<Order>()
 .HasForeignKey(o => o.EditingProfileId)
 .OnDelete(DeleteBehavior.Restrict);
 
-// Service Balance Lot
-        modelBuilder.Entity<ServiceBalanceLot>()
-            .HasOne(sl => sl.Contract)
-            .WithMany(cc => cc.ServiceBalanceLots)
-            .HasForeignKey(sl => sl.AssignmentId)
-            .OnDelete(DeleteBehavior.SetNull);
+// Service Balance Lot (Entidade Numérica - Sem FKs para VideoFormat/EditingStyle)
+modelBuilder.Entity<ServiceBalanceLot>(entity =>
+{
+entity.ToTable("ServiceBalanceLots");
+entity.HasKey(sl => sl.Id);
+
+// FK para Contract (obrigatória)
+entity.HasOne(sl => sl.Contract)
+.WithMany(cc => cc.ServiceBalanceLots)
+.HasForeignKey(sl => sl.ContractId)
+.OnDelete(DeleteBehavior.Restrict);
+
+// FK para User (obrigatória)
+entity.HasOne(sl => sl.User)
+.WithMany(u => u.ServiceBalanceLots)
+.HasForeignKey(sl => sl.UserId)
+.OnDelete(DeleteBehavior.Restrict);
+
+// Índice para consumo FIFO (por ContractId e UserId)
+entity.HasIndex(sl => new { sl.ContractId, sl.UserId, sl.CreatedAt });
+});
 
         // VideoFormat Configuration
         modelBuilder.Entity<VideoFormat>(entity =>
@@ -201,17 +216,30 @@ modelBuilder.Entity<Order>()
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
-// ClientContract Configuration
+// ClientContract Configuration (Snapshot Pattern - Sem FKs para VideoFormat/EditingStyle)
 modelBuilder.Entity<ClientContract>(entity =>
 {
 entity.ToTable("ClientContracts");
 entity.HasKey(cc => cc.Id);
+
+// Foreign Keys (apenas Offer, Client, Assigner)
 entity.Property(cc => cc.OfferId).IsRequired();
 entity.Property(cc => cc.ClientId).IsRequired();
 entity.Property(cc => cc.AssignedBy).IsRequired();
 entity.Property(cc => cc.Status).HasDefaultValue(AssignmentStatus.Active);
-entity.Property(cc => cc.SnapshotOfferName).HasMaxLength(255);
 
+// Snapshot Comercial
+entity.Property(cc => cc.SnapshotOfferName).HasMaxLength(255).IsRequired();
+entity.Property(cc => cc.SnapshotVideoQuantity).IsRequired();
+entity.Property(cc => cc.SnapshotPrice).IsRequired();
+entity.Property(cc => cc.SnapshotValidityDays);
+
+// Snapshot Técnico (obrigatórios)
+entity.Property(cc => cc.SnapshotVideoFormatName).HasMaxLength(100).IsRequired();
+entity.Property(cc => cc.SnapshotEditingStyleName).HasMaxLength(100).IsRequired();
+entity.Property(cc => cc.SnapshotMaxDurationSeconds).IsRequired();
+
+// Navegação
 entity.HasOne(cc => cc.Offer)
 .WithMany(o => o.Contracts)
 .HasForeignKey(cc => cc.OfferId)

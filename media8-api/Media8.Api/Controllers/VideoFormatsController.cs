@@ -37,7 +37,7 @@ MaxDurationSeconds = vf.MaxDurationSeconds,
 EditingStyleId = vf.EditingStyleId,
 IsActive = vf.IsActive,
 CanDeletePermanently = !_context.Offers.Any(o => o.VideoFormatId == vf.Id) &&
-!_context.ServiceBalanceLots.Any(l => l.VideoFormatId == vf.Id)
+!_context.ClientContracts.Any(cc => cc.SnapshotVideoFormatName == vf.Name)
 })
 .ToListAsync();
 
@@ -62,7 +62,7 @@ MaxDurationSeconds = vf.MaxDurationSeconds,
 EditingStyleId = vf.EditingStyleId,
 IsActive = vf.IsActive,
 CanDeletePermanently = !_context.Offers.Any(o => o.VideoFormatId == vf.Id) &&
-!_context.ServiceBalanceLots.Any(l => l.VideoFormatId == vf.Id)
+!_context.ClientContracts.Any(cc => cc.SnapshotVideoFormatName == vf.Name)
 })
 .FirstOrDefaultAsync();
 
@@ -189,19 +189,19 @@ public async Task<ActionResult<DeleteVideoFormatResponse>> DeleteVideoFormat(Gui
     });
   }
 
-  // Se permanent=true, verifica se pode deletar fisicamente
-  var hasOffers = await _context.Offers.AnyAsync(o => o.VideoFormatId == id);
-  var hasBalanceLots = await _context.ServiceBalanceLots.AnyAsync(l => l.VideoFormatId == id);
+// Se permanent=true, verifica se pode deletar fisicamente
+var hasOffers = await _context.Offers.AnyAsync(o => o.VideoFormatId == id);
+var hasContracts = await _context.ClientContracts.AnyAsync(cc => cc.SnapshotVideoFormatName == format.Name);
 
-  if (hasOffers || hasBalanceLots)
-  {
-    // Não pode deletar fisicamente
-    return BadRequest(new DeleteVideoFormatResponse
-    {
-      Success = false,
-      Message = "Não é possível excluir permanentemente: o formato possui ofertas ou saldos vinculados.",
-      DeletedPhysically = false
-    });
+if (hasOffers || hasContracts)
+{
+// Não pode deletar fisicamente
+return BadRequest(new DeleteVideoFormatResponse
+{
+Success = false,
+Message = "Não é possível excluir permanentemente: o formato possui ofertas ou contratos vinculados.",
+DeletedPhysically = false
+});
   }
   else
   {

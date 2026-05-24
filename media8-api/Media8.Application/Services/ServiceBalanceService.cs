@@ -16,30 +16,33 @@ _balanceRepository = balanceRepository;
 _logger = logger;
 }
 
-public async Task<bool> ConsumeAsync(Guid userId, Guid videoFormatId, int quantity = 1)
+/// <summary>
+/// Consome saldo do usuário baseado no contrato (sem FK para VideoFormat)
+/// </summary>
+public async Task<bool> ConsumeAsync(Guid userId, Guid contractId, int quantity = 1)
 {
-// 1. Fetch available lots for this user and video format
+// 1. Busca lotes disponíveis para este usuário e contrato
 var activeLots = await _balanceRepository.FindAsync(b =>
 b.UserId == userId &&
-b.VideoFormatId == videoFormatId &&
+b.ContractId == contractId &&
 b.RemainingQuantity > 0 &&
 (b.ExpiresAt == null || b.ExpiresAt > DateTime.UtcNow)
 );
 
-// 2. Calculate total available
+// 2. Calcula total disponível
 var totalAvailable = activeLots.Sum(l => l.RemainingQuantity);
 if (totalAvailable < quantity)
 {
-return false; // Insufficient balance
+return false; // Saldo insuficiente
 }
 
-// 3. Sort by expiration (FIFO)
-// Null expiresAt (unlimited/permanent) should be used LAST
+// 3. Ordena por expiração (FIFO)
+// Null expiresAt (ilimitado/permanente) deve ser usado por último
 var sortedLots = activeLots
 .OrderBy(l => l.ExpiresAt.HasValue ? l.ExpiresAt.Value : DateTime.MaxValue)
 .ToList();
 
-// 4. Consume
+// 4. Consome
 int remainingToConsume = quantity;
 foreach (var lot in sortedLots)
 {
@@ -55,8 +58,25 @@ await _balanceRepository.UpdateAsync(lot);
 return remainingToConsume == 0;
 }
 
+/// <summary>
+/// Provisiona saldo de serviço baseado em contrato com snapshot
+/// Cria lote de saldo APENAS com dados numéricos e ContractId
+/// </summary>
 public async Task ProvisionContractBalanceAsync(ClientContract contract, Offer offer)
 {
+// Valida se o contrato possui snapshot técnico completo
+if (string.IsNullOrWhiteSpace(contract.SnapshotVideoFormatName))
+{
+_logger.LogWarning(
+"⚠️ PROVISIONAMENTO PULADO: Contrato {ContractId} do cliente {ClientId} sem SnapshotVideoFormatName. Oferta: {OfferName} (ID: {OfferId}).",
+contract.Id,
+contract.ClientId,
+offer.Name,
+offer.Id
+);
+return;
+}
+
 // Calcula data de expiração com base no ValidityDays da oferta
 DateTime? expiresAt = null;
 if (offer.ValidityDays.HasValue && offer.ValidityDays > 0)
@@ -64,42 +84,29 @@ if (offer.ValidityDays.HasValue && offer.ValidityDays > 0)
 expiresAt = contract.ActivatedAt.AddDays(offer.ValidityDays.Value);
 }
 
-// Criar lote de saldo de serviço para cada formato de vídeo da oferta
-// Se a oferta tiver VideoFormatId, usa-o; caso contrário, cria saldo genérico
-var videoFormatId = offer.VideoFormatId ?? Guid.Empty;
-
-// Se não houver VideoFormatId, não cria saldo (caso edge case)
-if (videoFormatId == Guid.Empty)
-{
-// Log de aviso para auditoria
-_logger.LogWarning(
-"⚠️  PROVISIONAMENTO PULADO: Contrato {ContractId} do cliente {ClientId} sem VideoFormatId. Oferta: {OfferName} (ID: {OfferId}). Verifique se o frontend está enviando o formato selecionado.",
-contract.Id,
-contract.ClientId,
-offer.Name,
-offer.Id
-);
-
-// Tenta obter o primeiro formato da oferta se houver relacionamento
-// Por enquanto, não cria saldo se não houver VideoFormatId
-return;
-}
-
+// Cria lote de saldo ESTRITAMENTE NUMÉRICO
+// Sem FK para VideoFormatId ou EditingStyleId
 var balanceLot = new ServiceBalanceLot
 {
 UserId = contract.ClientId,
-VideoFormatId = videoFormatId,
+ContractId = contract.Id, // FK obrigatória
 Quantity = offer.VideoQuantity,
 RemainingQuantity = offer.VideoQuantity,
-PurchasedAt = contract.ActivatedAt,
+CreatedAt = DateTime.UtcNow,
 ExpiresAt = expiresAt,
 Source = LotSource.Purchase,
-AssignmentId = contract.Id,
-Contract = contract,
-CreatedAt = DateTime.UtcNow,
+AssignmentId = contract.Id, // Manter para compatibilidade
 UpdatedAt = DateTime.UtcNow
 };
 
 await _balanceRepository.AddAsync(balanceLot);
+
+_logger.LogInformation(
+"✅ Saldo provisionado: Contrato {ContractId} | Cliente {ClientId} | Quantidade {Quantity} | Expira em {ExpiresAt}",
+contract.Id,
+contract.ClientId,
+offer.VideoQuantity,
+expiresAt?.ToString("yyyy-MM-dd") ?? "Nunca"
+);
 }
 }

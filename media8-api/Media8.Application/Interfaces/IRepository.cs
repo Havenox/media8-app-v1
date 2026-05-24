@@ -13,4 +13,9 @@ Task DeleteAsync(Guid id);
 Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null);
 Task SaveChangesAsync();
 Task<ITransaction> BeginTransactionAsync();
+
+/// <summary>
+/// Acesso ao DbContext para consultas de outras entidades
+/// </summary>
+IQueryable<TEntity> Query<TEntity>() where TEntity : class;
 }
