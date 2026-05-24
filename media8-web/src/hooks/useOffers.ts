@@ -53,7 +53,7 @@ export const useCreateOffer = () => {
     mutationFn: (data: CreateOfferRequest) => offerService.create(data),
     onSuccess: (newOffer) => {
       queryClient.invalidateQueries({ queryKey: offerKeys.all });
-      toast.success(`Oferta "${newOffer.name}" criada com sucesso!`);
+      toast.success(`Oferta "${newOffer.Name}" criada com sucesso!`);
     },
     onError: (error) => {
       toast.error(getErrorMessage(error));
@@ -72,7 +72,7 @@ export const useUpdateOffer = () => {
       offerService.update(id, data),
     onSuccess: (updatedOffer) => {
       queryClient.invalidateQueries({ queryKey: offerKeys.all });
-      queryClient.invalidateQueries({ queryKey: offerKeys.detail(updatedOffer.id) });
+      queryClient.invalidateQueries({ queryKey: offerKeys.detail(updatedOffer.Id) });
       toast.success('Oferta atualizada com sucesso!');
     },
     onError: (error) => {
