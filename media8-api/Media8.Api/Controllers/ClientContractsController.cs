@@ -14,7 +14,7 @@ namespace Media8.Api.Controllers;
 /// Responsável pela atribuição de ofertas aos clientes com snapshot imutável
 /// </summary>
 [ApiController]
-[Route("api/v1/client-contracts")]
+[Route("api/v1/ClientContracts")]
 [Authorize]
 public class ClientContractsController : ControllerBase
 {

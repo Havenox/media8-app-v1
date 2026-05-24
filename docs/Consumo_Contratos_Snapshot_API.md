@@ -54,7 +54,7 @@ A API de Contratos do Media8 foi refatorada para adotar o **Snapshot Pattern**, 
 
 ### 1. Listar Todos os Contratos
 
-**Endpoint:** `GET /api/v1/client-contracts`  
+**Endpoint:** `GET /api/v1/ClientContracts`  
 **Acesso:** Admin  
 **Descrição:** Lista todos os contratos de clientes com filtros opcionais
 
@@ -62,13 +62,13 @@ A API de Contratos do Media8 foi refatorada para adotar o **Snapshot Pattern**, 
 
 | Parâmetro | Tipo | Descrição |
 |-----------|------|-----------|
-| `clientId` | `Guid?` | Filtra por ID do cliente |
-| `status` | `AssignmentStatus?` | Filtra por status (`active`, `cancelled`, `expired`) |
+| `ClientId` | `Guid?` | Filtra por ID do cliente |
+| `Status` | `AssignmentStatus?` | Filtra por status (`active`, `cancelled`, `expired`) |
 
 #### Exemplo de Requisição
 
 ```bash
-GET /api/v1/client-contracts?clientId=123e4567-e89b-12d3-a456-426614174000&status=active
+GET /api/v1/ClientContracts?ClientId=123e4567-e89b-12d3-a456-426614174000&Status=active
 Authorization: Bearer {token}
 ```
 
@@ -107,14 +107,14 @@ Authorization: Bearer {token}
 
 ### 2. Buscar Contrato por ID
 
-**Endpoint:** `GET /api/v1/client-contracts/{id}`  
+**Endpoint:** `GET /api/v1/ClientContracts/{id}`  
 **Acesso:** Authenticated (Client vê apenas o próprio, Admin vê todos)  
 **Descrição:** Busca um contrato específico por ID
 
 #### Exemplo de Requisição
 
 ```bash
-GET /api/v1/client-contracts/a1b2c3d4-e5f6-7890-abcd-ef1234567890
+GET /api/v1/ClientContracts/a1b2c3d4-e5f6-7890-abcd-ef1234567890
 Authorization: Bearer {token}
 ```
 
@@ -151,7 +151,7 @@ Authorization: Bearer {token}
 
 ### 3. Criar Novo Contrato
 
-**Endpoint:** `POST /api/v1/client-contracts`  
+**Endpoint:** `POST /api/v1/ClientContracts`  
 **Acesso:** Admin  
 **Descrição:** Cria um novo contrato (atribuição de oferta a um cliente)
 
@@ -159,23 +159,23 @@ Authorization: Bearer {token}
 
 ```json
 {
-  "offerId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-  "clientId": "123e4567-e89b-12d3-a456-426614174000",
-  "assignedByUserId": "admin-user-id"
+  "OfferId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+  "ClientId": "123e4567-e89b-12d3-a456-426614174000",
+  "AssignedByUserId": "admin-user-id"
 }
 ```
 
 #### Exemplo de Requisição
 
 ```bash
-POST /api/v1/client-contracts
+POST /api/v1/ClientContracts
 Content-Type: application/json
 Authorization: Bearer {token}
 
 {
-  "offerId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-  "clientId": "123e4567-e89b-12d3-a456-426614174000",
-  "assignedByUserId": "admin-user-id"
+  "OfferId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+  "ClientId": "123e4567-e89b-12d3-a456-426614174000",
+  "AssignedByUserId": "admin-user-id"
 }
 ```
 
@@ -233,9 +233,9 @@ Authorization: Bearer {token}
 
 ---
 
-### 4. Listar Saldos de Serviço
+### 4. Listar Meus Saldos
 
-**Endpoint:** `GET /api/v1/service-balances/my-balances`  
+**Endpoint:** `GET /api/v1/ServiceBalances/MyBalances`  
 **Acesso:** Authenticated  
 **Descrição:** Lista saldos de serviço do usuário autenticado
 
@@ -243,14 +243,14 @@ Authorization: Bearer {token}
 
 | Parâmetro | Tipo | Padrão | Descrição |
 |-----------|------|--------|-----------|
-| `page` | `int` | `1` | Página para paginação |
-| `pageSize` | `int` | `20` | Tamanho da página |
-| `status` | `string` | `"active"` | Filtro por status (`active`, `expired`, `depleted`) |
+| `Page` | `int` | `1` | Página para paginação |
+| `PageSize` | `int` | `20` | Tamanho da página |
+| `Status` | `string` | `"active"` | Filtro por status (`active`, `expired`, `depleted`) |
 
 #### Exemplo de Requisição
 
 ```bash
-GET /api/v1/service-balances/my-balances?page=1&pageSize=20&status=active
+GET /api/v1/ServiceBalances/MyBalances?Page=1&PageSize=20&Status=active
 Authorization: Bearer {token}
 ```
 
@@ -284,32 +284,32 @@ X-Total-Count: 1
 
 | Campo | Tipo | Descrição | Exemplo |
 |-------|------|-----------|---------|
-| `snapshotOfferName` | `string` | Nome da oferta no momento da contratação | `"Plano Growth"` |
-| `snapshotVideoQuantity` | `int` | Quantidade total de vídeos inclusos | `10` |
-| `snapshotPrice` | `decimal` | Preço pago na contratação | `299.90` |
-| `snapshotValidityDays` | `int?` | Dias de validade do contrato | `30` |
-| `snapshotDeliveryDays` | `int?` | Prazo de entrega em dias | `7` |
-| `snapshotWarrantyDays` | `int?` | Tempo de garantia/fidelidade em dias | `90` |
+| `SnapshotOfferName` | `string` | Nome da oferta no momento da contratação | `"Plano Growth"` |
+| `SnapshotVideoQuantity` | `int` | Quantidade total de vídeos inclusos | `10` |
+| `SnapshotPrice` | `decimal` | Preço pago na contratação | `299.90` |
+| `SnapshotValidityDays` | `int?` | Dias de validade do contrato | `30` |
+| `SnapshotDeliveryDays` | `int?` | Prazo de entrega em dias | `7` |
+| `SnapshotWarrantyDays` | `int?` | Tempo de garantia/fidelidade em dias | `90` |
 
 ### Snapshot Técnico
 
 | Campo | Tipo | Descrição | Exemplo |
 |-------|------|-----------|---------|
-| `snapshotVideoFormatName` | `string` | **Nome do formato de vídeo** (copia o NOME, não o ID) | `"Reels Premium"` |
-| `snapshotEditingStyleName` | `string` | **Nome do estilo de edição** (copia o NOME, não o ID) | `"Corporativo"` |
-| `snapshotMaxDurationSeconds` | `int` | Duração máxima em segundos | `60` |
+| `SnapshotVideoFormatName` | `string` | **Nome do formato de vídeo** (copia o NOME, não o ID) | `"Reels Premium"` |
+| `SnapshotEditingStyleName` | `string` | **Nome do estilo de edição** (copia o NOME, não o ID) | `"Corporativo"` |
+| `SnapshotMaxDurationSeconds` | `int` | Duração máxima em segundos | `60` |
 
 ### Campos de Navegação
 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
-| `offerId` | `Guid` | ID da oferta original (para rastreabilidade) |
-| `clientId` | `Guid` | ID do cliente dono do contrato |
-| `assignedBy` | `Guid` | ID do admin que atribuiu o contrato |
-| `assignedAt` | `DateTime` | Data de atribuição do contrato |
-| `activatedAt` | `DateTime` | Data de ativação do contrato |
-| `expiresAt` | `DateTime?` | Data de expiração do contrato |
-| `status` | `AssignmentStatus` | Status do contrato (`active`, `cancelled`, `expired`) |
+| `OfferId` | `Guid` | ID da oferta original (para rastreabilidade) |
+| `ClientId` | `Guid` | ID do cliente dono do contrato |
+| `AssignedBy` | `Guid` | ID do admin que atribuiu o contrato |
+| `AssignedAt` | `DateTime` | Data de atribuição do contrato |
+| `ActivatedAt` | `DateTime` | Data de ativação do contrato |
+| `ExpiresAt` | `DateTime?` | Data de expiração do contrato |
+| `Status` | `AssignmentStatus` | Status do contrato (`active`, `cancelled`, `expired`) |
 
 ---
 
@@ -325,9 +325,9 @@ const contracts = await clientContracts.query();
 
 // 2. Para cada contrato, extrair o snapshot técnico
 contracts.forEach(contract => {
-  const videoFormat = contract.snapshotVideoFormatName; // "Reels Premium"
-  const editingStyle = contract.snapshotEditingStyleName; // "Corporativo"
-  const maxDuration = contract.snapshotMaxDurationSeconds; // 60
+  const videoFormat = contract.SnapshotVideoFormatName; // "Reels Premium"
+  const editingStyle = contract.SnapshotEditingStyleName; // "Corporativo"
+  const maxDuration = contract.SnapshotMaxDurationSeconds; // 60
   
   // 3. Usar para popular selects do formulário de pedidos
   //    (não faz FK para VideoFormat/EditingStyle)
@@ -339,7 +339,7 @@ contracts.forEach(contract => {
 ```typescript
 // ✅ CORRETO: Ler do snapshot do contrato
 const contract = await getContractByBalanceId(balanceId);
-const videoFormatName = contract.snapshotVideoFormatName;
+const videoFormatName = contract.SnapshotVideoFormatName;
 
 // ❌ ERRADO: Tentar acessar FK que não existe mais
 // const videoFormatId = contract.videoFormatId; // Não existe!
@@ -350,17 +350,17 @@ const videoFormatName = contract.snapshotVideoFormatName;
 ```typescript
 // O snapshot preserva dados originais
 // Mesmo que a oferta mude de nome, o contrato mostra o nome original
-contract.snapshotOfferName; // Sempre o nome original da oferta
-contract.snapshotPrice;     // Sempre o preço original pago
+contract.SnapshotOfferName; // Sempre o nome original da oferta
+contract.SnapshotPrice;     // Sempre o preço original pago
 ```
 
 ### 4. Tratando Expiração de Contratos
 
 ```typescript
-const isExpired = contract.expiresAt && new Date(contract.expiresAt) < new Date();
-const status = isExpired ? 'expired' : contract.status;
+const isExpired = contract.ExpiresAt && new Date(contract.ExpiresAt) < new Date();
+const status = isExpired ? 'expired' : contract.Status;
 
-// Frontend deve verificar expiresAt E status
+// Frontend deve verificar ExpiresAt E Status
 ```
 
 ---
@@ -371,7 +371,7 @@ const status = isExpired ? 'expired' : contract.status;
 
 ```typescript
 const response = await fetch(
-  '/api/v1/client-contracts?clientId=123e4567-e89b-12d3-a456-426614174000&status=active',
+  '/api/v1/ClientContracts?ClientId=123e4567-e89b-12d3-a456-426614174000&Status=active',
   {
     headers: {
       'Authorization': `Bearer ${token}`
@@ -382,26 +382,26 @@ const response = await fetch(
 const contracts = await response.json();
 
 contracts.forEach(contract => {
-  console.log(`Contrato: ${contract.snapshotOfferName}`);
-  console.log(`Formato: ${contract.snapshotVideoFormatName}`);
-  console.log(`Estilo: ${contract.snapshotEditingStyleName}`);
-  console.log(`Duração Máx: ${contract.snapshotMaxDurationSeconds}s`);
+  console.log(`Contrato: ${contract.SnapshotOfferName}`);
+  console.log(`Formato: ${contract.SnapshotVideoFormatName}`);
+  console.log(`Estilo: ${contract.SnapshotEditingStyleName}`);
+  console.log(`Duração Máx: ${contract.SnapshotMaxDurationSeconds}s`);
 });
 ```
 
 ### Exemplo 2: Criar Contrato e Extrair Snapshots
 
 ```typescript
-const createResponse = await fetch('/api/v1/client-contracts', {
+const createResponse = await fetch('/api/v1/ClientContracts', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`
   },
   body: JSON.stringify({
-    offerId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
-    clientId: '123e4567-e89b-12d3-a456-426614174000',
-    assignedByUserId: 'admin-user-id'
+    OfferId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
+    ClientId: '123e4567-e89b-12d3-a456-426614174000',
+    AssignedByUserId: 'admin-user-id'
   })
 });
 
@@ -409,19 +409,19 @@ const contract = await createResponse.json();
 
 // Extrair snapshots para uso posterior
 const snapshot = {
-  offerName: contract.snapshotOfferName,
-  videoFormat: contract.snapshotVideoFormatName,
-  editingStyle: contract.snapshotEditingStyleName,
-  maxDuration: contract.snapshotMaxDurationSeconds,
-  quantity: contract.snapshotVideoQuantity,
-  price: contract.snapshotPrice
+  offerName: contract.SnapshotOfferName,
+  videoFormat: contract.SnapshotVideoFormatName,
+  editingStyle: contract.SnapshotEditingStyleName,
+  maxDuration: contract.SnapshotMaxDurationSeconds,
+  quantity: contract.SnapshotVideoQuantity,
+  price: contract.SnapshotPrice
 };
 ```
 
 ### Exemplo 3: Listar Saldos com Nomes do Snapshot
 
 ```typescript
-const response = await fetch('/api/v1/service-balances/my-balances', {
+const response = await fetch('/api/v1/ServiceBalances/MyBalances', {
   headers: {
     'Authorization': `Bearer ${token}`
   }
@@ -431,9 +431,9 @@ const balances = await response.json();
 
 balances.forEach(balance => {
   // ServiceName vem do snapshot do contrato
-  console.log(`Serviço: ${balance.serviceName}`); // "Reels Premium"
-  console.log(`Pacote: ${balance.packageName}`);   // "Plano Growth"
-  console.log(`Restante: ${balance.remainingQuantity}/${balance.totalQuantity}`);
+  console.log(`Serviço: ${balance.ServiceName}`); // "Reels Premium"
+  console.log(`Pacote: ${balance.PackageName}`);   // "Plano Growth"
+  console.log(`Restante: ${balance.RemainingQuantity}/${balance.TotalQuantity}`);
 });
 ```
 
@@ -473,10 +473,10 @@ interface OldContract {
 ### Estrutura Nova (Snapshot Pattern)
 ```typescript
 interface NewContract {
-  offerId: string;
-  snapshotVideoFormatName: string; // ✅ String imutável
-  snapshotEditingStyleName: string;  // ✅ String imutável
-  snapshotMaxDurationSeconds: int;  // ✅ Número imutável
+  OfferId: string;
+  SnapshotVideoFormatName: string; // ✅ String imutável
+  SnapshotEditingStyleName: string;  // ✅ String imutável
+  SnapshotMaxDurationSeconds: number;  // ✅ Número imutável
 }
 ```
 
@@ -488,9 +488,9 @@ const formatId = contract.videoFormatId;
 const styleId = contract.editingStyleId;
 
 // DEPOIS
-const formatName = contract.snapshotVideoFormatName;
-const styleName = contract.snapshotEditingStyleName;
-const maxDuration = contract.snapshotMaxDurationSeconds;
+const formatName = contract.SnapshotVideoFormatName;
+const styleName = contract.SnapshotEditingStyleName;
+const maxDuration = contract.SnapshotMaxDurationSeconds;
 ```
 
 ---

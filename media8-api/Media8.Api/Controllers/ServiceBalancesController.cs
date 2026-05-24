@@ -8,7 +8,7 @@ using System.Security.Claims;
 namespace Media8.Api.Controllers;
 
 [ApiController]
-[Route("api/v1/service-balances")]
+[Route("api/v1/ServiceBalances")]
 [Authorize]
 public class ServiceBalancesController : ControllerBase
 {
