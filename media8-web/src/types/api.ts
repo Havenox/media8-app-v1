@@ -23,17 +23,18 @@ export type TimelineActionType =
   | 'VersionUpload';
 
 // Video Format (Dynamic Catalog - Fase 0)
+// PascalCase Pattern - Backend .NET DTO Alignment
 export type VideoFormatTier = 'Standard' | 'Premium' | 'GodMode';
 
 export interface VideoFormat {
-id: string;
-name: string;
-slug: string;
-maxDurationSeconds: number;
-tier: VideoFormatTier;
-editingStyleId?: string;
-isActive: boolean;
-canDeletePermanently?: boolean;
+  Id: string;
+  Name: string;
+  Slug: string;
+  MaxDurationSeconds: number;
+  Tier: VideoFormatTier;
+  EditingStyleId?: string;
+  IsActive: boolean;
+  CanDeletePermanently?: boolean;
 }
 
 // User
@@ -88,76 +89,78 @@ export interface UserRegisterRequest {
 }
 
 // Order
+// PascalCase Pattern - Backend .NET DTO Alignment
 export interface ServiceBalanceLot {
-id: string;
-userId: string;
-videoFormatId: string;
-quantity: number;
-remainingQuantity: number;
-purchasedAt: string;
-expiresAt?: string | null;
-source: 'Purchase' | 'Subscription' | 'Promo' | 'Gift';
-assignmentId?: string | null;
-createdAt: string;
-updatedAt: string;
-user?: User;
-contract?: any;
-videoFormat?: VideoFormat;
+  Id: string;
+  UserId: string;
+  VideoFormatId: string;
+  Quantity: number;
+  RemainingQuantity: number;
+  PurchasedAt: string;
+  ExpiresAt?: string | null;
+  Source: 'Purchase' | 'Subscription' | 'Promo' | 'Gift';
+  AssignmentId?: string | null;
+  CreatedAt: string;
+  UpdatedAt: string;
+  User?: User;
+  Contract?: any;
+  VideoFormat?: VideoFormat;
 }
 
 export interface Order {
-id: string;
-clientId: string;
-client?: User;
-editorId?: string;
-editor?: User;
-title: string;
-briefing: string;
-sourceFilesUrl: string;
-finalVideoUrl?: string;
-status: OrderStatus;
-deadline: string;
-createdAt: string;
-updatedAt: string;
-videoFormatId: string;
-serviceBalanceLotId?: string;
-assignmentId?: string;
+  Id: string;
+  ClientId: string;
+  Client?: User;
+  EditorId?: string;
+  Editor?: User;
+  Title: string;
+  Briefing: string;
+  SourceFilesUrl: string;
+  FinalVideoUrl?: string;
+  Status: OrderStatus;
+  Deadline: string;
+  CreatedAt: string;
+  UpdatedAt: string;
+  VideoFormatId: string;
+  ServiceBalanceLotId?: string;
+  AssignmentId?: string;
 }
 
 export interface CreateOrderRequest {
-title: string;
-briefing: string;
-sourceFilesUrl: string;
-deadline: string;
-videoFormatId: string;
-serviceBalanceLotId: string;
+  Title: string;
+  Briefing: string;
+  SourceFilesUrl: string;
+  Deadline: string;
+  VideoFormatId: string;
+  ServiceBalanceLotId: string;
 }
 
 export interface UpdateOrderRequest {
-  title?: string;
-  briefing?: string;
-  sourceFilesUrl?: string;
-  finalVideoUrl?: string;
-  status?: OrderStatus;
-  editorId?: string;
-  deadline?: string;
+  Title?: string;
+  Briefing?: string;
+  SourceFilesUrl?: string;
+  FinalVideoUrl?: string;
+  Status?: OrderStatus;
+  EditorId?: string;
+  Deadline?: string;
 }
 
 // Order Timeline
+// PascalCase Pattern - Backend .NET DTO Alignment
 export interface OrderTimeline {
-  id: string;
-  orderId: string;
-  userId: string;
-  user?: User;
-  actionType: TimelineActionType;
-  content: string;
-  timestamp: string;
+  Id: string;
+  OrderId: string;
+  UserId: string;
+  User?: User;
+  ActionType: TimelineActionType;
+  Content: string;
+  Timestamp: string;
 }
 
 export interface CreateTimelineEntryRequest {
-  orderId: string;
-  actionType: TimelineActionType;
-  content: string;
+  OrderId: string;
+  ActionType: TimelineActionType;
+  Content: string;
 }
 
 // API Response Wrappers
