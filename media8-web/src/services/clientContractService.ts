@@ -10,33 +10,34 @@ import { api } from '@/lib/api';
 // API FUNCTIONS
 // ==========================================
 
+// PascalCase: Backend usa /ClientContracts
 const getAllAPI = async (clientId?: string): Promise<ClientContractResponse[]> => {
-  const query = new URLSearchParams();
+const query = new URLSearchParams();
 
-  if (clientId) {
-    query.append('clientId', clientId);
-  }
+if (clientId) {
+query.append('clientId', clientId);
+}
 
-  const response = await api.get(`/client-contracts?${query.toString()}`);
-  return response.data;
+const response = await api.get(`/ClientContracts?${query.toString()}`);
+return response.data;
 };
 
 const getByIdAPI = async (id: string): Promise<ClientContractResponse | null> => {
-  const response = await api.get(`/client-contracts/${id}`);
-  return response.data;
+const response = await api.get(`/ClientContracts/${id}`);
+return response.data;
 };
 
 const createAPI = async (data: CreateClientContractRequest): Promise<ClientContractResponse> => {
-  const response = await api.post('/client-contracts', data);
-  return response.data;
+const response = await api.post('/ClientContracts', data);
+return response.data;
 };
 
 const updateAPI = async (
-  id: string,
-  data: UpdateClientContractRequest
+id: string,
+data: UpdateClientContractRequest
 ): Promise<ClientContractResponse> => {
-  const response = await api.put(`/client-contracts/${id}`, data);
-  return response.data;
+const response = await api.put(`/ClientContracts/${id}`, data);
+return response.data;
 };
 
 // ==========================================

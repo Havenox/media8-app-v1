@@ -17,52 +17,54 @@ videoFormatId?: string; // FK dinâmica para VideoFormat (Fase 0)
 serviceBalanceLotId: string;
 }
 
+// PascalCase: Backend usa /Orders
 const getAllAPI = async (): Promise<Order[]> => {
-const response = await api.get('/orders');
+const response = await api.get('/Orders');
 return response.data;
 };
 
 const getByIdAPI = async (id: string): Promise<Order | null> => {
-const response = await api.get(`/orders/${id}`);
+const response = await api.get(`/Orders/${id}`);
 return response.data;
 };
 
 const getByClientAPI = async (clientId: string): Promise<Order[]> => {
-const response = await api.get(`/orders?clientId=${clientId}`);
+const response = await api.get(`/Orders?clientId=${clientId}`);
 return response.data;
 };
 
 const getByEditorAPI = async (editorId: string): Promise<Order[]> => {
-const response = await api.get(`/orders?editorId=${editorId}`);
+const response = await api.get(`/Orders?editorId=${editorId}`);
 return response.data;
 };
 
 const getByStatusAPI = async (status: OrderStatus): Promise<Order[]> => {
-const response = await api.get(`/orders?status=${status}`);
+const response = await api.get(`/Orders?status=${status}`);
 return response.data;
 };
 
 const createAPI = async (data: CreateOrderData): Promise<Order> => {
-const response = await api.post('/orders', data);
+const response = await api.post('/Orders', data);
 return response.data;
 };
 
 const updateAPI = async (id: string, data: Partial<Order>): Promise<Order> => {
-const response = await api.patch(`/orders/${id}`, data);
+const response = await api.patch(`/Orders/${id}`, data);
 return response.data;
 };
 
 const deleteAPI = async (id: string): Promise<void> => {
-await api.delete(`/orders/${id}`);
+await api.delete(`/Orders/${id}`);
 };
 
 const cancelAPI = async (id: string): Promise<Order> => {
-const response = await api.post(`/orders/${id}/cancel`);
+const response = await api.post(`/Orders/${id}/cancel`);
 return response.data;
 };
 
+// PascalCase: Backend usa /Orders/AvailableBalances
 const getAvailableBalancesAPI = async (): Promise<ServiceBalanceLot[]> => {
-const response = await api.get('/orders/available-balances');
+const response = await api.get('/Orders/AvailableBalances');
 return response.data;
 };
 
