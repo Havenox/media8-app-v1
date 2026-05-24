@@ -33,10 +33,10 @@ const SettingsPage: React.FC = () => {
 
   // Form states
   const [profile, setProfile] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    bio: user?.bio || '',
-    phone: user?.phone || '',
+    name: user?.Name || '',
+    email: user?.Email || '',
+    bio: user?.Bio || '',
+    phone: user?.Phone || '',
   });
 
   const [notifications, setNotifications] = useState({
@@ -55,18 +55,18 @@ const SettingsPage: React.FC = () => {
 
   // Fetch latest data on mount
   React.useEffect(() => {
-    if (user?.id) {
-       userService.getById(user.id).then((u) => {
+    if (user?.Id) {
+       userService.getById(user.Id).then((u) => {
          if (u) {
            setProfile({
-             name: u.name,
-             email: u.email,
-             bio: u.bio || '',
-             phone: u.phone || '',
+             name: u.Name,
+             email: u.Email,
+             bio: u.Bio || '',
+             phone: u.Phone || '',
            });
-           if (u.preferences) {
+           if (u.Preferences) {
              try {
-               const prefs = JSON.parse(u.preferences);
+               const prefs = JSON.parse(u.Preferences);
                if (prefs.notifications) {
                  setNotifications(prev => ({...prev, ...prefs.notifications}));
                }
@@ -77,14 +77,14 @@ const SettingsPage: React.FC = () => {
          }
        });
     }
-  }, [user?.id]);
+  }, [user?.Id]);
 
 
   const handleSaveProfile = async () => {
-    if (!user?.id) return;
+    if (!user?.Id) return;
     setIsLoading(true);
     try {
-      await userService.updateProfile(user.id, {
+      await userService.updateProfile(user.Id, {
         name: profile.name,
         bio: profile.bio,
         phone: profile.phone,
@@ -138,11 +138,11 @@ const SettingsPage: React.FC = () => {
   };
 
   const handleSaveNotifications = async () => {
-    if (!user?.id) return;
+    if (!user?.Id) return;
     setIsLoading(true);
     try {
         // We need to update the profile with the new preferences
-        await userService.updateProfile(user.id, {
+        await userService.updateProfile(user.Id, {
             name: profile.name,
             bio: profile.bio,
             phone: profile.phone,
