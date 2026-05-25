@@ -65,10 +65,10 @@ const EditsPage: React.FC = () => {
 
   // Stats
   const stats = useMemo(() => ({
-    pending: orders.filter((o) => o.status === 'Pending').length,
-    inProgress: orders.filter((o) => o.status === 'InProgress').length,
-    inReview: orders.filter((o) => o.status === 'InReview').length,
-    completed: orders.filter((o) => o.status === 'Approved').length,
+    pending: orders.filter((o) => o.Status === 'Pending').length,
+    inProgress: orders.filter((o) => o.Status === 'InProgress').length,
+    inReview: orders.filter((o) => o.Status === 'InReview').length,
+    completed: orders.filter((o) => o.Status === 'Approved').length,
   }), [orders]);
 
   // Get client name by ID

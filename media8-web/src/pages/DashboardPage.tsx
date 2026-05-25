@@ -101,9 +101,9 @@ const ClientDashboard: React.FC = () => {
 
   const stats = useMemo(() => ({
     total: orders.length,
-    pending: orders.filter((o) => o.status === 'Pending').length,
-    inProgress: orders.filter((o) => o.status === 'InProgress').length,
-    completed: orders.filter((o) => o.status === 'Approved').length,
+    pending: orders.filter((o) => o.Status === 'Pending').length,
+    inProgress: orders.filter((o) => o.Status === 'InProgress').length,
+    completed: orders.filter((o) => o.Status === 'Approved').length,
   }), [orders]);
 
   const containerVariants = {
@@ -255,10 +255,10 @@ const EditorDashboard: React.FC = () => {
   const { data: orders = [], isLoading } = useOrdersByEditor(user?.Id);
 
   const stats = useMemo(() => ({
-    pending: orders.filter((o) => o.status === 'Pending').length,
-    inProgress: orders.filter((o) => o.status === 'InProgress').length,
-    inReview: orders.filter((o) => o.status === 'InReview').length,
-    completed: orders.filter((o) => o.status === 'Approved').length,
+    pending: orders.filter((o) => o.Status === 'Pending').length,
+    inProgress: orders.filter((o) => o.Status === 'InProgress').length,
+    inReview: orders.filter((o) => o.Status === 'InReview').length,
+    completed: orders.filter((o) => o.Status === 'Approved').length,
   }), [orders]);
 
   const containerVariants = {
@@ -360,9 +360,9 @@ const AdminDashboard: React.FC = () => {
 
   const stats = useMemo(() => ({
     total: orders.length,
-    pending: orders.filter((o) => o.status === 'Pending').length,
-    inProgress: orders.filter((o) => o.status === 'InProgress').length,
-    completed: orders.filter((o) => o.status === 'Approved').length,
+    pending: orders.filter((o) => o.Status === 'Pending').length,
+    inProgress: orders.filter((o) => o.Status === 'InProgress').length,
+    completed: orders.filter((o) => o.Status === 'Approved').length,
   }), [orders]);
 
   const containerVariants = {
