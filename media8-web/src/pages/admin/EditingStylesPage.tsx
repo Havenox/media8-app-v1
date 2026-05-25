@@ -396,10 +396,10 @@ const EditingStylesPage: React.FC = () => {
                             <DropdownMenuItem
                               onClick={() => handleSoftDelete(style)}
                               className="text-destructive"
-                              disabled={!style.canDeletePermanently}
+                              disabled={!style.CanDeletePermanently}
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
-                              {style.canDeletePermanently ? 'Excluir Definitivamente' : 'Não pode excluir'}
+                              {style.CanDeletePermanently ? 'Excluir Definitivamente' : 'Não pode excluir'}
                             </DropdownMenuItem>
                           </>
                         )}

@@ -455,10 +455,10 @@ const VideoFormatsPage: React.FC = () => {
                             <DropdownMenuItem
                               onClick={() => handleSoftDelete(format)}
                               className="text-destructive"
-                              disabled={!format.canDeletePermanently}
+                              disabled={!format.CanDeletePermanently}
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
-                              {format.canDeletePermanently ? 'Excluir Definitivamente' : 'Não pode excluir'}
+                              {format.CanDeletePermanently ? 'Excluir Definitivamente' : 'Não pode excluir'}
                             </DropdownMenuItem>
                           </>
                         )}

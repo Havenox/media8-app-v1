@@ -101,11 +101,11 @@ export function ContractAssignDialog({
                 </SelectTrigger>
                 <SelectContent>
                   {offers.map((offer) => (
-                    <SelectItem key={offer.id} value={offer.id}>
+                    <SelectItem key={offer.Id} value={offer.Id}>
                       <div className="flex flex-col">
-                        <span className="font-medium">{offer.name}</span>
+                        <span className="font-medium">{offer.Name}</span>
                         <span className="text-xs text-muted-foreground">
-                          {offer.videoQuantity} vídeos • {formatPrice(offer.price)} • {offer.contractType}
+                          {offer.VideoQuantity} vídeos • {formatPrice(offer.Price)} • {offer.ContractType}
                         </span>
                       </div>
                     </SelectItem>

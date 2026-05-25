@@ -164,12 +164,12 @@ Nenhum contrato atribuído
 <div className="space-y-3">
 {contracts.map((contract) => (
 <div
-key={contract.id}
+key={contract.Id}
 className="p-4 rounded-lg bg-muted/30 border border-border space-y-2"
 >
 <div className="flex items-center justify-between">
-<span className="font-medium text-foreground">{contract.snapshotOfferName || 'Oferta'}</span>
-{getStatusBadge(contract.status)}
+<span className="font-medium text-foreground">{contract.SnapshotOfferName || 'Oferta'}</span>
+{getStatusBadge(contract.Status)}
 </div>
 <div className="grid grid-cols-2 gap-2 text-sm">
 <div>
@@ -178,7 +178,7 @@ className="p-4 rounded-lg bg-muted/30 border border-border space-y-2"
 </div>
 <div>
 <span className="text-muted-foreground">Vídeos:</span>{' '}
-<span className="font-medium">{contract.snapshotVideoQuantity || '-'}</span>
+<span className="font-medium">{contract.SnapshotVideoQuantity || '-'}</span>
 </div>
 <div>
 <span className="text-muted-foreground">Validade:</span>{' '}
@@ -186,7 +186,7 @@ className="p-4 rounded-lg bg-muted/30 border border-border space-y-2"
 </div>
 <div>
 <span className="text-muted-foreground">Status:</span>{' '}
-<span className="font-medium">{contract.status}</span>
+<span className="font-medium">{contract.Status}</span>
 </div>
 </div>
 </div>
