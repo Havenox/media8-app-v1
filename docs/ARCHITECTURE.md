@@ -90,6 +90,7 @@ O catálogo pode mudar, mas o contrato é imutável e auditável. `ClientContrac
 **Problema**: Circular References e Over-posting de dados sensíveis (`PasswordHash`, `InternalFlags`).
 **Solução**: A API nunca retorna Entidades de Domínio diretamente. Todo dado é mapeado para um DTO específico de resposta.
 *   **Segurança**: Campos como `Balance` são calculados no mapeamento, impedindo que o cliente manipule lógica de negócio.
+*   **PascalCase Nativo**: A API serializa todos os DTOs em PascalCase (`PropertyNamingPolicy = null`). No frontend, dados da API são acessados como `offer.Name`, `user.Email` — nunca `offer.name`, `user.email`. Estado local React permanece camelCase (`newOffer.name`).
 
 ### 3. Service Balance & FIFO Strategy
 **Problema**: Clientes acumulam créditos de diferentes compras com validades diferentes.
