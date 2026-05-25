@@ -51,7 +51,7 @@ import {
   useHardDeleteEditingProfile,
   useCreateEditingProfile,
   useUpdateEditingProfile,
-} from '@/hooks/useBrandingProfiles';
+} from '@/hooks/useEditingProfiles';
 import { EditingProfileForm } from '@/components/profiles/EditingProfileForm';
 import { useAuth } from '@/contexts/AuthContext';
 import { EditingProfile } from '@/types/brandingProfiles';
