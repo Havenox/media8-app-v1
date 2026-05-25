@@ -509,7 +509,7 @@ const handleRestoreUser = async () => {
         setIsAssignDialogOpen(true);
       }}
       onDelete={(userId) => {
-        const user = users.find(u => u.id === userId);
+        const user = users.find(u => u.Id === userId);
         if (user) {
           setUserToArchive(user);
           setIsArchiveDialogOpen(true);

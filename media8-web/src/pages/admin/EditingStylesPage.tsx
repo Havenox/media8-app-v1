@@ -163,7 +163,7 @@ const EditingStylesPage: React.FC = () => {
         if (prev <= 1) {
           clearInterval(timer);
           if (styleToDelete) {
-            deleteMutation.mutate({ id: styleToDelete.id, permanent: true });
+            deleteMutation.mutate({ id: styleToDelete.Id, permanent: true });
           }
           setIsDeleteDialogOpen(false);
           setStyleToDelete(null);
@@ -448,7 +448,7 @@ const EditingStylesPage: React.FC = () => {
               variant="destructive"
               onClick={() => {
                 if (styleToDelete) {
-                  deleteMutation.mutate({ id: styleToDelete.id, permanent: false });
+                  deleteMutation.mutate({ id: styleToDelete.Id, permanent: false });
                   setIsDeleteDialogOpen(false);
                   setStyleToDelete(null);
                 }
@@ -480,7 +480,7 @@ const EditingStylesPage: React.FC = () => {
             </DialogTitle>
             <DialogDescription>
               {styleToDelete?.canDeletePermanently
-                ? `Tem certeza que deseja excluir permanentemente "${styleToDelete.name}"? Esta ação é irreversível.`
+                ? `Tem certeza que deseja excluir permanentemente "${styleToDelete.Name}"? Esta ação é irreversível.`
                 : `O estilo "${styleToDelete?.name}" possui ofertas vinculadas e não pode ser excluído permanentemente.`}
             </DialogDescription>
           </DialogHeader>

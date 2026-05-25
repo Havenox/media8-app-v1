@@ -194,7 +194,7 @@ const VideoFormatsPage: React.FC = () => {
         if (prev <= 1) {
           clearInterval(timer);
           if (formatToDelete) {
-            deleteMutation.mutate({ id: formatToDelete.id, permanent: true });
+            deleteMutation.mutate({ id: formatToDelete.Id, permanent: true });
           }
           setIsDeleteDialogOpen(false);
           setFormatToDelete(null);
@@ -594,7 +594,7 @@ const VideoFormatsPage: React.FC = () => {
               variant="destructive"
               onClick={() => {
                 if (formatToDelete) {
-                  deleteMutation.mutate({ id: formatToDelete.id, permanent: false });
+                  deleteMutation.mutate({ id: formatToDelete.Id, permanent: false });
                   setIsDeleteDialogOpen(false);
                   setFormatToDelete(null);
                 }
@@ -626,7 +626,7 @@ const VideoFormatsPage: React.FC = () => {
             </DialogTitle>
             <DialogDescription>
               {formatToDelete?.canDeletePermanently
-                ? `Tem certeza que deseja excluir permanentemente "${formatToDelete.name}"? Esta ação é irreversível.`
+                ? `Tem certeza que deseja excluir permanentemente "${formatToDelete.Name}"? Esta ação é irreversível.`
                 : `O formato "${formatToDelete?.name}" possui ofertas ou saldos vinculados e não pode ser excluído permanentemente.`}
             </DialogDescription>
           </DialogHeader>
