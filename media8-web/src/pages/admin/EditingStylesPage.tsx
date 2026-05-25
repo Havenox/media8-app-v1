@@ -136,7 +136,7 @@ const EditingStylesPage: React.FC = () => {
   const handleUpdate = (data: FormData) => {
     if (!selectedStyle) return;
     updateMutation.mutate({
-      id: selectedstyle.Id,
+      id: selectedStyle.Id,
       data: {
         name: data.name,
         description: data.description,

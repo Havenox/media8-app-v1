@@ -165,7 +165,7 @@ const VideoFormatsPage: React.FC = () => {
   const handleUpdate = (data: FormData) => {
     if (!selectedFormat) return;
     updateMutation.mutate({
-      id: selectedformat.Id,
+      id: selectedFormat.Id,
       data: {
         name: data.name,
         slug: data.slug,

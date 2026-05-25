@@ -193,15 +193,15 @@ const handleEditOffer = (offer: Offer) => {
 
   const handleCreateOffer = async () => {
     // Validation
-    if (!newoffer.Name.trim()) {
+    if (!newOffer.name.trim()) {
       toast.error('O nome da oferta é obrigatório');
       return;
     }
-    if (!newoffer.Slug.trim()) {
+    if (!newOffer.slug.trim()) {
       toast.error('O slug é obrigatório');
       return;
     }
-    if (newoffer.Price <= 0) {
+    if (newOffer.price <= 0) {
       toast.error('O preço deve ser maior que zero');
       return;
     }
@@ -215,10 +215,10 @@ const handleEditOffer = (offer: Offer) => {
     }
 
 const offerData: CreateOfferRequest = {
-  name: newoffer.Name,
-  slug: newoffer.Slug,
+  name: newOffer.name,
+  slug: newOffer.slug,
   contractType: newOffer.contractType,
-  price: newoffer.Price,
+  price: newOffer.price,
   videoQuantity: newOffer.videoQuantity,
   maxDurationSeconds: newOffer.maxDurationSeconds,
   validityDays: newOffer.validityDays || undefined,
@@ -228,13 +228,13 @@ const offerData: CreateOfferRequest = {
   features: newOffer.features.filter((f) => f.trim()),
   disclaimer: newOffer.disclaimer || undefined,
   badge: newOffer.badge || undefined,
-  isPublic: newoffer.IsPublic,
+  isPublic: newOffer.isPublic,
   videoFormatId: newOffer.videoFormatId || undefined,
   editingStyleId: newOffer.editingStyleId || undefined,
 };
 
     if (selectedOffer) {
-      updateOfferMutation.mutate({ id: selectedoffer.Id, data: offerData });
+      updateOfferMutation.mutate({ id: selectedOffer.Id, data: offerData });
     } else {
       createOfferMutation.mutate(offerData);
     }
@@ -246,7 +246,7 @@ const offerData: CreateOfferRequest = {
 
 const handleDeleteOffer = (permanent = false) => {
   if (offerToDelete) {
-    deleteOfferMutation.mutate({ id: offerToDelete.id, permanent });
+    deleteOfferMutation.mutate({ id: offerToDelete.Id, permanent });
     setIsDeleteDialogOpen(false);
     setOfferToDelete(null);
     setIsDeleteCounting(false);
@@ -336,10 +336,10 @@ Nova Oferta
 <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
 <TabsList>
 <TabsTrigger value="active">
-Ativos ({offers.filter(o => o.isPublic).length})
+Ativos ({offers.filter(o => o.IsPublic).length})
 </TabsTrigger>
 <TabsTrigger value="archived">
-Arquivados ({offers.filter(o => !o.isPublic).length})
+Arquivados ({offers.filter(o => !o.IsPublic).length})
 </TabsTrigger>
 </TabsList>
 </Tabs>
@@ -508,7 +508,7 @@ onValueChange={(value: any) => setCategoryFilter(value)}
               <div>
                 <Label>Nome *</Label>
                 <Input
-                  value={newoffer.Name}
+                  value={newOffer.name}
                   onChange={(e) => setNewOffer({ ...newOffer, name: e.target.value })}
                   placeholder="Ex: Plano Mensal"
                 />
@@ -516,7 +516,7 @@ onValueChange={(value: any) => setCategoryFilter(value)}
               <div>
                 <Label>Slug *</Label>
                 <Input
-                  value={newoffer.Slug}
+                  value={newOffer.slug}
                   onChange={(e) =>
                     setNewOffer({
                       ...newOffer,
@@ -557,7 +557,7 @@ onValueChange={(value: any) => setCategoryFilter(value)}
                 <Label>Preço (R$) *</Label>
                 <Input
                   type="number"
-                  value={newoffer.Price}
+                  value={newOffer.price}
                   onChange={(e) =>
                     setNewOffer({ ...newOffer, price: parseFloat(e.target.value) || 0 })
                   }
@@ -743,12 +743,12 @@ onValueChange={(value: any) => setCategoryFilter(value)}
       </Dialog>
 
 {/* Restore Confirmation Dialog */}
-<Dialog open={!!selectedOffer && !selectedoffer.IsPublic} onOpenChange={(open) => !open && setSelectedOffer(null)}>
+<Dialog open={!!selectedOffer && !selectedOffer.IsPublic} onOpenChange={(open) => !open && setSelectedOffer(null)}>
 <DialogContent>
 <DialogHeader>
 <DialogTitle>Reativar Oferta</DialogTitle>
 <DialogDescription>
-Tem certeza que deseja reativar a oferta "{selectedOffer?.name}"? Ela voltará a ser visível no catálogo.
+Tem certeza que deseja reativar a oferta "{selectedOffer?.Name}"? Ela voltará a ser visível no catálogo.
 </DialogDescription>
 </DialogHeader>
 <DialogFooter>
@@ -779,7 +779,7 @@ Reativar
     <DialogHeader>
       <DialogTitle>Arquivar Oferta</DialogTitle>
       <DialogDescription>
-        Tem certeza que deseja mover a oferta "{offerToDelete?.name}" para os arquivados?
+        Tem certeza que deseja mover a oferta "{offerToDelete?.Name}" para os arquivados?
         Ela não será mais visível no catálogo ativo.
       </DialogDescription>
     </DialogHeader>
@@ -814,8 +814,8 @@ Reativar
       </DialogTitle>
       <DialogDescription>
         {offerToDelete?.canDeletePermanently
-          ? `Tem certeza que deseja excluir permanentemente "${offerToDelete.name}"? Esta ação é irreversível.`
-          : `A oferta "${offerToDelete?.name}" possui contratos vinculados e não pode ser excluída permanentemente.`}
+          ? `Tem certeza que deseja excluir permanentemente "${offerToDelete.Name}"? Esta ação é irreversível.`
+          : `A oferta "${offerToDelete?.Name}" possui contratos vinculados e não pode ser excluída permanentemente.`}
       </DialogDescription>
     </DialogHeader>
     <DialogFooter className="flex-col gap-2">
