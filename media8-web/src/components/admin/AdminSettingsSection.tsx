@@ -13,7 +13,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 
 interface SystemSettingsResponse {
-  settings: Record<string, string>;
+  settings?: Record<string, string>;
+  Settings?: Record<string, string>;
 }
 
 interface UpdateSettingsRequest {
@@ -32,7 +33,8 @@ const AdminSettingsSection: React.FC = () => {
   const { data: settingsData, isLoading } = useQuery({
     queryKey: ['admin', 'settings'],
     queryFn: async () => {
-      const response = await api.get<SystemSettingsResponse>('/admin/settings');
+      const response = await api.get<SystemSettingsResponse>('/settings');
+      // Backend returns { "Settings": {...} } - normalize to lowercase
       return response.data;
     },
     enabled: user?.Role === 'Admin',
@@ -40,7 +42,9 @@ const AdminSettingsSection: React.FC = () => {
 
   // Initialize local state when data loads
   React.useEffect(() => {
-    if (settingsData?.settings) {
+    if (settingsData?.Settings) {
+      setLocalSettings(settingsData.Settings);
+    } else if (settingsData?.settings) {
       setLocalSettings(settingsData.settings);
     }
   }, [settingsData]);
