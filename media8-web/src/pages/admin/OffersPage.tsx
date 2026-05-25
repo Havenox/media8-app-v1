@@ -144,7 +144,7 @@ return !offer.IsPublic;
 return tabFiltered.filter((offer) => {
 const matchesSearch = offer.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
 offer.Slug.toLowerCase().includes(searchTerm.toLowerCase());
-const matchesCategory = categoryFilter === 'all' || offer.contractType === categoryFilter;
+const matchesCategory = categoryFilter === 'all' || offer.ContractType === categoryFilter;
 return matchesSearch && matchesCategory;
 });
 }, [offers, searchTerm, categoryFilter, activeTab]);
@@ -172,20 +172,20 @@ const handleEditOffer = (offer: Offer) => {
   setNewOffer({
     name: offer.Name,
     slug: offer.Slug,
-    contractType: offer.contractType,
+    contractType: offer.ContractType,
     price: offer.Price,
-    videoQuantity: offer.videoQuantity,
-    maxDurationSeconds: offer.maxDurationSeconds,
-    validityDays: offer.validityDays || 0,
-    loyaltyMonths: offer.loyaltyMonths,
-    deliveryDays: offer.deliveryDays,
-    description: offer.description || '',
-    features: offer.features,
-    disclaimer: offer.disclaimer || '',
-    badge: offer.badge || '',
+    videoQuantity: offer.VideoQuantity,
+    maxDurationSeconds: offer.MaxDurationSeconds,
+    validityDays: offer.ValidityDays || 0,
+    loyaltyMonths: offer.LoyaltyMonths,
+    deliveryDays: offer.DeliveryDays,
+    description: offer.Description || '',
+    features: offer.Features,
+    disclaimer: offer.Disclaimer || '',
+    badge: offer.Badge || '',
     isPublic: offer.IsPublic,
-    videoFormatId: offer.videoFormatId,
-    editingStyleId: offer.editingStyleId || undefined,
+    videoFormatId: offer.VideoFormatId,
+    editingStyleId: offer.EditingStyleId || undefined,
   });
   setSelectedOffer(offer);
   setIsDialogOpen(true);
@@ -215,22 +215,22 @@ const handleEditOffer = (offer: Offer) => {
     }
 
 const offerData: CreateOfferRequest = {
-  name: newOffer.name,
-  slug: newOffer.slug,
-  contractType: newOffer.contractType,
-  price: newOffer.price,
-  videoQuantity: newOffer.videoQuantity,
-  maxDurationSeconds: newOffer.maxDurationSeconds,
-  validityDays: newOffer.validityDays || undefined,
-  loyaltyMonths: newOffer.loyaltyMonths,
-  deliveryDays: newOffer.deliveryDays,
-  description: newOffer.description || undefined,
-  features: newOffer.features.filter((f) => f.trim()),
-  disclaimer: newOffer.disclaimer || undefined,
-  badge: newOffer.badge || undefined,
-  isPublic: newOffer.isPublic,
-  videoFormatId: newOffer.videoFormatId || undefined,
-  editingStyleId: newOffer.editingStyleId || undefined,
+  Name: newOffer.name,
+  Slug: newOffer.slug,
+  ContractType: newOffer.contractType,
+  Price: newOffer.price,
+  VideoQuantity: newOffer.videoQuantity,
+  MaxDurationSeconds: newOffer.maxDurationSeconds,
+  ValidityDays: newOffer.validityDays || undefined,
+  LoyaltyMonths: newOffer.loyaltyMonths,
+  DeliveryDays: newOffer.deliveryDays,
+  Description: newOffer.description || undefined,
+  Features: newOffer.features.filter((f) => f.trim()),
+  Disclaimer: newOffer.disclaimer || undefined,
+  Badge: newOffer.badge || undefined,
+  IsPublic: newOffer.isPublic,
+  VideoFormatId: newOffer.videoFormatId || undefined,
+  EditingStyleId: newOffer.editingStyleId || undefined,
 };
 
     if (selectedOffer) {
@@ -407,9 +407,9 @@ onValueChange={(value: any) => setCategoryFilter(value)}
                   <div>
                     <CardTitle className="flex items-center gap-2">
                       {offer.Name}
-                      {offer.badge && (
+                      {offer.Badge && (
                         <Badge variant="secondary" className="text-xs">
-                          {offer.badge}
+                          {offer.Badge}
                         </Badge>
                       )}
                     </CardTitle>
@@ -418,9 +418,9 @@ onValueChange={(value: any) => setCategoryFilter(value)}
                     </CardDescription>
                   </div>
                   <Badge
-                    className={`${getContractTypeColor(offer.contractType)} border-0`}
+                    className={`${getContractTypeColor(offer.ContractType)} border-0`}
                   >
-                    {offer.contractType}
+                    {offer.ContractType}
                   </Badge>
                 </div>
               </CardHeader>
@@ -432,29 +432,29 @@ onValueChange={(value: any) => setCategoryFilter(value)}
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Video className="w-4 h-4 text-blue-600" />
-                    <span>{offer.videoQuantity} vídeos</span>
+                    <span>{offer.VideoQuantity} vídeos</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="w-4 h-4 text-orange-600" />
-                    <span>Duração: {formatDuration(offer.maxDurationSeconds)}</span>
+                    <span>Duração: {formatDuration(offer.MaxDurationSeconds)}</span>
                   </div>
-                  {offer.validityDays && (
+                  {offer.ValidityDays && (
                     <div className="flex items-center gap-2 text-sm">
                       <Calendar className="w-4 h-4 text-purple-600" />
-                      <span>Validade: {offer.validityDays} dias</span>
+                      <span>Validade: {offer.ValidityDays} dias</span>
                     </div>
                   )}
                   <div className="flex items-center gap-2 text-sm">
                     <Tag className="w-4 h-4 text-pink-600" />
-                    <span>Fidelidade: {offer.loyaltyMonths} meses</span>
+                    <span>Fidelidade: {offer.LoyaltyMonths} meses</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Star className="w-4 h-4 text-yellow-600" />
-                    <span>Entrega: {offer.deliveryDays} dias</span>
+                    <span>Entrega: {offer.DeliveryDays} dias</span>
                   </div>
-                  {offer.description && (
+                  {offer.Description && (
                     <p className="text-sm text-muted-foreground line-clamp-2">
-                      {offer.description}
+                      {offer.Description}
                     </p>
                   )}
                 </div>
@@ -808,18 +808,18 @@ Reativar
   <DialogContent>
     <DialogHeader>
       <DialogTitle>
-        {offerToDelete?.canDeletePermanently
+        {offerToDelete?.CanDeletePermanently
           ? 'Excluir Permanentemente'
           : 'Não é possível excluir'}
       </DialogTitle>
       <DialogDescription>
-        {offerToDelete?.canDeletePermanently
+        {offerToDelete?.CanDeletePermanently
           ? `Tem certeza que deseja excluir permanentemente "${offerToDelete.Name}"? Esta ação é irreversível.`
           : `A oferta "${offerToDelete?.Name}" possui contratos vinculados e não pode ser excluída permanentemente.`}
       </DialogDescription>
     </DialogHeader>
     <DialogFooter className="flex-col gap-2">
-      {offerToDelete?.canDeletePermanently ? (
+      {offerToDelete?.CanDeletePermanently ? (
         <>
           {isDeleteCounting ? (
             <div className="w-full space-y-2">
