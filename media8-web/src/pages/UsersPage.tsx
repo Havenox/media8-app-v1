@@ -146,10 +146,10 @@ const reactivateUserMutation = useMutation({
     
     try {
       await createUserMutation.mutateAsync({
-        name: newUser.name.trim(),
-        email: newUser.email.trim(),
-        role: newuser.Role,
-        password: newUser.password // Now supported by frontend service
+        Name: newUser.name.trim(),
+        Email: newUser.email.trim(),
+        Role: newUser.role,
+        Password: newUser.password // Now supported by frontend service
       });
       setIsCreateDialogOpen(false);
       setNewUser({ name: '', email: '', password: '', role: 'Client' });
@@ -173,8 +173,8 @@ const reactivateUserMutation = useMutation({
     if (!selectedUserForEdit) return;
 
     // Role change warning
-    if (selectedUserForEdit.Role !== edituser.Role) {
-      const confirmChange = window.confirm(`ATENÇÃO: Você está alterando o privilégio de ${selectedUserForEdit.Role} para ${edituser.Role}. Tem certeza?`);
+    if (selectedUserForEdit.Role !== editUser.role) {
+      const confirmChange = window.confirm(`ATENÇÃO: Você está alterando o privilégio de ${selectedUserForEdit.Role} para ${editUser.role}. Tem certeza?`);
       if (!confirmChange) return;
     }
 
@@ -182,9 +182,9 @@ const reactivateUserMutation = useMutation({
       await updateUserMutation.mutateAsync({
         id: selectedUserForEdit.Id,
         data: {
-          name: editUser.name,
-          role: edituser.Role,
-          phone: editUser.phone
+          Name: editUser.name,
+          Role: editUser.role,
+          Phone: editUser.phone
           // Email update might be restricted by backend logic for safety
         }
       });
@@ -199,7 +199,7 @@ const handleArchiveUser = async () => {
   if (!userToArchive) return;
   
   try {
-    await deleteUserMutation.mutateAsync(userToArchive.id);
+    await deleteUserMutation.mutateAsync(userToArchive.Id);
     setIsArchiveDialogOpen(false);
     setUserToArchive(null);
     toast.success('Usuário arquivado com sucesso!');
@@ -212,7 +212,7 @@ const handleRestoreUser = async () => {
   if (!userToRestore) return;
   
   try {
-    reactivateUserMutation.mutateAsync(userToRestore.id);
+    reactivateUserMutation.mutateAsync(userToRestore.Id);
     setIsRestoreDialogOpen(false);
     setUserToRestore(null);
   } catch (error) {
@@ -329,7 +329,7 @@ const handleRestoreUser = async () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="create-role">Função</Label>
-                <Select value={newuser.Role} onValueChange={(value: UserRole) => setNewUser({ ...newUser, role: value })}>
+                <Select value={newUser.role} onValueChange={(value: UserRole) => setNewUser({ ...newUser, role: value })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Client">Cliente</SelectItem>
@@ -459,7 +459,7 @@ const handleRestoreUser = async () => {
              </div>
              <div className="space-y-2">
                 <Label>Função (Role)</Label>
-                <Select value={edituser.Role} onValueChange={(val: UserRole) => setEditUser({...editUser, role: val})}>
+                <Select value={editUser.role} onValueChange={(val: UserRole) => setEditUser({...editUser, role: val})}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Client">Cliente</SelectItem>
@@ -467,7 +467,7 @@ const handleRestoreUser = async () => {
                     <SelectItem value="Admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
-                {selectedUserForEdit?.role !== edituser.Role && (
+                {selectedUserForEdit?.Role !== editUser.role && (
                   <div className="flex items-center gap-2 text-amber-500 text-sm mt-2">
                     <AlertTriangle className="h-4 w-4" />
                     <span>Alterar a função requer confirmação.</span>
@@ -487,7 +487,7 @@ const handleRestoreUser = async () => {
 {/* Contract Assign Dialog - New Implementation */}
 {selectedClient && (
   <ContractAssignDialog
-    clientId={selectedClient.id}
+    clientId={selectedClient.Id}
     isOpen={isAssignDialogOpen}
     onClose={() => setIsAssignDialogOpen(false)}
   />
@@ -547,7 +547,7 @@ const handleRestoreUser = async () => {
       <DialogHeader>
         <DialogTitle>Reativar Usuário</DialogTitle>
         <DialogDescription>
-          Tem certeza que deseja reativar o acesso do usuário {userToRestore?.name} à plataforma?
+          Tem certeza que deseja reativar o acesso do usuário {userToRestore?.Name} à plataforma?
         </DialogDescription>
       </DialogHeader>
       <DialogFooter>

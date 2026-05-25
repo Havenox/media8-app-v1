@@ -83,14 +83,14 @@ export const ServiceBalanceList: React.FC<ServiceBalanceListProps> = ({
       {lots.map((lot) => (
         variant === 'list' ? (
           <ServiceListItem
-            key={lot.id}
+            key={lot.Id}
             lot={lot}
             canConsume={canConsume}
             onConsume={onConsume}
           />
         ) : (
           <ServiceCard 
-            key={lot.id} 
+            key={lot.Id} 
             lot={lot} 
             canConsume={canConsume} 
             onConsume={onConsume} 

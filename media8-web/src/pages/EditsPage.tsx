@@ -73,8 +73,8 @@ const EditsPage: React.FC = () => {
 
   // Get client name by ID
   const getClientName = (clientId: string) => {
-    const client = users.find(u => u.id === clientId);
-    return client?.name || `Cliente #${clientId}`;
+    const client = users.find(u => u.Id === clientId);
+    return client?.Name || `Cliente #${clientId}`;
   };
 
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
