@@ -23,9 +23,6 @@ public class EditingStyle
     /// </summary>
     public bool IsActive { get; set; } = true;
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-
-    // Navigation properties
-    public ICollection<VideoFormat> VideoFormats { get; set; } = new List<VideoFormat>();
+  public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+  public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
