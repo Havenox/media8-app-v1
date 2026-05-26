@@ -33,7 +33,7 @@ const AdminSettingsSection: React.FC = () => {
   const { data: settingsData, isLoading, error } = useQuery({
     queryKey: ['admin', 'settings'],
     queryFn: async () => {
-      const response = await api.get<SystemSettingsResponse>('/api/v1/admin/settings');
+      const response = await api.get<SystemSettingsResponse>('/admin/settings');
       console.log('[Settings] Raw response:', response.data);
       // Backend returns { "Settings": {...} } in PascalCase
       return response.data;
@@ -55,7 +55,7 @@ const AdminSettingsSection: React.FC = () => {
     mutationFn: async ({ key, value }: UpdateSettingsRequest) => {
       // Backend expects PascalCase keys: { "Key": "...", "Value": "..." }
       console.log(`[Settings] Updating ${key} to ${value}`);
-      const response = await api.patch('/api/v1/admin/settings', { Key: key, Value: value });
+      const response = await api.patch('/admin/settings', { Key: key, Value: value });
       console.log('[Settings] Update response:', response.data);
       return response.data;
     },
@@ -160,27 +160,28 @@ const AdminSettingsSection: React.FC = () => {
 
           <Separator />
 
-          {/* CancellationWindowHours */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="CancellationWindowHours" className="text-base font-semibold">
-                Janela de Cancelamento (horas)
-              </Label>
-              <span className="text-xs text-muted-foreground bg-primary/10 px-2 py-1 rounded">
-                {localSettings['CancellationWindowHours'] || '24'}h
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Tempo máximo após a criação do pedido em que o cliente pode cancelar com estorno automático.
-            </p>
-            <Input
-              id="CancellationWindowHours"
-              type="number"
-              value={localSettings['CancellationWindowHours'] || '24'}
-              onChange={(e) => handleSettingChange('CancellationWindowHours', e.target.value)}
-              className="max-w-xs"
-            />
+        {/* CancellationWindowHours */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="CancellationWindowHours" className="text-base font-semibold">
+              Janela de Cancelamento (horas)
+            </Label>
+            <span className="text-xs text-muted-foreground bg-primary/10 px-2 py-1 rounded">
+              {localSettings['CancellationWindowHours'] ? `${localSettings['CancellationWindowHours']}h` : '—'}
+            </span>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Tempo máximo após a criação do pedido em que o cliente pode cancelar com estorno automático.
+          </p>
+          <Input
+            id="CancellationWindowHours"
+            type="number"
+            value={localSettings['CancellationWindowHours'] ?? ''}
+            onChange={(e) => handleSettingChange('CancellationWindowHours', e.target.value)}
+            className="max-w-xs"
+            placeholder="Carregando..."
+          />
+        </div>
 
           <Separator />
 
