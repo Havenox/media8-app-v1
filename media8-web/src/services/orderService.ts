@@ -122,7 +122,7 @@ export const orderService = {
 
   async getCancellationWindow(): Promise<number> {
     const response = await api.get<number>('/Orders/cancellation-window');
-    return response.data ?? 24;
+    return response.data;
   },
 
   // Helper: Get stats for dashboard

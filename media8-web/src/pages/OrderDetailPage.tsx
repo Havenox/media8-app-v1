@@ -89,8 +89,8 @@ setNewStatus(order.Status);
     setNewComment('');
   };
 
-  const handleUpdateStatus = () => {
-    if (!id || !newStatus || newStatus === order?.status) return;
+const handleUpdateStatus = () => {
+  if (!id || !newStatus || newStatus === order?.Status) return;
     
     updateStatusMutation.mutate(
       { id, status: newStatus },
@@ -389,15 +389,15 @@ setNewStatus(order.Status);
                   </span>
                 </div>
                 <Separator />
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <User className="h-4 w-4" />
-                    <span className="text-sm">Editor</span>
-                  </div>
-                  <span className="font-medium text-foreground text-sm">
-                    {order.editor?.name || 'Não atribuído'}
-                  </span>
-                </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <User className="h-4 w-4" />
+              <span className="text-sm">Editor</span>
+            </div>
+            <span className="font-medium text-foreground text-sm">
+              {order.Editor?.Name || 'Não atribuído'}
+            </span>
+          </div>
                 <Separator />
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-muted-foreground">
@@ -408,20 +408,7 @@ setNewStatus(order.Status);
                     {format(new Date(order.CreatedAt), "dd/MM/yy", { locale: ptBR })}
                   </span>
                 </div>
-                {order.serviceType && (
-                  <>
-                    <Separator />
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Video className="h-4 w-4" />
-                        <span className="text-sm">Serviço</span>
-                      </div>
-                      <span className="font-medium text-foreground text-sm">
-                        {order.serviceType.replace(/_/g, ' ')}
-                      </span>
-                    </div>
-                  </>
-                )}
+          {/* Service Type field removed - not available in current OrderResponse DTO */}
               </CardContent>
             </Card>
           </motion.div>
