@@ -36,6 +36,8 @@ Users (1) ──── (N) UserRoles
 | `BrandingProfiles` | Perfis de marca (briefing) | Sim (`IsActive`) |
 | `SystemSettings` | Configurações dinâmicas | Não |
 
+**Nota**: `VideoFormats` e `EditingStyles` não possuem relação direta no banco. A conexão é feita via `Offer` (FK `VideoFormatId`, `EditingStyleId`).
+
 ---
 
 ## 2. Migrations Críticas
@@ -64,11 +66,59 @@ migrationBuilder.Sql("UPDATE Offers SET Name = 'Pacote ' + Name WHERE Name NOT L
 
 ```csharp
 migrationBuilder.AddColumn<string>(
-    name: "SnapshotOfferName",
-    table: "ClientContracts",
-    nullable: false,
-    defaultValue: "");
+  name: "SnapshotOfferName",
+  table: "ClientContracts",
+  nullable: false,
+  defaultValue: "");
 ```
+
+### 2.3. Remoção de Campos Legados (VideoFormat)
+
+**Problema**: `VideoFormat` possuía campos `Tier`, `EditingStyleId` e navegações reversas que não refletiam mais o domínio.
+
+**Solução**: Migrations para remover colunas e constraints:
+
+```csharp
+// RemoveTierAndEditingStyleFromVideoFormat.cs
+migrationBuilder.DropColumn(
+    name: "Tier",
+    table: "VideoFormats");
+
+migrationBuilder.DropColumn(
+    name: "EditingStyleId",
+    table: "VideoFormats");
+
+// FixOfferIdConstraint.cs - Remove FK indevida
+migrationBuilder.Sql("ALTER TABLE VideoFormats DROP CONSTRAINT IF EXISTS FK_VideoFormats_Offers_OfferId");
+```
+
+**Referência**: [Case Study 069](implementations/069-remocao-campos-legados-videoformat.md), [Case Study 070](implementations/070-correcao-navegacao-reversa-editingstyle.md)
+
+### 2.4. Lei da Navegação Mínima (EF Core Warning)
+
+**Problema Crítico**: Navegações reversas no EF Core podem criar FKs indevidas automaticamente.
+
+**Cenário**:
+```csharp
+// ❌ ERRADO - EditingStyle.cs
+public class EditingStyle {
+    public ICollection<VideoFormat> VideoFormats { get; set; }
+}
+
+// Isso faz EF Core tentar criar FK EditingStyleId em VideoFormats
+// Erro: column "EditingStyleId" of relation "VideoFormats" does not exist
+```
+
+**Solução**:
+```csharp
+// ✅ CERTO - EditingStyle.cs
+public class EditingStyle {
+    // Sem navegação reversa para VideoFormats
+    // A relação é unidirecional: Offer -> EditingStyle
+}
+```
+
+**Lição**: Navegações bidirecionais devem ser evitadas quando não há necessidade de negócio clara. O EF Core inferirá FKs indevidas.
 
 ---
 

@@ -45,6 +45,13 @@
 - URLs e endpoints injetados via configuração
 - Regras de negócio em `Settings` dinâmicos, não em código
 
+### 2.4. Lei da Navegação Mínima (EF Core)
+- **Regra**: Entidades não devem ter navegações reversas ativas sem necessidade de negócio
+- **Problema**: Navegações bidirecionais (`ICollection<T>`) fazem EF Core inferir FKs indevidas
+- **Solução**: Se não precisa navegar da entidade B para A, não declare propriedade de navegação
+- **Exemplo**: `EditingStyle.VideoFormats` removido para evitar FK `EditingStyleId` em `VideoFormats`
+- **Referência**: [Case Study 070](implementations/070-correcao-navegacao-reversa-editingstyle.md)
+
 ---
 
 ## 3. Padrões de Código

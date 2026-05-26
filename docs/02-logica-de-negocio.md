@@ -82,18 +82,57 @@ public class ServiceBalanceLot {
 
 **Regra de Negócio**: Múltiplos lotes podem coexistir para um mesmo usuário. O consumo segue **FIFO** (First-In-First-Out) por data de expiração.
 
-### 2.5. Order (Pedido de Edição)
+### 2.5. VideoFormat (Catálogo Dinâmico)
+```csharp
+public class VideoFormat {
+  public Guid Id { get; set; } = Guid.NewGuid();
+  public string Name { get; set; } = string.Empty;      // ex: "Reels Estendido"
+  public string Slug { get; set; } = string.Empty;      // ex: "reels-estendido"
+  public int MaxDurationSeconds { get; set; }           // ex: 180 segundos
+  public bool IsActive { get; set; } = true;
+  public bool CanDeletePermanently { get; set; }        // Verifica dependências
+  public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+  public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}
+```
+
+**Regras de Negócio**:
+- **Slug Único**: Slugs devem ser únicos em todo o catálogo
+- **Duração Máxima**: Define limite superior para uploads de clientes
+- **Soft Delete**: Formatos com ofertas ativas não podem ser excluídos permanentemente
+- **Sem Navegação Reversa**: `VideoFormat` não conhece `Offer` nem `EditingStyle` (Lei da Navegação Mínima)
+- **Referência**: [Case Study 069](implementations/069-remocao-campos-legados-videoformat.md), [Case Study 070](implementations/070-correcao-navegacao-reversa-editingstyle.md)
+
+### 2.6. EditingStyle (Estilos de Edição)
+```csharp
+public class EditingStyle {
+  public Guid Id { get; set; } = Guid.NewGuid();
+  public string Name { get; set; } = string.Empty;      // ex: "Simples", "Profissional"
+  public string Description { get; set; } = string.Empty;
+  public bool IsActive { get; set; } = true;
+  public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+  public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+  // SEM navegação VideoFormats - evita FK indevida
+}
+```
+
+**Regra de Negócio Crítica**:
+- **Navegação Unidirecional**: `EditingStyle` não gerencia navegação para `VideoFormats`
+- **Motivo**: Evita que EF Core crie FK `EditingStyleId` em `VideoFormats`
+- **Exceção**: A relação `Offer.EditingStyle` é unidirecional (de `Offer` para `EditingStyle`)
+
+### 2.7. Order (Pedido de Edição)
 ```csharp
 public class Order {
-    public int Id { get; set; }
-    public Guid ClientId { get; set; }
-    public Guid? EditorId { get; set; }
-    public string Title { get; set; }
-    public OrderStatus Status { get; set; } // Draft → Pending → InProgress → Approved
-    public int VideoFormatId { get; set; }
-    public DateTime Deadline { get; set; }
-    public string RawFootageUrl { get; set; }
-    public string FinalVideoUrl { get; set; }
+  public int Id { get; set; }
+  public Guid ClientId { get; set; }
+  public Guid? EditorId { get; set; }
+  public string Title { get; set; }
+  public OrderStatus Status { get; set; } // Draft → Pending → InProgress → Approved
+  public int VideoFormatId { get; set; }
+  public DateTime Deadline { get; set; }
+  public string RawFootageUrl { get; set; }
+  public string FinalVideoUrl { get; set; }
 }
 ```
 
