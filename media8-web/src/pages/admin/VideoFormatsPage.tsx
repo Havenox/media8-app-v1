@@ -152,15 +152,15 @@ const VideoFormatsPage: React.FC = () => {
     reset();
   };
 
-  // Handle Edit
-  const handleEdit = (format: VideoFormat) => {
-    setSelectedFormat(format);
-    setValue('name', format.Name);
-    setValue('slug', format.Slug);
-    setValue('maxDurationSeconds', format.maxDurationSeconds);
-    setValue('tier', format.tier as any);
-    setIsEditOpen(true);
-  };
+// Handle Edit
+const handleEdit = (format: VideoFormat) => {
+  setSelectedFormat(format);
+  setValue('name', format.Name);
+  setValue('slug', format.Slug);
+  setValue('maxDurationSeconds', format.MaxDurationSeconds);
+  setValue('tier', format.Tier as any);
+  setIsEditOpen(true);
+};
 
   const handleUpdate = (data: FormData) => {
     if (!selectedFormat) return;
@@ -411,7 +411,7 @@ const VideoFormatsPage: React.FC = () => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={getTierBadgeVariant(format.tier)}>{format.tier}</Badge>
+                    <Badge variant={getTierBadgeVariant(format.Tier)}>{format.Tier}</Badge>
                   </TableCell>
                   <TableCell>
                     {format.IsActive ? (
