@@ -158,7 +158,7 @@ const handleEdit = (format: VideoFormat) => {
         name: data.name,
         slug: data.slug,
         maxDurationSeconds: data.maxDurationSeconds,
-        tier: data.tier,
+        
       },
     });
     setIsEditOpen(false);
@@ -289,7 +289,7 @@ const handleEdit = (format: VideoFormat) => {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="tier">Complexidade (Tier)</Label>
+                  
                   <Controller
                     control={control}
                     name="tier"
@@ -365,7 +365,6 @@ const handleEdit = (format: VideoFormat) => {
               <TableHead>Nome</TableHead>
               <TableHead>Slug</TableHead>
               <TableHead className="w-32">Duração Máx.</TableHead>
-              <TableHead className="w-32">Tier</TableHead>
               <TableHead className="w-24">Status</TableHead>
               <TableHead className="w-24">Ações</TableHead>
             </TableRow>
@@ -500,7 +499,7 @@ const handleEdit = (format: VideoFormat) => {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-tier">Complexidade (Tier)</Label>
+                
                 <Controller
                   control={control}
                   name="tier"
