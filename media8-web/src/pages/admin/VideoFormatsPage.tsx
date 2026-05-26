@@ -66,7 +66,6 @@ const formSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres').max(100),
   slug: z.string().min(3, 'Slug deve ter no mínimo 3 caracteres').regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug inválido'),
   maxDurationSeconds: z.coerce.number().min(15, 'Mínimo 15 segundos').max(7200, 'Máximo 7200 segundos'),
-  tier: z.enum(['Standard', 'Premium', 'GodMode']),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -74,15 +73,6 @@ type FormData = z.infer<typeof formSchema>;
 // ==========================================
 // HELPER FUNCTIONS
 // ==========================================
-
-const getTierBadgeVariant = (tier: string) => {
-  switch (tier) {
-    case 'Standard': return 'secondary';
-    case 'Premium': return 'default';
-    case 'GodMode': return 'destructive';
-    default: return 'outline';
-  }
-};
 
 const formatDuration = (seconds: number) => {
 const mins = Math.floor(seconds / 60);
@@ -140,17 +130,16 @@ const VideoFormatsPage: React.FC = () => {
     );
   }, [videoFormats, activeTab, searchTerm]);
 
-  // Handle Create
-  const handleCreate = (data: FormData) => {
-    createMutation.mutate({
-      name: data.name,
-      slug: data.slug,
-      maxDurationSeconds: data.maxDurationSeconds,
-      tier: data.tier,
-    });
-    setIsCreateOpen(false);
-    reset();
-  };
+// Handle Create
+const handleCreate = (data: FormData) => {
+  createMutation.mutate({
+    name: data.name,
+    slug: data.slug,
+    maxDurationSeconds: data.maxDurationSeconds,
+  });
+  setIsCreateOpen(false);
+  reset();
+};
 
 // Handle Edit
 const handleEdit = (format: VideoFormat) => {
@@ -158,7 +147,6 @@ const handleEdit = (format: VideoFormat) => {
   setValue('name', format.Name);
   setValue('slug', format.Slug);
   setValue('maxDurationSeconds', format.MaxDurationSeconds);
-  setValue('tier', format.Tier as any);
   setIsEditOpen(true);
 };
 

@@ -24,15 +24,11 @@ export type TimelineActionType =
 
 // Video Format (Dynamic Catalog - Fase 0)
 // PascalCase Pattern - Backend .NET DTO Alignment
-export type VideoFormatTier = 'Standard' | 'Premium' | 'GodMode';
-
 export interface VideoFormat {
   Id: string;
   Name: string;
   Slug: string;
   MaxDurationSeconds: number;
-  Tier: VideoFormatTier;
-  EditingStyleId?: string;
   IsActive: boolean;
   CanDeletePermanently?: boolean;
 }
