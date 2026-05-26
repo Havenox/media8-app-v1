@@ -190,7 +190,7 @@ const EditingStylesPage: React.FC = () => {
   const confirmRestore = () => {
     if (styleToRestore) {
       updateMutation.mutate({
-        id: styleToRestore.id,
+        id: styleToRestore.Id,
         data: { isActive: true },
       });
       setIsRestoreDialogOpen(false);
@@ -419,7 +419,7 @@ const EditingStylesPage: React.FC = () => {
           <DialogHeader>
             <DialogTitle>Reativar Estilo</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja reativar o estilo "{styleToRestore?.name}"? Ele voltará a ser visível no catálogo.
+              Tem certeza que deseja reativar o estilo "{styleToRestore?.Name}"? Ele voltará a ser visível no catálogo.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -439,7 +439,7 @@ const EditingStylesPage: React.FC = () => {
           <DialogHeader>
             <DialogTitle>Arquivar Estilo</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja mover o estilo "{styleToDelete?.name}" para os arquivados?
+              Tem certeza que deseja mover o estilo "{styleToDelete?.Name}" para os arquivados?
               Ele não será mais visível no catálogo ativo.
             </DialogDescription>
           </DialogHeader>
@@ -474,18 +474,18 @@ const EditingStylesPage: React.FC = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {styleToDelete?.canDeletePermanently
+              {styleToDelete?.CanDeletePermanently
                 ? 'Excluir Permanentemente'
                 : 'Não é possível excluir'}
             </DialogTitle>
             <DialogDescription>
-              {styleToDelete?.canDeletePermanently
+              {styleToDelete?.CanDeletePermanently
                 ? `Tem certeza que deseja excluir permanentemente "${styleToDelete.Name}"? Esta ação é irreversível.`
-                : `O estilo "${styleToDelete?.name}" possui ofertas vinculadas e não pode ser excluído permanentemente.`}
+                : `O estilo "${styleToDelete?.Name}" possui ofertas vinculadas e não pode ser excluído permanentemente.`}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col gap-2">
-            {styleToDelete?.canDeletePermanently ? (
+            {styleToDelete?.CanDeletePermanently ? (
               <>
                 {isDeleteCounting ? (
                   <div className="w-full space-y-2">
