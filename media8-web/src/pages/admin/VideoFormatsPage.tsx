@@ -13,7 +13,7 @@ import {
   Loader2,
   RotateCcw,
 } from 'lucide-react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
@@ -275,42 +275,18 @@ const handleEdit = (format: VideoFormat) => {
                   <p className="text-sm text-destructive">{errors.slug.message}</p>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="maxDurationSeconds">Duração Máx. (segundos)</Label>
-                  <Input
-                    id="maxDurationSeconds"
-                    type="number"
-                    placeholder="90"
-                    {...registerForm('maxDurationSeconds', { valueAsNumber: true })}
-                  />
-                  {errors.maxDurationSeconds && (
-                    <p className="text-sm text-destructive">{errors.maxDurationSeconds.message}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  
-                  <Controller
-                    control={control}
-                    name="tier"
-                    render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Standard">Standard</SelectItem>
-                          <SelectItem value="Premium">Premium</SelectItem>
-                          <SelectItem value="GodMode">GodMode</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  {errors.tier && (
-                    <p className="text-sm text-destructive">{errors.tier.message}</p>
-                  )}
-                </div>
-              </div>
+        <div className="space-y-2">
+          <Label htmlFor="maxDurationSeconds">Duração Máx. (segundos)</Label>
+          <Input
+            id="maxDurationSeconds"
+            type="number"
+            placeholder="90"
+            {...registerForm('maxDurationSeconds', { valueAsNumber: true })}
+          />
+          {errors.maxDurationSeconds && (
+            <p className="text-sm text-destructive">{errors.maxDurationSeconds.message}</p>
+          )}
+        </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
                   Cancelar
@@ -486,41 +462,17 @@ const handleEdit = (format: VideoFormat) => {
                 <p className="text-sm text-destructive">{errors.slug.message}</p>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-maxDurationSeconds">Duração Máx. (segundos)</Label>
-                <Input
-                  id="edit-maxDurationSeconds"
-                  type="number"
-                  {...registerForm('maxDurationSeconds', { valueAsNumber: true })}
-                />
-                {errors.maxDurationSeconds && (
-                  <p className="text-sm text-destructive">{errors.maxDurationSeconds.message}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                
-                <Controller
-                  control={control}
-                  name="tier"
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Standard">Standard</SelectItem>
-                        <SelectItem value="Premium">Premium</SelectItem>
-                        <SelectItem value="GodMode">GodMode</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                {errors.tier && (
-                  <p className="text-sm text-destructive">{errors.tier.message}</p>
-                )}
-              </div>
-            </div>
+        <div className="space-y-2">
+          <Label htmlFor="edit-maxDurationSeconds">Duração Máx. (segundos)</Label>
+          <Input
+            id="edit-maxDurationSeconds"
+            type="number"
+            {...registerForm('maxDurationSeconds', { valueAsNumber: true })}
+          />
+          {errors.maxDurationSeconds && (
+            <p className="text-sm text-destructive">{errors.maxDurationSeconds.message}</p>
+          )}
+        </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>
                 Cancelar
