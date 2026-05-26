@@ -399,9 +399,6 @@ const handleEdit = (format: VideoFormat) => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={getTierBadgeVariant(format.Tier)}>{format.Tier}</Badge>
-                  </TableCell>
-                  <TableCell>
                     {format.IsActive ? (
                       <Badge variant="outline" className="flex items-center gap-1">
                         <CheckCircle2 className="h-3 w-3" />
