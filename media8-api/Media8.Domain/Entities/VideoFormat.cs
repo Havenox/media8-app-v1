@@ -24,28 +24,10 @@ public class VideoFormat
     public int MaxDurationSeconds { get; set; }
 
     /// <summary>
-    /// ID do estilo de edição associado (antigo Tier)
-    /// </summary>
-    public Guid? EditingStyleId { get; set; }
-
-    /// <summary>
     /// Indica se o formato está ativo e disponível para contratação
     /// </summary>
     public bool IsActive { get; set; } = true;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-
-    // Navigation properties (Offer N:N relationship removed - legacy)
-    public EditingStyle? EditingStyle { get; set; }
-}
-
-/// <summary>
-/// Níveis de complexidade para formatos de vídeo
-/// </summary>
-public enum ComplexityLevel
-{
-    Standard,    // Edição básica, cortes simples
-    Premium,     // Edição avançada, efeitos, motion
-    GodMode      // Edição complexa, VFX, color grading
 }

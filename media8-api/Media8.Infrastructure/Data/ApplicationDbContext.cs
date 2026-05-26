@@ -167,19 +167,13 @@ entity.HasIndex(sl => new { sl.ContractId, sl.UserId, sl.CreatedAt });
         modelBuilder.Entity<VideoFormat>(entity =>
         {
             entity.ToTable("VideoFormats");
-            entity.HasKey(v => v.Id);
-            entity.HasIndex(v => v.Slug).IsUnique();
-            entity.Property(v => v.Name).IsRequired().HasMaxLength(100);
-            entity.Property(v => v.Slug).IsRequired().HasMaxLength(100);
-            entity.Property(v => v.MaxDurationSeconds).IsRequired();
-            entity.Property(v => v.EditingStyleId).IsRequired(false);
-            entity.Property(v => v.IsActive).HasDefaultValue(true);
-
-            entity.HasOne(v => v.EditingStyle)
-                .WithMany(es => es.VideoFormats)
-                .HasForeignKey(v => v.EditingStyleId)
-                .OnDelete(DeleteBehavior.SetNull);
-        });
+entity.HasKey(v => v.Id);
+entity.HasIndex(v => v.Slug).IsUnique();
+entity.Property(v => v.Name).IsRequired().HasMaxLength(100);
+entity.Property(v => v.Slug).IsRequired().HasMaxLength(100);
+entity.Property(v => v.MaxDurationSeconds).IsRequired();
+entity.Property(v => v.IsActive).HasDefaultValue(true);
+});
 
         // EditingStyle Configuration
         modelBuilder.Entity<EditingStyle>(entity =>

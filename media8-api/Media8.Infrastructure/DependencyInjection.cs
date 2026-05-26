@@ -27,7 +27,6 @@ dataSourceBuilder.MapEnum<TimelineActionType>();
 dataSourceBuilder.MapEnum<AssignmentStatus>();
 dataSourceBuilder.MapEnum<LotSource>();
 dataSourceBuilder.MapEnum<NotificationType>();
-dataSourceBuilder.MapEnum<ComplexityLevel>();
 
         var dataSource = dataSourceBuilder.Build();
 

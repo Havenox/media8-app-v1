@@ -34,7 +34,6 @@ Id = vf.Id,
 Name = vf.Name,
 Slug = vf.Slug,
 MaxDurationSeconds = vf.MaxDurationSeconds,
-EditingStyleId = vf.EditingStyleId,
 IsActive = vf.IsActive,
 CanDeletePermanently = !_context.Offers.Any(o => o.VideoFormatId == vf.Id) &&
 !_context.ClientContracts.Any(cc => cc.SnapshotVideoFormatName == vf.Name)
@@ -59,7 +58,6 @@ Id = vf.Id,
 Name = vf.Name,
 Slug = vf.Slug,
 MaxDurationSeconds = vf.MaxDurationSeconds,
-EditingStyleId = vf.EditingStyleId,
 IsActive = vf.IsActive,
 CanDeletePermanently = !_context.Offers.Any(o => o.VideoFormatId == vf.Id) &&
 !_context.ClientContracts.Any(cc => cc.SnapshotVideoFormatName == vf.Name)
@@ -85,30 +83,28 @@ return Ok(format);
     if (slugExists)
       return Conflict(new { message = $"Já existe um formato de vídeo com o slug '{request.Slug}'." });
 
-    var format = new VideoFormat
-    {
-      Name = request.Name,
-      Slug = request.Slug,
-      MaxDurationSeconds = request.MaxDurationSeconds,
-      EditingStyleId = request.EditingStyleId,
-      IsActive = true,
-      CreatedAt = DateTime.UtcNow,
-      UpdatedAt = DateTime.UtcNow
-    };
+var format = new VideoFormat
+{
+Name = request.Name,
+Slug = request.Slug,
+MaxDurationSeconds = request.MaxDurationSeconds,
+IsActive = true,
+CreatedAt = DateTime.UtcNow,
+UpdatedAt = DateTime.UtcNow
+};
 
-    _context.VideoFormats.Add(format);
-    await _context.SaveChangesAsync();
+_context.VideoFormats.Add(format);
+await _context.SaveChangesAsync();
 
-    var response = new VideoFormatResponse
-    {
-      Id = format.Id,
-      Name = format.Name,
-      Slug = format.Slug,
-      MaxDurationSeconds = format.MaxDurationSeconds,
-      EditingStyleId = format.EditingStyleId
-    };
+var response = new VideoFormatResponse
+{
+Id = format.Id,
+Name = format.Name,
+Slug = format.Slug,
+MaxDurationSeconds = format.MaxDurationSeconds
+};
 
-    return CreatedAtAction(nameof(GetFormatById), new { id = format.Id }, response);
+return CreatedAtAction(nameof(GetFormatById), new { id = format.Id }, response);
   }
 
   /// <summary>
@@ -137,29 +133,25 @@ return Ok(format);
       format.Slug = request.Slug;
     }
 
-    if (request.MaxDurationSeconds.HasValue)
-      format.MaxDurationSeconds = request.MaxDurationSeconds.Value;
+if (request.MaxDurationSeconds.HasValue)
+format.MaxDurationSeconds = request.MaxDurationSeconds.Value;
 
-    if (request.EditingStyleId.HasValue)
-      format.EditingStyleId = request.EditingStyleId.Value;
-
-    if (request.IsActive.HasValue)
-      format.IsActive = request.IsActive.Value;
+if (request.IsActive.HasValue)
+format.IsActive = request.IsActive.Value;
 
     format.UpdatedAt = DateTime.UtcNow;
 
     await _context.SaveChangesAsync();
 
-    var response = new VideoFormatResponse
-    {
-      Id = format.Id,
-      Name = format.Name,
-      Slug = format.Slug,
-      MaxDurationSeconds = format.MaxDurationSeconds,
-      EditingStyleId = format.EditingStyleId
-    };
+var response = new VideoFormatResponse
+{
+Id = format.Id,
+Name = format.Name,
+Slug = format.Slug,
+MaxDurationSeconds = format.MaxDurationSeconds
+};
 
-    return Ok(response);
+return Ok(response);
   }
 
 /// <summary>
