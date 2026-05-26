@@ -34,8 +34,6 @@ const AdminSettingsSection: React.FC = () => {
     queryKey: ['admin', 'settings'],
     queryFn: async () => {
       const response = await api.get<SystemSettingsResponse>('/admin/settings');
-      console.log('[Settings] Raw response:', response.data);
-      // Backend returns { "Settings": {...} } in PascalCase
       return response.data;
     },
     enabled: user?.Role === 'Admin',
@@ -44,7 +42,6 @@ const AdminSettingsSection: React.FC = () => {
 
   // Initialize local state when data loads
   React.useEffect(() => {
-    console.log('[Settings] settingsData changed:', settingsData);
     if (settingsData?.Settings) {
       setLocalSettings(settingsData.Settings);
     }
@@ -53,10 +50,7 @@ const AdminSettingsSection: React.FC = () => {
   // Update setting mutation
   const updateSettingMutation = useMutation({
     mutationFn: async ({ key, value }: UpdateSettingsRequest) => {
-      // Backend expects PascalCase keys: { "Key": "...", "Value": "..." }
-      console.log(`[Settings] Updating ${key} to ${value}`);
       const response = await api.patch('/admin/settings', { Key: key, Value: value });
-      console.log('[Settings] Update response:', response.data);
       return response.data;
     },
     onSuccess: () => {
@@ -68,7 +62,6 @@ const AdminSettingsSection: React.FC = () => {
       setIsDirty(false);
     },
     onError: (error: any) => {
-      console.error('[Settings] Update error:', error);
       toast({
         title: 'Erro ao atualizar',
         description: error.response?.data?.message || 'Falha ao salvar configuração',
@@ -78,21 +71,12 @@ const AdminSettingsSection: React.FC = () => {
   });
 
   const handleSave = async () => {
-    if (!settingsData) {
-      console.error('[Settings] No settings data available');
-      return;
-    }
+    if (!settingsData) return;
 
-    // Save all changed settings
     const originalSettings = settingsData.Settings || {};
-    console.log('[Settings] Original settings:', originalSettings);
-    console.log('[Settings] Local settings:', localSettings);
-    
     const changes = Object.entries(localSettings).filter(
       ([key, value]) => originalSettings[key] !== value
     );
-
-    console.log('[Settings] Changes to save:', changes);
 
     if (changes.length === 0) {
       toast({
@@ -110,7 +94,6 @@ const AdminSettingsSection: React.FC = () => {
   };
 
   const handleSettingChange = (key: string, value: string) => {
-    console.log(`[Settings] Changing ${key} from ${localSettings[key]} to ${value}`);
     setLocalSettings(prev => ({ ...prev, [key]: value }));
     setIsDirty(true);
   };
