@@ -30,29 +30,33 @@ const AdminSettingsSection: React.FC = () => {
   const [isDirty, setIsDirty] = useState(false);
 
   // Fetch system settings (Admin only)
-  const { data: settingsData, isLoading } = useQuery({
+  const { data: settingsData, isLoading, error } = useQuery({
     queryKey: ['admin', 'settings'],
     queryFn: async () => {
-      const response = await api.get<SystemSettingsResponse>('/settings');
-      // Backend returns { "Settings": {...} } - normalize to lowercase
+      const response = await api.get<SystemSettingsResponse>('/api/v1/admin/settings');
+      console.log('[Settings] Raw response:', response.data);
+      // Backend returns { "Settings": {...} } in PascalCase
       return response.data;
     },
     enabled: user?.Role === 'Admin',
+    retry: 2,
   });
 
   // Initialize local state when data loads
   React.useEffect(() => {
+    console.log('[Settings] settingsData changed:', settingsData);
     if (settingsData?.Settings) {
       setLocalSettings(settingsData.Settings);
-    } else if (settingsData?.settings) {
-      setLocalSettings(settingsData.settings);
     }
   }, [settingsData]);
 
   // Update setting mutation
   const updateSettingMutation = useMutation({
     mutationFn: async ({ key, value }: UpdateSettingsRequest) => {
-      const response = await api.patch('/admin/settings', { key, value });
+      // Backend expects PascalCase keys: { "Key": "...", "Value": "..." }
+      console.log(`[Settings] Updating ${key} to ${value}`);
+      const response = await api.patch('/api/v1/admin/settings', { Key: key, Value: value });
+      console.log('[Settings] Update response:', response.data);
       return response.data;
     },
     onSuccess: () => {
@@ -64,6 +68,7 @@ const AdminSettingsSection: React.FC = () => {
       setIsDirty(false);
     },
     onError: (error: any) => {
+      console.error('[Settings] Update error:', error);
       toast({
         title: 'Erro ao atualizar',
         description: error.response?.data?.message || 'Falha ao salvar configuração',
@@ -73,12 +78,21 @@ const AdminSettingsSection: React.FC = () => {
   });
 
   const handleSave = async () => {
-    if (!settingsData) return;
+    if (!settingsData) {
+      console.error('[Settings] No settings data available');
+      return;
+    }
 
     // Save all changed settings
+    const originalSettings = settingsData.Settings || {};
+    console.log('[Settings] Original settings:', originalSettings);
+    console.log('[Settings] Local settings:', localSettings);
+    
     const changes = Object.entries(localSettings).filter(
-      ([key, value]) => settingsData.settings[key] !== value
+      ([key, value]) => originalSettings[key] !== value
     );
+
+    console.log('[Settings] Changes to save:', changes);
 
     if (changes.length === 0) {
       toast({
@@ -96,6 +110,7 @@ const AdminSettingsSection: React.FC = () => {
   };
 
   const handleSettingChange = (key: string, value: string) => {
+    console.log(`[Settings] Changing ${key} from ${localSettings[key]} to ${value}`);
     setLocalSettings(prev => ({ ...prev, [key]: value }));
     setIsDirty(true);
   };
