@@ -350,10 +350,10 @@ const handleEdit = (format: VideoFormat) => {
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
         <TabsList>
           <TabsTrigger value="active">
-            Ativos ({videoFormats.filter((f) => f.isActive).length})
+            Ativos ({videoFormats.filter((f) => f.IsActive).length})
           </TabsTrigger>
           <TabsTrigger value="archived">
-            Arquivados ({videoFormats.filter((f) => !f.isActive).length})
+            Arquivados ({videoFormats.filter((f) => !f.IsActive).length})
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -407,7 +407,7 @@ const handleEdit = (format: VideoFormat) => {
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3 text-muted-foreground" />
-                      {formatDuration(format.maxDurationSeconds)}
+                      {formatDuration(format.MaxDurationSeconds)}
                     </div>
                   </TableCell>
                   <TableCell>
