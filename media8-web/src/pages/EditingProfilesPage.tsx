@@ -67,6 +67,13 @@ const EditingProfilesPage: React.FC = () => {
     refetch: refetchEditing,
   } = useEditingProfiles(!showArchived);
 
+  // Debug: Log data and loading state
+  React.useEffect(() => {
+    console.log('[EditingProfilesPage] Data:', editingProfiles);
+    console.log('[EditingProfilesPage] IsLoading:', isLoadingEditing);
+    console.log('[EditingProfilesPage] Count:', editingProfiles?.length || 0);
+  }, [editingProfiles, isLoadingEditing]);
+
   const archiveEditingMutation = useArchiveEditingProfile();
   const restoreEditingMutation = useRestoreEditingProfile();
   const hardDeleteEditingMutation = useHardDeleteEditingProfile();
@@ -140,12 +147,12 @@ const EditingProfilesPage: React.FC = () => {
   };
 
   const renderEditingProfileRow = (profile: any) => (
-    <TableRow key={profile.id} className="group">
-      <TableCell className="font-medium">{profile.name}</TableCell>
-      <TableCell className="hidden md:table-cell">{profile.musicStyle}</TableCell>
-      <TableCell className="hidden lg:table-cell">{profile.thumbnailPreference}</TableCell>
+    <TableRow key={profile.Id} className="group">
+      <TableCell className="font-medium">{profile.Name}</TableCell>
+      <TableCell className="hidden md:table-cell">{profile.MusicStyle}</TableCell>
+      <TableCell className="hidden lg:table-cell">{profile.ThumbnailPreference}</TableCell>
       <TableCell className="hidden lg:table-cell">
-        {profile.useVideoHook ? 'Sim' : 'Não'}
+        {profile.UseVideoHook ? 'Sim' : 'Não'}
       </TableCell>
       <TableCell className="text-right">
         <DropdownMenu>
@@ -160,29 +167,29 @@ const EditingProfilesPage: React.FC = () => {
               Editar
             </DropdownMenuItem>
             {!showArchived ? (
-              <>
-                <DropdownMenuItem onClick={() => handleArchive(profile.id, profile.name)}>
-                  <Archive className="mr-2 h-4 w-4" />
-                  Arquivar
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handleHardDelete(profile.id, profile.name)}
-                  className="text-destructive focus:text-destructive"
-                >
+<>
+      <DropdownMenuItem onClick={() => handleArchive(profile.Id, profile.Name)}>
+        <Archive className="mr-2 h-4 w-4" />
+        Arquivar
+      </DropdownMenuItem>
+      <DropdownMenuItem
+        onClick={() => handleHardDelete(profile.Id, profile.Name)}
+        className="text-destructive focus:text-destructive"
+      >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Excluir Permanentemente
                 </DropdownMenuItem>
               </>
             ) : (
-              <>
-                <DropdownMenuItem onClick={() => handleRestore(profile.id, profile.name)}>
-                  <RotateCcw className="mr-2 h-4 w-4" />
-                  Restaurar
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handleHardDelete(profile.id, profile.name)}
-                  className="text-destructive focus:text-destructive"
-                >
+    <>
+      <DropdownMenuItem onClick={() => handleRestore(profile.Id, profile.Name)}>
+        <RotateCcw className="mr-2 h-4 w-4" />
+        Restaurar
+      </DropdownMenuItem>
+      <DropdownMenuItem
+        onClick={() => handleHardDelete(profile.Id, profile.Name)}
+        className="text-destructive focus:text-destructive"
+      >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Excluir Permanentemente
                 </DropdownMenuItem>
