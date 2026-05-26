@@ -124,10 +124,15 @@ const [deleteCountdown, setDeleteCountdown] = useState<number>(5);
 const [isDeleteCounting, setIsDeleteCounting] = useState(false);
 
   // Hooks
-  const { data: offers = [], isLoading: isLoadingOffers } = useOffers();
+  const { data: offers = [], isLoading: isLoadingOffers, isError, error, refetch } = useOffers();
   const createOfferMutation = useCreateOffer();
   const updateOfferMutation = useUpdateOffer();
   const deleteOfferMutation = useDeleteOffer();
+
+  // Debug: Log offers data
+  React.useEffect(() => {
+    console.log('[OffersPage] Offers data:', { offers, isLoading: isLoadingOffers, isError, error });
+  }, [offers, isLoadingOffers, isError, error]);
 
 // Filter offers by tab, search, and category
 const filteredOffers = useMemo(() => {

@@ -24,7 +24,17 @@ export const offerKeys = {
 export const useOffers = (pageSize = 20, search?: string) => {
   return useQuery({
     queryKey: [...offerKeys.lists(), { pageSize, search }],
-    queryFn: () => offerService.getAll(1, pageSize, search),
+    queryFn: async () => {
+      console.log('[useOffers] Fetching offers...', { pageSize, search });
+      try {
+        const data = await offerService.getAll(1, pageSize, search);
+        console.log('[useOffers] Offers fetched:', data);
+        return data;
+      } catch (error) {
+        console.error('[useOffers] Error fetching offers:', error);
+        throw error;
+      }
+    },
   });
 };
 
