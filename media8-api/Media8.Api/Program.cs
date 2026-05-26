@@ -96,8 +96,12 @@ var app = builder.Build();
 // Run Seeder and Initialize Settings Cache
 using (var scope = app.Services.CreateScope())
 {
-    var seeder = scope.ServiceProvider.GetRequiredService<Media8.Infrastructure.Data.DbSeeder>();
-    await seeder.SeedAsync();
+  var seeder = scope.ServiceProvider.GetRequiredService<Media8.Infrastructure.Data.DbSeeder>();
+  await seeder.SeedAsync();
+  
+  // Initialize SettingsService cache from database (CRITICAL - must happen before any API calls)
+  var settingsService = scope.ServiceProvider.GetRequiredService<Media8.Application.Interfaces.ISettingsService>();
+  await settingsService.RefreshCacheAsync();
 }
 
 // Configure the HTTP request pipeline.

@@ -44,28 +44,27 @@ _logger.LogInformation("SettingsService initialized");
 return Task.CompletedTask;
 }
 
-/// <summary>
-/// Gets a setting value by key with automatic type conversion.
-/// Since this is singleton and can't use Scoped DbContext,
-/// values must be loaded at startup or via explicit refresh.
-/// </summary>
-public Task<T> GetSettingAsync<T>(string key, T defaultValue)
-{
-if (_cache.TryGetValue(key, out var value))
-{
-try
-{
-var converted = (T)Convert.ChangeType(value, typeof(T));
-return Task.FromResult(converted);
-}
-catch
-{
-return Task.FromResult(defaultValue);
-}
-}
+  /// <summary>
+  /// Gets a setting value by key with automatic type conversion.
+  /// Throws exception if setting is not found in cache (cache must be initialized at startup).
+  /// </summary>
+  public async Task<T> GetSettingAsync<T>(string key, T defaultValue)
+  {
+    if (!_cache.TryGetValue(key, out var value))
+    {
+      throw new InvalidOperationException($"Setting '{key}' not found in cache. Cache was not properly initialized at startup.");
+    }
 
-return Task.FromResult(defaultValue);
-}
+    try
+    {
+      var converted = (T)Convert.ChangeType(value, typeof(T));
+      return converted;
+    }
+    catch (Exception ex)
+    {
+      throw new InvalidOperationException($"Failed to convert setting '{key}' value '{value}' to type {typeof(T).Name}", ex);
+    }
+  }
 
 /// <summary>
 /// Sets or updates a setting value, persisting to database and updating cache.
@@ -124,40 +123,40 @@ public Task<Dictionary<string, string>> GetAllSettingsAsync()
 return Task.FromResult(_cache.ToDictionary(k => k.Key, v => v.Value));
 }
 
-/// <summary>
-/// Refreshes the cache from the database.
-/// Uses IServiceScopeFactory to resolve scoped repository safely.
-/// </summary>
-public async Task RefreshCacheAsync()
-{
-try
-{
-using var scope = _scopeFactory.CreateScope();
-var repository = scope.ServiceProvider.GetRequiredService<IRepository<SystemSetting>>();
+  /// <summary>
+  /// Refreshes the cache from the database.
+  /// Uses IServiceScopeFactory to resolve scoped repository safely.
+  /// </summary>
+  public async Task RefreshCacheAsync()
+  {
+    try
+    {
+      using var scope = _scopeFactory.CreateScope();
+      var repository = scope.ServiceProvider.GetRequiredService<IRepository<SystemSetting>>();
 
-var allSettings = await repository.GetAllAsync();
-var newCache = new Dictionary<string, string>();
+      var allSettings = await repository.GetAllAsync();
+      var newCache = new Dictionary<string, string>();
 
-foreach (var setting in allSettings)
-{
-newCache[setting.Key] = setting.Value;
-}
+      foreach (var setting in allSettings)
+      {
+        newCache[setting.Key] = setting.Value;
+      }
 
-// Replace cache atomically
-_cache.Clear();
-foreach (var kvp in newCache)
-{
-_cache[kvp.Key] = kvp.Value;
-}
+      // Replace cache atomically
+      _cache.Clear();
+      foreach (var kvp in newCache)
+      {
+        _cache[kvp.Key] = kvp.Value;
+      }
 
-_logger.LogInformation("Cache refreshed with {Count} settings from database", newCache.Count);
-}
-catch (Exception ex)
-{
-_logger.LogError(ex, "Error refreshing cache from database");
-throw;
-}
-}
+      _logger.LogInformation("✓ Settings cache loaded with {Count} settings: {Keys}", newCache.Count, string.Join(", ", newCache.Keys));
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "✗ Critical failure: Could not load settings cache from database");
+      throw;
+    }
+  }
 
 /// <summary>
 /// Loads settings from a dictionary (called during startup).
