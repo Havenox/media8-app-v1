@@ -157,19 +157,20 @@ public async Task<ActionResult<ClientContractResponse>> CreateContract([FromBody
 {
 // Buscar oferta COM relacionamentos para capturar snapshot completo
 var offer = await _context.Offers
-.Include(o => o.VideoFormat)
 .Include(o => o.EditingStyle)
 .FirstOrDefaultAsync(o => o.Id == request.OfferId);
 
 if (offer == null)
 return NotFound(new { message = $"Oferta com ID {request.OfferId} não encontrada." });
 
-// Validar se a oferta possui formato de vídeo e estilo de edição
-if (offer.VideoFormat == null)
-return BadRequest(new { message = "Oferta não possui formato de vídeo associado." });
-
+// Validar se a oferta possui estilo de edição
 if (offer.EditingStyle == null)
 return BadRequest(new { message = "Oferta não possui estilo de edição associado." });
+
+// Carregar VideoFormat separadamente (sem navegação para evitar FK OfferId)
+var videoFormat = await _context.VideoFormats.FindAsync(offer.VideoFormatId);
+if (videoFormat == null)
+return BadRequest(new { message = "Oferta não possui formato de vídeo associado." });
 
 // Calcular data de expiração baseada no ValidityDays da oferta
 DateTime? expiresAt = null;
@@ -202,7 +203,7 @@ SnapshotWarrantyDays = offer.LoyaltyMonths * 30, // Converte meses para dias
 // SNAPSHOT TÉCNICO (Imutável - Sem FKs)
 // ==========================================
 // Copia o NOME (string), não o ID. Se o formato/estilo mudar, o contrato permanece intacto.
-SnapshotVideoFormatName = offer.VideoFormat.Name,
+SnapshotVideoFormatName = videoFormat.Name,
 SnapshotEditingStyleName = offer.EditingStyle.Name,
 SnapshotMaxDurationSeconds = offer.MaxDurationSeconds,
 

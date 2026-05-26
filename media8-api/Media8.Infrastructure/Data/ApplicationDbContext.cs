@@ -163,16 +163,42 @@ entity.HasOne(sl => sl.User)
 entity.HasIndex(sl => new { sl.ContractId, sl.UserId, sl.CreatedAt });
 });
 
-        // VideoFormat Configuration
-        modelBuilder.Entity<VideoFormat>(entity =>
-        {
-            entity.ToTable("VideoFormats");
+// VideoFormat Configuration
+modelBuilder.Entity<VideoFormat>(entity =>
+{
+entity.ToTable("VideoFormats");
 entity.HasKey(v => v.Id);
 entity.HasIndex(v => v.Slug).IsUnique();
 entity.Property(v => v.Name).IsRequired().HasMaxLength(100);
-entity.Property(v => v.Slug).IsRequired().HasMaxLength(100);
 entity.Property(v => v.MaxDurationSeconds).IsRequired();
 entity.Property(v => v.IsActive).HasDefaultValue(true);
+// No FK to Offer - VideoFormat does not need OfferId
+});
+
+// Offer Configuration - configure VideoFormatId FK without reverse navigation
+modelBuilder.Entity<Offer>(entity =>
+{
+entity.ToTable("Offers");
+entity.HasKey(o => o.Id);
+entity.HasIndex(o => o.Slug).IsUnique();
+entity.Property(o => o.Name).IsRequired().HasMaxLength(100);
+entity.Property(o => o.Slug).IsRequired().HasMaxLength(100);
+entity.Property(o => o.ContractType).IsRequired();
+entity.Property(o => o.Price).IsRequired();
+entity.Property(o => o.VideoQuantity).IsRequired();
+entity.Property(o => o.MaxDurationSeconds).IsRequired();
+entity.Property(o => o.IsPublic).HasDefaultValue(true);
+
+// Configure VideoFormatId FK without creating reverse navigation
+entity.HasOne<VideoFormat>()
+.WithMany()
+.HasForeignKey(o => o.VideoFormatId)
+.OnDelete(DeleteBehavior.SetNull);
+
+entity.HasOne(o => o.EditingStyle)
+.WithMany()
+.HasForeignKey(o => o.EditingStyleId)
+.OnDelete(DeleteBehavior.SetNull);
 });
 
         // EditingStyle Configuration
@@ -197,18 +223,16 @@ entity.Property(v => v.IsActive).HasDefaultValue(true);
             entity.Property(o => o.Price).IsRequired();
             entity.Property(o => o.VideoQuantity).IsRequired();
             entity.Property(o => o.MaxDurationSeconds).IsRequired();
-            entity.Property(o => o.IsPublic).HasDefaultValue(true);
+entity.Property(o => o.IsPublic).HasDefaultValue(true);
 
-            entity.HasOne(o => o.VideoFormat)
-                .WithMany()
-                .HasForeignKey(o => o.VideoFormatId)
-                .OnDelete(DeleteBehavior.SetNull);
+// VideoFormat navigation removed - FK VideoFormatId exists but no navigation property
+// entity.HasOne(o => o.VideoFormat) ... removed
 
-            entity.HasOne(o => o.EditingStyle)
-                .WithMany()
-                .HasForeignKey(o => o.EditingStyleId)
-                .OnDelete(DeleteBehavior.SetNull);
-        });
+entity.HasOne(o => o.EditingStyle)
+.WithMany()
+.HasForeignKey(o => o.EditingStyleId)
+.OnDelete(DeleteBehavior.SetNull);
+});
 
 // ClientContract Configuration (Snapshot Pattern - Sem FKs para VideoFormat/EditingStyle)
 modelBuilder.Entity<ClientContract>(entity =>

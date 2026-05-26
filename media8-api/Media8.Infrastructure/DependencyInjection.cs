@@ -28,10 +28,14 @@ dataSourceBuilder.MapEnum<AssignmentStatus>();
 dataSourceBuilder.MapEnum<LotSource>();
 dataSourceBuilder.MapEnum<NotificationType>();
 
-        var dataSource = dataSourceBuilder.Build();
+var dataSource = dataSourceBuilder.Build();
 
-        services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(dataSource));
+services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options.UseNpgsql(dataSource);
+    // Suppress pending model changes warning - migrations will be managed manually
+    options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+});
 
     services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
     services.AddScoped<IUserRepository, UserRepository>();

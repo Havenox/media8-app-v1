@@ -82,7 +82,7 @@ public string? Description { get; set; }
     // Navigation properties
     public ICollection<ClientContract> Contracts { get; set; } = new List<ClientContract>();
 
-    // Navigation properties para relacionamentos
-    public VideoFormat? VideoFormat { get; set; }
-    public EditingStyle? EditingStyle { get; set; }
+// Navigation property para EditingStyle
+public EditingStyle? EditingStyle { get; set; }
+// VideoFormat navigation removed to avoid OfferId FK in VideoFormats table
 }
