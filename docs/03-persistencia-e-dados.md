@@ -118,7 +118,51 @@ public class EditingStyle {
 }
 ```
 
-**Lição**: Navegações bidirecionais devem ser evitadas quando não há necessidade de negócio clara. O EF Core inferirá FKs indevidas.
+**Lição**: Navegações bidireacionais devem ser evitadas quando não há necessidade de negócio clara. O EF Core inferirá FKs indevidas.
+
+### 2.5. SettingsService: Inicialização de Cache (Case #071)
+
+**Problema Crítico**: `SystemSettings` armazena configurações dinâmicas (ex: `CancellationWindowHours`) que devem ser carregadas em memória para performance. O cache do `SettingsService` (Singleton) não estava sendo inicializado no startup, retornando dados vazios ou usando fallbacks perigosos.
+
+**Cenário de Falha**:
+```csharp
+// Program.cs - ANTES (ERRADO)
+using (var scope = app.Services.CreateScope())
+{
+  var seeder = scope.ServiceProvider.GetRequiredService<DbSeeder>();
+  await seeder.SeedAsync();
+  // ❌ SettingsService nunca carregado do banco
+}
+
+// Resultado: Cache vazio, API retorna {"Settings":{}}, fallback retorna 24h (errado)
+```
+
+**Solução**:
+```csharp
+// Program.cs - DEPOIS (CORRETO)
+using (var scope = app.Services.CreateScope())
+{
+  var seeder = scope.ServiceProvider.GetRequiredService<DbSeeder>();
+  await seeder.SeedAsync();
+  
+  // ✅ CRÍTICO: Carrega configurações do banco para memória
+  var settingsService = scope.ServiceProvider.GetRequiredService<ISettingsService>();
+  await settingsService.RefreshCacheAsync();
+}
+
+// SettingsService.cs - Remove fallback
+public async Task<T> GetSettingAsync<T>(string key, T defaultValue)
+{
+  if (!_cache.TryGetValue(key, out var value))
+  {
+    // ✅ Lança exceção ao invés de retornar fallback
+    throw new InvalidOperationException($"Setting '{key}' not found in cache...");
+  }
+  // ... conversão
+}
+```
+
+**Lição**: Singletons com cache em memória devem ser inicializados explicitamente durante o startup. Fallbacks mascaram problemas de inicialização e devem ser eliminados em favor de fail-fast.
 
 ---
 

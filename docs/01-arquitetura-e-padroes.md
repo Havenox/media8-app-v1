@@ -158,9 +158,15 @@ try {
 - **Impacto**: Integridade histórica garantida, mesmo com mudanças de catálogo
 
 ### 6.2. PascalCase Enforcement (Case #064, #065)
-- **Problema**: Migração incompleta para PascalCase quebrou CRUDs inteiros
-- **Solução**: Remoção de `[JsonPropertyName]`, auditoria de 18 commits atômicos
-- **Impacto**: Contrato consistente, 0 erros de compilação, CRUDs restaurados
+  - **Problema**: Migração incompleta para PascalCase quebrou CRUDs inteiros
+  - **Solução**: Remoção de `[JsonPropertyName]`, auditoria de 18 commits atômicos
+  - **Impacto**: Contrato consistente, 0 erros de compilação, CRUDs restaurados
+
+### 6.3. SettingsService Cache Initialization (Case #071)
+  - **Problema**: Cache do `SettingsService` não era carregado no startup, retornando dados vazios ou usando fallbacks perigosos
+  - **Solução**: Chamada explícita de `RefreshCacheAsync()` no `Program.cs` e remoção de fallbacks (fail-fast)
+  - **Impacto**: Configurações dinâmicas (ex: `CancellationWindowHours`) refletidas corretamente, sistema quebra se não carregar
+  - **Lição**: Singleton com cache deve ser inicializado explicitamente; fallbacks mascaram problemas de inicialização
 
 ---
 
@@ -169,5 +175,6 @@ try {
 - [Case Study #016: Snapshot Pattern](implementations/016-arquitetura-snapshot-contratos.md)
 - [Case Study #064: PascalCase API](implementations/064-api-pascal-case-snapshot-saldo.md)
 - [Case Study #065: Correção de Colapso](implementations/065-correcao-colapso-migracao-pascalcase.md)
+- [Case Study #071: SettingsService Cache](implementations/071-correcao-cache-settings-inicializacao.md)
 - [API Routes](API_ROUTES.md)
 - [Security Guidelines](SECURITY.md)
