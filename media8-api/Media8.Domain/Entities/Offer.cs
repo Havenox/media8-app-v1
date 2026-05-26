@@ -65,17 +65,12 @@ public class Offer
     /// </summary>
     public Guid? VideoFormatId { get; set; }
 
-    /// <summary>
-    /// ID do estilo de edição associado à oferta
-    /// </summary>
-    public Guid? EditingStyleId { get; set; }
+/// <summary>
+/// ID do estilo de edição associado à oferta
+/// </summary>
+public Guid? EditingStyleId { get; set; }
 
-    /// <summary>
-    /// Formatos de vídeo suportados por esta oferta (relação N:N)
-    /// </summary>
-    public ICollection<VideoFormat> SupportedFormats { get; set; } = new List<VideoFormat>();
-
-    public string? Description { get; set; }
+public string? Description { get; set; }
     public List<string> Features { get; set; } = new List<string>();
     public string? Disclaimer { get; set; }
     public string? Badge { get; set; }
