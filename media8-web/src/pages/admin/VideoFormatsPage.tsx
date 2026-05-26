@@ -221,7 +221,7 @@ const handleEdit = (format: VideoFormat) => {
   const confirmRestore = () => {
     if (formatToRestore) {
       updateMutation.mutate({
-        id: formatToRestore.id,
+        id: formatToRestore.Id,
         data: { isActive: true },
       });
       setIsRestoreDialogOpen(false);
@@ -565,7 +565,7 @@ const handleEdit = (format: VideoFormat) => {
           <DialogHeader>
             <DialogTitle>Reativar Formato</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja reativar o formato "{formatToRestore?.name}"? Ele voltará a ser visível no catálogo.
+              Tem certeza que deseja reativar o formato "{formatToRestore?.Name}"? Ele voltará a ser visível no catálogo.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -585,7 +585,7 @@ const handleEdit = (format: VideoFormat) => {
           <DialogHeader>
             <DialogTitle>Arquivar Formato</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja mover o formato "{formatToDelete?.name}" para os arquivados?
+              Tem certeza que deseja mover o formato "{formatToDelete?.Name}" para os arquivados?
               Ele não será mais visível no catálogo ativo.
             </DialogDescription>
           </DialogHeader>
@@ -620,18 +620,18 @@ const handleEdit = (format: VideoFormat) => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {formatToDelete?.canDeletePermanently
+              {formatToDelete?.CanDeletePermanently
                 ? 'Excluir Permanentemente'
                 : 'Não é possível excluir'}
             </DialogTitle>
             <DialogDescription>
-              {formatToDelete?.canDeletePermanently
-                ? `Tem certeza que deseja excluir permanentemente "${formatToDelete.Name}"? Esta ação é irreversível.`
-                : `O formato "${formatToDelete?.name}" possui ofertas ou saldos vinculados e não pode ser excluído permanentemente.`}
+              {formatToDelete?.CanDeletePermanently
+                ? `Tem certeza que deseja excluir permanentemente "${formatToDelete?.Name}"? Esta ação é irreversível.`
+                : `O formato "${formatToDelete?.Name}" possui ofertas ou saldos vinculados e não pode ser excluído permanentemente.`}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col gap-2">
-            {formatToDelete?.canDeletePermanently ? (
+            {formatToDelete?.CanDeletePermanently ? (
               <>
                 {isDeleteCounting ? (
                   <div className="w-full space-y-2">
