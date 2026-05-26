@@ -67,13 +67,6 @@ const EditingProfilesPage: React.FC = () => {
     refetch: refetchEditing,
   } = useEditingProfiles(!showArchived);
 
-  // Debug: Log data and loading state
-  React.useEffect(() => {
-    console.log('[EditingProfilesPage] Data:', editingProfiles);
-    console.log('[EditingProfilesPage] IsLoading:', isLoadingEditing);
-    console.log('[EditingProfilesPage] Count:', editingProfiles?.length || 0);
-  }, [editingProfiles, isLoadingEditing]);
-
   const archiveEditingMutation = useArchiveEditingProfile();
   const restoreEditingMutation = useRestoreEditingProfile();
   const hardDeleteEditingMutation = useHardDeleteEditingProfile();

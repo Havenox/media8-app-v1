@@ -67,13 +67,6 @@ const BrandingProfilesPage: React.FC = () => {
     refetch: refetchBranding,
   } = useBrandingProfiles(!showArchived);
 
-  // Debug: Log data and loading state
-  React.useEffect(() => {
-    console.log('[BrandingProfilesPage] Data:', brandingProfiles);
-    console.log('[BrandingProfilesPage] IsLoading:', isLoadingBranding);
-    console.log('[BrandingProfilesPage] Count:', brandingProfiles?.length || 0);
-  }, [brandingProfiles, isLoadingBranding]);
-
   const archiveBrandingMutation = useArchiveBrandingProfile();
   const restoreBrandingMutation = useRestoreBrandingProfile();
   const hardDeleteBrandingMutation = useHardDeleteBrandingProfile();
