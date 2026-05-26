@@ -288,10 +288,10 @@ const EditingStylesPage: React.FC = () => {
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
         <TabsList>
           <TabsTrigger value="active">
-            Ativos ({editingStyles.filter((s) => s.isActive).length})
+            Ativos ({editingStyles.filter((s) => s.IsActive).length})
           </TabsTrigger>
           <TabsTrigger value="archived">
-            Arquivados ({editingStyles.filter((s) => !s.isActive).length})
+            Arquivados ({editingStyles.filter((s) => !s.IsActive).length})
           </TabsTrigger>
         </TabsList>
       </Tabs>
