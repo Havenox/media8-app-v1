@@ -79,14 +79,13 @@ await context.SaveChangesAsync();
 
 var order = new Order
 {
-ClientId = userId,
-Title = "Test Order",
-Briefing = "Test Briefing",
-SourceFilesUrl = "https://example.com/source",
-VideoFormatId = contract.Id, // Usa o ID do contrato como VideoFormatId para teste
-ServiceBalanceLotId = balanceLot.Id,
-Deadline = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7)),
-Status = OrderStatus.Pending
+    ClientId = userId,
+    Title = "Test Order",
+    Briefing = "Test Briefing",
+    SourceFilesUrl = "https://example.com/source",
+    ServiceBalanceLotId = balanceLot.Id,
+    Deadline = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7)),
+    Status = OrderStatus.Pending
 };
 context.Orders.Add(order);
 await context.SaveChangesAsync();
