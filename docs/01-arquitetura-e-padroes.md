@@ -162,11 +162,23 @@ try {
   - **Solução**: Remoção de `[JsonPropertyName]`, auditoria de 18 commits atômicos
   - **Impacto**: Contrato consistente, 0 erros de compilação, CRUDs restaurados
 
-### 6.3. SettingsService Cache Initialization (Case #071)
+### 6.4. SettingsService Cache Initialization (Case #071)
   - **Problema**: Cache do `SettingsService` não era carregado no startup, retornando dados vazios ou usando fallbacks perigosos
   - **Solução**: Chamada explícita de `RefreshCacheAsync()` no `Program.cs` e remoção de fallbacks (fail-fast)
   - **Impacto**: Configurações dinâmicas (ex: `CancellationWindowHours`) refletidas corretamente, sistema quebra se não carregar
   - **Lição**: Singleton com cache deve ser inicializado explicitamente; fallbacks mascaram problemas de inicialização
+
+### 6.5. Orders PascalCase Renderização (Case #072)
+  - **Problema**: Tela /orders com propriedades em camelCase (`order.status`, `order.editor.name`) enquanto backend retorna PascalCase
+  - **Solução**: Auditoria completa em OrdersPage, OrderDetailPage, orderService; correção de todos os acessos para PascalCase
+  - **Impacto**: Renderização correta de status e nomes, zero erros silenciosos, código alinhado com backend
+  - **Lição**: PascalCase não é negociável; cada propriedade em camelCase é oportunidade de bug silencioso
+
+### 6.6. Remoção de VideoFormatId de Orders (Case #073)
+  - **Problema**: Tabela `Orders` tinha FK indevida para `VideoFormats`, violando princípio do snapshot imutável
+  - **Solução**: Removido `VideoFormatId` de `Order`, `CreateOrderRequest` e `OrderResponse`; backend obtém formato via `ServiceBalanceLot → ClientContract → SnapshotVideoFormatName`
+  - **Impacto**: 10 commits atômicos (domain, application, infra, frontend), migration segura, frontend funcional sem dados redundantes
+  - **Lição**: Nunca adicione FKs a entidades que já podem obter informações indiretamente através de outras entidades; snapshot já captura estado imutável
 
 ---
 
@@ -176,5 +188,7 @@ try {
 - [Case Study #064: PascalCase API](implementations/064-api-pascal-case-snapshot-saldo.md)
 - [Case Study #065: Correção de Colapso](implementations/065-correcao-colapso-migracao-pascalcase.md)
 - [Case Study #071: SettingsService Cache](implementations/071-correcao-cache-settings-inicializacao.md)
+- [Case Study #072: Orders PascalCase](implementations/072-correcao-pascalcase-orders-renderizacao.md)
+- [Case Study #073: Remoção VideoFormatId](implementations/073-remocao-videoid-orders.md)
 - [API Routes](API_ROUTES.md)
 - [Security Guidelines](SECURITY.md)

@@ -279,7 +279,34 @@ var usersWithContracts = await _context.Users
 
 ---
 
-## 5. Data Seeding
+## 6. Migrations Recentes
+
+### 6.1. Remoção de VideoFormatId de Orders (Case #073)
+
+**Problema**: A tabela `Orders` continha uma coluna `VideoFormatId` que violava o princípio do snapshot imutável. A entidade `Order` não deveria ter FK direta para `VideoFormats`, pois essa informação já está capturada no `ClientContract`.
+
+**Solução**:
+```sql
+-- Migration: 20260527015432_RemoveVideoFormatIdFromOrders
+ALTER TABLE "Orders" DROP COLUMN "VideoFormatId";
+```
+
+**Fluxo Correto**:
+```
+Order → ServiceBalanceLot → ClientContract → SnapshotVideoFormatName
+```
+
+**Impacto**:
+- 10 commits atômicos (domain, application, infra, frontend)
+- Frontend envia apenas `ServiceBalanceLotId` na criação de pedidos
+- Backend obtém `VideoFormat` automaticamente quando necessário
+- Código do `OrderService` reduzido em 25 linhas
+
+**Lição**: Nunca adicione FKs duplicadas quando a informação já existe em snapshot imutável.
+
+---
+
+## 7. Data Seeding
 
 ### 5.1. Seed de Configurações Iniciais
 
