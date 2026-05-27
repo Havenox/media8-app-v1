@@ -436,7 +436,7 @@ namespace Media8.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("VideoFormatId")
+                    b.Property<Guid>("VideoFormatId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
@@ -670,6 +670,9 @@ namespace Media8.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("EditingStyleId")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -683,14 +686,22 @@ namespace Media8.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<Guid?>("OfferId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Slug")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("EditingStyleId");
+
+                    b.HasIndex("OfferId");
 
                     b.HasIndex("Slug")
                         .IsUnique();
@@ -761,12 +772,14 @@ namespace Media8.Infrastructure.Migrations
                         .HasForeignKey("EditingStyleId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Media8.Domain.Entities.VideoFormat", null)
+                    b.HasOne("Media8.Domain.Entities.VideoFormat", "VideoFormat")
                         .WithMany()
                         .HasForeignKey("VideoFormatId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("EditingStyle");
+
+                    b.Navigation("VideoFormat");
                 });
 
             modelBuilder.Entity("Media8.Domain.Entities.Order", b =>
@@ -802,7 +815,9 @@ namespace Media8.Infrastructure.Migrations
 
                     b.HasOne("Media8.Domain.Entities.VideoFormat", "VideoFormat")
                         .WithMany()
-                        .HasForeignKey("VideoFormatId");
+                        .HasForeignKey("VideoFormatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("BrandingProfile");
 
@@ -879,14 +894,32 @@ namespace Media8.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Media8.Domain.Entities.VideoFormat", b =>
+                {
+                    b.HasOne("Media8.Domain.Entities.EditingStyle", null)
+                        .WithMany("VideoFormats")
+                        .HasForeignKey("EditingStyleId");
+
+                    b.HasOne("Media8.Domain.Entities.Offer", null)
+                        .WithMany("SupportedFormats")
+                        .HasForeignKey("OfferId");
+                });
+
             modelBuilder.Entity("Media8.Domain.Entities.ClientContract", b =>
                 {
                     b.Navigation("ServiceBalanceLots");
                 });
 
+            modelBuilder.Entity("Media8.Domain.Entities.EditingStyle", b =>
+                {
+                    b.Navigation("VideoFormats");
+                });
+
             modelBuilder.Entity("Media8.Domain.Entities.Offer", b =>
                 {
                     b.Navigation("Contracts");
+
+                    b.Navigation("SupportedFormats");
                 });
 
             modelBuilder.Entity("Media8.Domain.Entities.Order", b =>
