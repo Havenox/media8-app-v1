@@ -42,6 +42,9 @@ import CancelOrderButton from '@/components/orders/CancelOrderButton';
 
 // Hooks
 import { useOrders, useOrdersByClient, useDeleteOrder, useCancellationWindow } from '@/hooks/useOrders';
+import { useQuery } from '@tanstack/react-query';
+import { orderKeys } from '@/hooks/useOrders';
+import { orderService } from '@/services/orderService';
 
 const OrdersPage: React.FC = () => {
   const { user } = useAuth();
@@ -51,13 +54,19 @@ const OrdersPage: React.FC = () => {
   // Conditional queries to avoid double-fetch
   const isClient = user?.Role === 'Client';
   
-  // Admin/Editor: fetch all orders
-  const { data: allOrders = [], isLoading: isLoadingAll } = useOrders();
+  // Admin/Editor: fetch all orders (conditional query)
+  const { data: allOrders = [], isLoading: isLoadingAll } = useQuery({
+    queryKey: orderKeys.lists(),
+    queryFn: () => orderService.getAll(),
+    enabled: !isClient, // ❌ NÃO executa se for cliente
+  });
   
   // Client: fetch only their own orders (conditional query)
-  const { data: clientOrders = [], isLoading: isLoadingClient } = useOrdersByClient(
-    isClient ? user?.Id : undefined
-  );
+  const { data: clientOrders = [], isLoading: isLoadingClient } = useQuery({
+    queryKey: orderKeys.byClient(user?.Id!),
+    queryFn: () => orderService.getByClient(user?.Id!),
+    enabled: isClient, // ✅ SÓ executa se for cliente
+  });
 
   // Select data based on role - no extra logic needed
   const orders = isClient ? clientOrders : allOrders;
