@@ -14,13 +14,9 @@ public string? FinalVideoUrl { get; set; }
 public OrderStatus Status { get; set; } = OrderStatus.Draft;
 
 /// <summary>
-/// Foreign Key para o formato de vídeo dinâmico
-/// </summary>
-public Guid VideoFormatId { get; set; }
-
-/// <summary>
 /// Foreign Key para o lote de saldo original (ServiceBalanceLot) que financiou este pedido
 /// Usado para reembolso em caso de cancelamento
+/// O VideoFormat é obtido através do ServiceBalanceLot → ClientContract → SnapshotVideoFormatName
 /// </summary>
 public Guid? ServiceBalanceLotId { get; set; }
 
