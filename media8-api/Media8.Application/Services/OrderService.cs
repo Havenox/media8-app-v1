@@ -47,43 +47,18 @@ _logger.LogInformation(
 serviceBalanceLotId,
 balanceLot.RemainingQuantity);
 
-// 2. Cria o pedido herdando VideoFormatId do contrato via snapshot
-// O lote de saldo NÃO possui VideoFormatId - quem tem é o contrato (snapshot)
-var contract = await _balanceRepository.Query<ClientContract>()
-.FirstOrDefaultAsync(c => c.Id == balanceLot.ContractId);
-
-if (contract == null)
-{
-throw new InvalidOperationException("Contrato não encontrado para este lote de saldo.");
-}
-
-// Valida se o contrato possui snapshot técnico
-if (string.IsNullOrWhiteSpace(contract.SnapshotVideoFormatName))
-{
-throw new InvalidOperationException("Contrato sem formato de vídeo definido no snapshot.");
-}
-
-// Busca o VideoFormatId pelo nome do snapshot (imutável)
-var videoFormat = await _balanceRepository.Query<VideoFormat>()
-.FirstOrDefaultAsync(v => v.Name == contract.SnapshotVideoFormatName);
-
-if (videoFormat == null)
-{
-throw new InvalidOperationException($"Formato de vídeo '{contract.SnapshotVideoFormatName}' não encontrado.");
-}
-
+// 2. Cria o pedido vinculado ao lote de saldo
+// O VideoFormat será obtido via ServiceBalanceLot → ClientContract → SnapshotVideoFormatName quando necessário
 var order = new Order
 {
-ClientId = userId,
-Title = request.Title,
-Briefing = request.Briefing,
-SourceFilesUrl = request.SourceFilesUrl,
-VideoFormatId = videoFormat.Id, // Herda do snapshot do contrato
-Deadline = request.Deadline,
-ServiceBalanceLotId = serviceBalanceLotId,
-BrandingProfileId = request.BrandingProfileId,
-EditingProfileId = request.EditingProfileId,
-Status = OrderStatus.Draft
+  ClientId = userId,
+  Title = request.Title,
+  Briefing = request.Briefing,
+  SourceFilesUrl = request.SourceFilesUrl,
+  ServiceBalanceLotId = serviceBalanceLotId,
+  BrandingProfileId = request.BrandingProfileId,
+  EditingProfileId = request.EditingProfileId,
+  Status = OrderStatus.Draft
 };
 
 await _orderRepository.AddAsync(order);
