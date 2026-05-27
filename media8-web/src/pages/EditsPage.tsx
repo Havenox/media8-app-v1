@@ -44,10 +44,16 @@ const EditsPage: React.FC = () => {
   const { user } = useAuth();
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  // For editors, show orders assigned to them; for admin, show all
+  // Conditional queries to avoid double-fetch
   const isEditor = user?.Role === 'Editor';
+  
+  // Admin: fetch all orders
   const { data: allOrders = [], isLoading: isLoadingAll } = useOrders();
-  const { data: editorOrders = [], isLoading: isLoadingEditor } = useOrdersByEditor(isEditor ? user?.Id : undefined);
+  
+  // Editor: fetch only their assigned orders (conditional query)
+  const { data: editorOrders = [], isLoading: isLoadingEditor } = useOrdersByEditor(
+    isEditor ? user?.Id : undefined
+  );
   const { data: users = [] } = useUsers();
   
   const orders = isEditor ? editorOrders : allOrders;

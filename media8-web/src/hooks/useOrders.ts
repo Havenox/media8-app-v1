@@ -58,12 +58,13 @@ export const useOrdersByClient = (clientId: string | undefined) => {
 
 /**
  * Fetch orders by editor ID
+ * Only executes when editorId is provided (conditional query)
  */
 export const useOrdersByEditor = (editorId: string | undefined) => {
   return useQuery({
     queryKey: orderKeys.byEditor(editorId!),
     queryFn: () => orderService.getByEditor(editorId!),
-    enabled: !!editorId,
+    enabled: !!editorId, // ❌ NÃO executa se editorId for undefined/null
   });
 };
 

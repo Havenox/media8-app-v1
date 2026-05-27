@@ -22,6 +22,9 @@ import { ServiceInventory } from '@/components/dashboard/ServiceInventory';
 
 // Hooks
 import { useOrders, useOrdersByClient, useOrdersByEditor } from '@/hooks/useOrders';
+import { useQuery } from '@tanstack/react-query';
+import { orderKeys } from '@/hooks/useOrders';
+import { orderService } from '@/services/orderService';
 
 interface StatCardProps {
   title: string;
@@ -356,7 +359,13 @@ const EditorDashboard: React.FC = () => {
 // Dashboard for Admin role
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
-  const { data: orders = [], isLoading } = useOrders();
+  
+  // Conditional query: only fetch all orders if user is admin
+  const { data: orders = [], isLoading } = useQuery({
+    queryKey: orderKeys.lists(),
+    queryFn: () => orderService.getAll(),
+    enabled: user?.Role === 'Admin', // ❌ NÃO executa se não for admin
+  });
 
   const stats = useMemo(() => ({
     total: orders.length,
