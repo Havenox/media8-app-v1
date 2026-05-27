@@ -46,11 +46,6 @@ public class OrderResponse
     public string SourceFilesUrl { get; set; } = string.Empty;
     public string? FinalVideoUrl { get; set; }
     public OrderStatus Status { get; set; }
-    
-    /// <summary>
-    /// ID do formato de vídeo dinâmico
-    /// </summary>
-    public Guid VideoFormatId { get; set; }
     public DateOnly Deadline { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
