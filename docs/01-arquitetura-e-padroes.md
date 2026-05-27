@@ -174,11 +174,11 @@ try {
   - **Impacto**: Renderização correta de status e nomes, zero erros silenciosos, código alinhado com backend
   - **Lição**: PascalCase não é negociável; cada propriedade em camelCase é oportunidade de bug silencioso
 
-### 6.6. Remoção de VideoFormatId de Orders (Case #073)
-  - **Problema**: Tabela `Orders` tinha FK indevida para `VideoFormats`, violando princípio do snapshot imutável
-  - **Solução**: Removido `VideoFormatId` de `Order`, `CreateOrderRequest` e `OrderResponse`; backend obtém formato via `ServiceBalanceLot → ClientContract → SnapshotVideoFormatName`
-  - **Impacto**: 10 commits atômicos (domain, application, infra, frontend), migration segura, frontend funcional sem dados redundantes
-  - **Lição**: Nunca adicione FKs a entidades que já podem obter informações indiretamente através de outras entidades; snapshot já captura estado imutável
+### 6.6. Remoção de VideoFormatId de Orders (Case #073, #074)
+  - **Problema**: Tabela `Orders` tinha FK indevida para `VideoFormats`, violando princípio do snapshot imutável. Mesmo após remover a coluna, o EF Core ainda inferia a FK através de propriedade de navegação residual
+  - **Solução**: Removido `VideoFormatId` de `Order`, `CreateOrderRequest` e `OrderResponse`; removida propriedade de navegação `VideoFormat` da entidade; gerada migration `FixOrderSnapshot` para atualizar o snapshot do EF Core
+  - **Impacto**: 14 commits atômicos (domain, application, infra, frontend, tests), migration no-op segura, frontend funcional sem dados redundantes, erro 500 resolvido
+  - **Lição**: Propriedades de navegação no EF Core podem inferir FKs indesejadas mesmo sem declaração explícita - sempre remover navegações junto com colunas do banco; snapshot já captura estado imutável
 
 ---
 
@@ -190,5 +190,6 @@ try {
 - [Case Study #071: SettingsService Cache](implementations/071-correcao-cache-settings-inicializacao.md)
 - [Case Study #072: Orders PascalCase](implementations/072-correcao-pascalcase-orders-renderizacao.md)
 - [Case Study #073: Remoção VideoFormatId](implementations/073-remocao-videoid-orders.md)
+- [Case Study #074: Remoção FK VideoFormatId](implementations/074-remocao-completa-videofk-orders.md)
 - [API Routes](API_ROUTES.md)
 - [Security Guidelines](SECURITY.md)

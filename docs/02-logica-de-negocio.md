@@ -124,17 +124,24 @@ public class EditingStyle {
 ### 2.7. Order (Pedido de Edição)
 ```csharp
 public class Order {
-  public int Id { get; set; }
+  public Guid Id { get; set; }
   public Guid ClientId { get; set; }
   public Guid? EditorId { get; set; }
   public string Title { get; set; }
   public OrderStatus Status { get; set; } // Draft → Pending → InProgress → Approved
-  public int VideoFormatId { get; set; }
+  // SEM VideoFormatId - obtido via ServiceBalanceLot → ClientContract → SnapshotVideoFormatName
+  public Guid? ServiceBalanceLotId { get; set; }
   public DateTime Deadline { get; set; }
   public string RawFootageUrl { get; set; }
   public string FinalVideoUrl { get; set; }
 }
 ```
+
+**Regra de Negócio Crítica (Case #073, #074)**: `Order` **NÃO** possui `VideoFormatId`. O formato de vídeo é obtido indiretamente via:
+```
+Order → ServiceBalanceLot → ClientContract → SnapshotVideoFormatName
+```
+Isso preserva o princípio do Snapshot Pattern: `VideoFormat` só é relevante no momento da criação do contrato, nunca durante a execução do pedido.
 
 **Regra de Negócio**: Pedidos podem ser cancelados pelo cliente dentro de uma **janela de cancelamento** configurável (ex: 24h).
 

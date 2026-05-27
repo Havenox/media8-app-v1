@@ -281,14 +281,41 @@ var usersWithContracts = await _context.Users
 
 ## 6. Migrations Recentes
 
-### 6.1. Remoção de VideoFormatId de Orders (Case #073)
+### 6.1. Remoção de VideoFormatId de Orders (Case #073, #074)
 
-**Problema**: A tabela `Orders` continha uma coluna `VideoFormatId` que violava o princípio do snapshot imutável. A entidade `Order` não deveria ter FK direta para `VideoFormats`, pois essa informação já está capturada no `ClientContract`.
+**Problema Arquitetural**: A tabela `Orders` continha uma coluna `VideoFormatId` que violava o princípio do snapshot imutável. A entidade `Order` não deveria ter FK direta para `VideoFormats`, pois essa informação já está capturada no `ClientContract`.
 
-**Solução**:
-```sql
--- Migration: 20260527015432_RemoveVideoFormatIdFromOrders
-ALTER TABLE "Orders" DROP COLUMN "VideoFormatId";
+**Problema Técnico (Case #074)**: Mesmo após remover a coluna e a propriedade `VideoFormatId` da entidade, o EF Core ainda inferia uma FK inexistente através da propriedade de navegação `public VideoFormat? VideoFormat { get; set; }` que permaneceu na entidade `Order`. Isso causava:
+```
+Npgsql.PostgresException (0x80004005): 42703: column o.VideoFormatId does not exist
+```
+
+**Solução em Duas Etapas**:
+
+**Etapa 1 - Case #073 (Remoção da Coluna)**:
+```csharp
+// Migration: 20260527163356_RemoveVideoFormatIdFromOrders
+migrationBuilder.DropColumn(
+    name: "VideoFormatId",
+    table: "Orders");
+```
+
+**Etapa 2 - Case #074 (Remoção da Navegação + Atualização do Snapshot)**:
+```csharp
+// OrderAggregate.cs - Removida propriedade de navegação
+public class Order {
+  // ... outras propriedades
+  // ❌ REMOVIDO: public VideoFormat? VideoFormat { get; set; }
+  public Guid? ServiceBalanceLotId { get; set; }
+}
+
+// Migration: 20260527200448_FixOrderSnapshot (No-Op)
+// Apenas atualiza o snapshot do EF Core sem tentar remover colunas já inexistentes
+protected override void Up(MigrationBuilder migrationBuilder) {
+  // No-op: A coluna já foi removida anteriormente
+  // Esta migration apenas atualiza o snapshot para refletir
+  // que Order NÃO tem mais relação com VideoFormat
+}
 ```
 
 **Fluxo Correto**:
@@ -297,12 +324,12 @@ Order → ServiceBalanceLot → ClientContract → SnapshotVideoFormatName
 ```
 
 **Impacto**:
-- 10 commits atômicos (domain, application, infra, frontend)
-- Frontend envia apenas `ServiceBalanceLotId` na criação de pedidos
-- Backend obtém `VideoFormat` automaticamente quando necessário
-- Código do `OrderService` reduzido em 25 linhas
+- 14 commits atômicos (domain, application, infra, frontend, tests)
+- Erro 500 resolvido: tela de pedidos do cliente carrega sem erros
+- Snapshot do EF Core sincronizado com o domínio
+- Código mais limpo: entidade `Order` segue Lei da Navegação Mínima
 
-**Lição**: Nunca adicione FKs duplicadas quando a informação já existe em snapshot imutável.
+**Lição Arquitetural**: Nunca adicione FKs duplicadas quando a informação já existe em snapshot imutável. **Propriedades de navegação no EF Core podem inferir FKs indesejadas** mesmo sem declaração explícita - sempre remover navegações junto com colunas do banco e atualizar o snapshot do EF Core.
 
 ---
 
