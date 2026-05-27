@@ -105,7 +105,6 @@ export interface Order {
   Deadline: string;
   CreatedAt: string;
   UpdatedAt: string;
-  VideoFormatId: string;
   ServiceBalanceLotId?: string;
   AssignmentId?: string;
 }
@@ -115,7 +114,6 @@ export interface CreateOrderRequest {
   Briefing: string;
   SourceFilesUrl: string;
   Deadline: string;
-  VideoFormatId: string;
   ServiceBalanceLotId: string;
 }
 
