@@ -1,3 +1,4 @@
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -10,7 +11,9 @@ namespace Media8.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Remove coluna VideoFormatId da tabela Orders (não é mais necessária)
+            // Remove apenas a coluna VideoFormatId da tabela Orders
+            // Esta coluna violava o princípio do snapshot imutável
+            // O VideoFormat é obtido via: Order → ServiceBalanceLot → ClientContract → SnapshotVideoFormatName
             migrationBuilder.DropColumn(
                 name: "VideoFormatId",
                 table: "Orders");
