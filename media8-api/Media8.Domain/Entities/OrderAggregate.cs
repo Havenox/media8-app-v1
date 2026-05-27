@@ -42,7 +42,6 @@ public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 // Navigation properties
 public User? Client { get; set; }
 public User? Editor { get; set; }
-public VideoFormat? VideoFormat { get; set; }
 public ServiceBalanceLot? ServiceBalanceLot { get; set; }
 public ClientContract? Contract { get; set; }
 public BrandingProfile? BrandingProfile { get; set; }
