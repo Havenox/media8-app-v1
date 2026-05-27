@@ -65,11 +65,11 @@ const NewOrderPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Estados de cascata
-  const [step, setStep] = useState(1);
-  const [selectedLotId, setSelectedLotId] = useState('');
-  const [selectedBrandingId, setSelectedBrandingId] = useState('');
-  const [selectedEditingId, setSelectedEditingId] = useState('');
+// Estados de cascata
+const [step, setStep] = useState(1);
+const [selectedLotId, setSelectedLotId] = useState('');
+const [selectedBrandingId, setSelectedBrandingId] = useState('');
+const [selectedEditingId, setSelectedEditingId] = useState('');
 
   // Estados das modais
   const [isBrandingModalOpen, setIsBrandingModalOpen] = useState(false);
