@@ -39,6 +39,9 @@ import { OrderStatus } from '@/types/api';
 // Hooks
 import { useOrders, useOrdersByEditor, useUpdateOrderStatus } from '@/hooks/useOrders';
 import { useUsers } from '@/hooks/useUsers';
+import { useQuery } from '@tanstack/react-query';
+import { orderKeys } from '@/hooks/useOrders';
+import { orderService } from '@/services/orderService';
 
 const EditsPage: React.FC = () => {
   const { user } = useAuth();
@@ -47,13 +50,19 @@ const EditsPage: React.FC = () => {
   // Conditional queries to avoid double-fetch
   const isEditor = user?.Role === 'Editor';
   
-  // Admin: fetch all orders
-  const { data: allOrders = [], isLoading: isLoadingAll } = useOrders();
+  // Admin: fetch all orders (conditional query)
+  const { data: allOrders = [], isLoading: isLoadingAll } = useQuery({
+    queryKey: orderKeys.lists(),
+    queryFn: () => orderService.getAll(),
+    enabled: !isEditor, // ❌ NÃO executa se for editor
+  });
   
   // Editor: fetch only their assigned orders (conditional query)
-  const { data: editorOrders = [], isLoading: isLoadingEditor } = useOrdersByEditor(
-    isEditor ? user?.Id : undefined
-  );
+  const { data: editorOrders = [], isLoading: isLoadingEditor } = useQuery({
+    queryKey: orderKeys.byEditor(user?.Id!),
+    queryFn: () => orderService.getByEditor(user?.Id!),
+    enabled: isEditor, // ✅ SÓ executa se for editor
+  });
   const { data: users = [] } = useUsers();
   
   const orders = isEditor ? editorOrders : allOrders;
