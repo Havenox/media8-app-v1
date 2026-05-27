@@ -331,6 +331,52 @@ Order → ServiceBalanceLot → ClientContract → SnapshotVideoFormatName
 
 **Lição Arquitetural**: Nunca adicione FKs duplicadas quando a informação já existe em snapshot imutável. **Propriedades de navegação no EF Core podem inferir FKs indesejadas** mesmo sem declaração explícita - sempre remover navegações junto com colunas do banco e atualizar o snapshot do EF Core.
 
+### 6.2. Conditional Queries para Eliminar Double-Fetch (Case #075)
+
+**Problema de Performance**: Múltiplas páginas (`/orders`, `/edits`, `/dashboard`) estavam disparando **2 requisições simultâneas** contra a API, sendo 50% desnecessárias:
+
+```typescript
+// ❌ ANTES (OrdersPage.tsx)
+const isClient = user?.Role === 'Client';
+const { data: allOrders } = useOrders(); // SEMPRE chama
+const { data: clientOrders } = useOrdersByClient(user?.Id); // SEMPRE chama
+const orders = isClient ? clientOrders : allOrders; // SÓ DEPOIS decide
+```
+
+**Resultado**: Cliente fazia 2 requisições (`/Orders` + `/Orders?ClientId=...`), admin fazia 2 requisições (`/Orders` + `/Orders?ClientId=...`).
+
+**Solução: Conditional Queries com `enabled`**:
+```typescript
+// ✅ DEPOIS (OrdersPage.tsx)
+const isClient = user?.Role === 'Client';
+
+// SÓ executa se NÃO for cliente (Admin/Editor)
+const { data: allOrders } = useQuery({
+  queryKey: orderKeys.lists(),
+  queryFn: () => orderService.getAll(),
+  enabled: !isClient, // ❌ Se for cliente, NÃO dispara
+});
+
+// SÓ executa se FOR cliente
+const { data: clientOrders } = useQuery({
+  queryKey: orderKeys.byClient(user?.Id!),
+  queryFn: () => orderService.getByClient(user?.Id!),
+  enabled: isClient, // ✅ Se for admin, NÃO dispara
+});
+```
+
+**Impacto por Página**:
+| Página | Role | Antes | Depois | Economia |
+|--------|------|-------|--------|----------|
+| OrdersPage | Cliente | 2 reqs | 1 req | **50%** |
+| OrdersPage | Admin | 2 reqs | 1 req | **50%** |
+| EditsPage | Editor | 2 reqs | 1 req | **50%** |
+| Dashboard | Cliente | 1 req (inútil) | 0 req | **100%** |
+
+**Lição de Performance**: Usar `enabled` do TanStack Query para controle fino de execução evita requisições desnecessárias. Nunca chamar múltiplos hooks e decidir depois qual usar - ativar apenas o hook relevante baseado em condições.
+
+**Padrão Estabelecido**: Documentado em `docs/PadraoArquitetura/useScopedOrders.md` para futura implementação de hook genérico quando 3+ recursos precisarem do mesmo padrão.
+
 ---
 
 ## 7. Data Seeding

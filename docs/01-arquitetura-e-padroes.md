@@ -180,6 +180,12 @@ try {
   - **Impacto**: 14 commits atômicos (domain, application, infra, frontend, tests), migration no-op segura, frontend funcional sem dados redundantes, erro 500 resolvido
   - **Lição**: Propriedades de navegação no EF Core podem inferir FKs indesejadas mesmo sem declaração explícita - sempre remover navegações junto com colunas do banco; snapshot já captura estado imutável
 
+### 6.7. Eliminação de Double-Fetch em Orders (Case #075)
+  - **Problema**: Páginas `/orders`, `/edits` e `/dashboard` disparavam 2 requisições simultâneas (1 geral + 1 filtrada por role), sendo 50% desnecessárias
+  - **Solução**: Aplicado padrão de Conditional Queries do TanStack Query com `enabled` baseado no role do usuário (`Client`, `Editor`, `Admin`)
+  - **Impacto**: Redução de 50% nas requisições HTTP (6→3 em cenários típicos), performance melhorada, princípio do menor privilégio respeitado
+  - **Lição**: Sempre usar `enabled` para controle fino de execução de queries; evitar chamar múltiplos hooks e decidir depois qual usar
+
 ---
 
 ## 7. Referências
@@ -191,5 +197,6 @@ try {
 - [Case Study #072: Orders PascalCase](implementations/072-correcao-pascalcase-orders-renderizacao.md)
 - [Case Study #073: Remoção VideoFormatId](implementations/073-remocao-videoid-orders.md)
 - [Case Study #074: Remoção FK VideoFormatId](implementations/074-remocao-completa-videofk-orders.md)
+- [Case Study #075: Double-Fetch Elimination](implementations/075-eliminacao-double-fetch-orders.md)
 - [API Routes](API_ROUTES.md)
 - [Security Guidelines](SECURITY.md)

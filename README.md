@@ -28,6 +28,7 @@ Este projeto demonstra a aplicação prática de conceitos avançados de Engenha
 * **Branding & Editing Profiles**: Sistema completo de perfis de briefing com `BrandingProfile` e `EditingProfile`, ciclo de vida (IsActive), endpoints PascalCase, UI em cascata, transação atômica e trava de exclusão. [Ler Case Study](docs/implementations/063-sistema-completo-perfis-briefing.md).
 * **PascalCase Contract Enforcement**: API com serialização JSON PascalCase nativa (.NET `PropertyNamingPolicy = null`), frontend espelhando contratos exatos via TypeScript interfaces, e auditoria de ponta-a-ponta para eliminar inconsistências de case. [Ler Case Study](docs/implementations/064-api-pascal-case-snapshot-saldo.md).
 * **Crisis Recovery & Atomic Commits**: Protocolo de recuperação de colapso de migração com 18 commits atômicos, varredura sistemática em hooks/páginas, e restauração completa de CRUDs em 4 escopos (backend, services, hooks, pages). [Ler Case Study](docs/implementations/065-correcao-colapso-migracao-pascalcase.md).
+* **Conditional Queries Pattern**: Otimização de frontend que elimina double-fetch de dados baseado no role do usuário, reduzindo em 50% as requisições HTTP. [Ler Case Study](docs/implementations/075-eliminacao-double-fetch-orders.md).
 
 ### ⚡ Performance e UX
 *   **Virtualização (Infinite Scroll)**: Componentes UI otimizados para listar milhares de registros sem travar o DOM. [Ler Case Study](docs/implementations/010-refatoracao-infinite-scroll-generico.md).
