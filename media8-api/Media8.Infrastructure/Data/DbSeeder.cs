@@ -125,7 +125,6 @@ public class DbSeeder
             Briefing = "Seeded briefing...",
             SourceFilesUrl = "http://drive.google.com/seeded",
             Status = status,
-            VideoFormatId = videoFormatId,
             Deadline = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7)),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

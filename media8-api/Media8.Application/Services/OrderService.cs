@@ -204,7 +204,6 @@ Briefing = order.Briefing,
 SourceFilesUrl = order.SourceFilesUrl,
 FinalVideoUrl = order.FinalVideoUrl,
 Status = order.Status,
-VideoFormatId = order.VideoFormatId,
 Deadline = order.Deadline,
 CreatedAt = order.CreatedAt,
 UpdatedAt = order.UpdatedAt
