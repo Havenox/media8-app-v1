@@ -11,7 +11,6 @@ export interface SystemSettingsResponse {
 
 interface CreateOrderData extends CreateOrderRequest {
   clientId: string;
-  videoFormatId?: string; // FK dinâmica para VideoFormat
   serviceBalanceLotId: string;
 }
 
