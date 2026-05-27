@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Order, OrderStatus, CreateOrderRequest, VideoFormat, ServiceBalanceLot } from '@/types/api';
+import { Order, OrderStatus, CreateOrderRequest, ServiceBalanceLot } from '@/types/api';
 import { orderService } from '@/services/orderService';
 import { toast } from 'sonner';
 
@@ -96,7 +96,6 @@ interface CreateOrderData {
   Briefing: string;
   SourceFilesUrl: string;
   Deadline: string;
-  VideoFormatId: string;
   ServiceBalanceLotId: string;
 }
 
