@@ -48,11 +48,18 @@ const OrdersPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  // For clients, show only their orders; for admin/editor, show all
+  // Conditional queries to avoid double-fetch
   const isClient = user?.Role === 'Client';
+  
+  // Admin/Editor: fetch all orders
   const { data: allOrders = [], isLoading: isLoadingAll } = useOrders();
-  const { data: clientOrders = [], isLoading: isLoadingClient } = useOrdersByClient(isClient ? user?.Id : undefined);
+  
+  // Client: fetch only their own orders (conditional query)
+  const { data: clientOrders = [], isLoading: isLoadingClient } = useOrdersByClient(
+    isClient ? user?.Id : undefined
+  );
 
+  // Select data based on role - no extra logic needed
   const orders = isClient ? clientOrders : allOrders;
   const isLoading = isClient ? isLoadingClient : isLoadingAll;
 

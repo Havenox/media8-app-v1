@@ -46,12 +46,13 @@ export const useOrder = (id: string | undefined) => {
 
 /**
  * Fetch orders by client ID
+ * Only executes when clientId is provided (conditional query)
  */
 export const useOrdersByClient = (clientId: string | undefined) => {
   return useQuery({
     queryKey: orderKeys.byClient(clientId!),
     queryFn: () => orderService.getByClient(clientId!),
-    enabled: !!clientId,
+    enabled: !!clientId, // ❌ NÃO executa se clientId for undefined/null
   });
 };
 
