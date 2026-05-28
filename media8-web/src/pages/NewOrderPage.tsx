@@ -91,11 +91,21 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
     formState: { errors, isSubmitting },
   } = useForm<OrderFormData>({
     resolver: zodResolver(orderSchema),
+    defaultValues: {
+      serviceBalanceLotId: '',
+      brandingProfileId: '',
+      editingProfileId: '',
+      title: '',
+      briefing: '',
+      sourceFilesUrl: '',
+      deadline: '',
+    },
   });
 
   // Passo 1: Seleção de saldo
   const handleLotSelect = (lotId: string) => {
     setSelectedLotId(lotId);
+    setValue('serviceBalanceLotId', lotId);
     setStep(2);
   };
 
@@ -106,6 +116,7 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
       return;
     }
     setSelectedBrandingId(value);
+    setValue('brandingProfileId', value);
     setStep(3);
   };
 
@@ -116,6 +127,7 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
       return;
     }
     setSelectedEditingId(value);
+    setValue('editingProfileId', value);
     setStep(4);
   };
 
@@ -124,8 +136,8 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
     createBrandingMutation.mutate(data, {
       onSuccess: (newProfile) => {
         setIsBrandingModalOpen(false);
-        setSelectedBrandingId(newProfile.id);
-        setValue('brandingProfileId', newProfile.id);
+        setSelectedBrandingId(newProfile.Id);
+        setValue('brandingProfileId', newProfile.Id);
         setStep(3);
         toast.success('Perfil de branding criado com sucesso!');
       },
@@ -139,8 +151,8 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
     createEditingMutation.mutate(data, {
       onSuccess: (newProfile) => {
         setIsEditingModalOpen(false);
-        setSelectedEditingId(newProfile.id);
-        setValue('editingProfileId', newProfile.id);
+        setSelectedEditingId(newProfile.Id);
+        setValue('editingProfileId', newProfile.Id);
         setStep(4);
         toast.success('Perfil de edição criado com sucesso!');
       },
@@ -228,6 +240,7 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
         </CardHeader>
         <CardContent>
           <Select
+            value={selectedLotId}
             onValueChange={handleLotSelect}
             disabled={step !== 1}
           >
@@ -241,7 +254,7 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
                 </SelectItem>
               ) : availableBalances.length > 0 ? (
                 availableBalances.map((lot) => (
-                  <SelectItem key={lot.id} value={lot.id}>
+                  <SelectItem key={lot.Id} value={lot.Id}>
                     {lot.SnapshotOfferName || 'Contrato'} - {lot.RemainingQuantity} vídeos
                   </SelectItem>
                 ))
@@ -270,6 +283,7 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
         </CardHeader>
         <CardContent>
           <Select
+            value={selectedBrandingId}
             onValueChange={handleBrandingSelect}
             disabled={step < 2}
           >
@@ -284,7 +298,7 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
                 </div>
               </SelectItem>
               {brandingProfiles.map((profile) => (
-                <SelectItem key={profile.id} value={profile.id}>
+                <SelectItem key={profile.Id} value={profile.Id}>
                   {profile.Name}
                 </SelectItem>
               ))}
@@ -308,6 +322,7 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
         </CardHeader>
         <CardContent>
           <Select
+            value={selectedEditingId}
             onValueChange={handleEditingSelect}
             disabled={step < 3}
           >
@@ -322,7 +337,7 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
                 </div>
               </SelectItem>
               {editingProfiles.map((profile) => (
-                <SelectItem key={profile.id} value={profile.id}>
+                <SelectItem key={profile.Id} value={profile.Id}>
                   {profile.Name}
                 </SelectItem>
               ))}
