@@ -11,7 +11,7 @@ public class ServiceBalanceRepository : Repository<ServiceBalanceLot>, IServiceB
     {
     }
 
-    public async Task<(IEnumerable<ServiceBalanceLot> Items, int TotalCount)> GetPagedByUserIdAsync(
+public async Task<(IEnumerable<ServiceBalanceLot> Items, int TotalCount)> GetPagedByUserIdAsync(
         Guid userId,
         int page,
         int pageSize,
@@ -50,5 +50,16 @@ public class ServiceBalanceRepository : Repository<ServiceBalanceLot>, IServiceB
             .ToListAsync();
 
         return (items, total);
+    }
+
+    public async Task<IEnumerable<ServiceBalanceLot>> GetAvailableBalancesByUserIdAsync(Guid userId)
+    {
+        var now = DateTime.UtcNow;
+        return await _dbSet
+            .Include(l => l.Contract)
+            .Where(l => l.UserId == userId 
+                        && l.RemainingQuantity > 0 
+                        && (!l.ExpiresAt.HasValue || l.ExpiresAt.Value > now))
+            .ToListAsync();
     }
 }
