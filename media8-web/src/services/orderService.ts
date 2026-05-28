@@ -9,9 +9,14 @@ export interface SystemSettingsResponse {
 // API FUNCTIONS
 // ==========================================
 
-interface CreateOrderData extends CreateOrderRequest {
-  clientId: string;
-  serviceBalanceLotId: string;
+interface CreateOrderData {
+  Title: string;
+  Briefing: string;
+  SourceFilesUrl: string;
+  Deadline: string;
+  ServiceBalanceLotId: string;
+  BrandingProfileId: string;
+  EditingProfileId: string;
 }
 
 // PascalCase: Backend usa /Orders

@@ -93,12 +93,13 @@ export const useOrderStats = () => {
 // ==========================================
 
 interface CreateOrderData {
-  clientId: string;
   Title: string;
   Briefing: string;
   SourceFilesUrl: string;
   Deadline: string;
   ServiceBalanceLotId: string;
+  BrandingProfileId: string;
+  EditingProfileId: string;
 }
 
 /**
