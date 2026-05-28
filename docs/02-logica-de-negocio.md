@@ -247,15 +247,23 @@ public async Task<ActionResult<SystemSettings>> GetSettings()
 - **Implementação**: `ORDER BY ExpiresAt ASC` na query
 
 ### 5.2. Blindagem de Contrato
-- **Regra**: Contrato **nunca** muda após criação
-- **Motivo**: Preserva termos acordados na venda
-- **Implementação**: Snapshot completo no `ClientContract`
+- **Regra**: `ClientContract` armazena **snapshot imutável** da oferta no momento da contratação
+- **Campos Snapshot**: `SnapshotOfferName`, `SnapshotVideoQuantity`, `SnapshotPrice`, `SnapshotVideoFormatName`, `SnapshotEditingStyleName`
+- **Motivo**: Preservar estado histórico mesmo com mudanças no catálogo
+- **Implementação**: `ContractMapper.MapToSnapshot()` no momento da criação do contrato
 
-### 5.3. Exclusão Condicional
-- **Regra**: Offers/Formats/Styles só podem ser excluídos se:
-  - Não possuirem contratos ativos vinculados
-  - Timer de 5 segundos tiver expirado (prevenção de clique acidental)
-- **Implementação**: Validação em cascata antes de `DELETE`
+### 5.3. Fluxo de Criação de Pedidos (Case #076)
+- **Regra**: Pedido requer **3 seleções em cascata** antes de preencher dados do vídeo:
+  1. **Lote de Saldo** (ServiceBalanceLot) → Define quantos vídeos disponíveis
+  2. **Perfil de Branding** (BrandingProfile) → Define identidade visual da marca
+  3. **Perfil de Edição** (EditingProfile) → Define estilo técnico de edição
+  4. **Dados do Vídeo** (Título, Briefing, URL, Deadline) → Preenche detalhes específicos
+
+- **Validação**: Todos os 3 passos devem ser completados antes de habilitar Passo 4
+- **Implementação**: Estados locais (`selectedLotId`, `selectedBrandingId`, `selectedEditingId`) gerenciam UI e avanço de `step`
+- **Hack Arquitetural**: Selects operam como **não-controlados** (sem `value` do react-hook-form) para evitar conflito de estado. Validação manual no `onSubmit` via `if (!selectedId) toast.error()`.
+
+- **Fluxo Detalhado**: [Ver docs/implementations/076-correcoes-criticas-novo-pedido.md](implementations/076-correcoes-criticas-novo-pedido.md)
 
 ---
 

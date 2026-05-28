@@ -430,7 +430,74 @@ psql -U media8_user -d media8_db -f /backups/media8_20260524.sql
 
 ---
 
-## 7. Referências
+## 7. Endpoints de Persistência Críticos
+
+### 7.1. `/ServiceBalances/MyBalances` (UnifiedServiceBalanceDto)
+
+**Propósito**: Retornar lotes de saldo disponíveis para o usuário autenticado, com dados de snapshot projetados.
+
+**DTO Retornado**: `UnifiedServiceBalanceDto` (NÃO `ServiceBalanceLot`)
+```csharp
+public class UnifiedServiceBalanceDto
+{
+  public Guid Id { get; set; } // Balance Lot ID
+  public string SnapshotOfferName { get; set; } // Nome da oferta (ex: "Pacote Premium")
+  public int SnapshotVideoQuantity { get; set; } // Quantidade original
+  public string ContractType { get; set; } // "Pacote" ou "Assinatura"
+  public string SnapshotVideoFormatName { get; set; } // Formato técnico
+  public string SnapshotEditingStyleName { get; set; } // Estilo de edição
+  public int RemainingQuantity { get; set; } // Saldo restante
+  public int TotalQuantity { get; set; } // Total original
+  public DateTime? ExpiresAt { get; set; } // Data de expiração
+  public DateTime PurchaseDate { get; set; } // Data de compra
+  public string Status { get; set; } = "active"; // active, expired, depleted
+}
+```
+
+**Importante para o Frontend**:
+- ✅ `SnapshotOfferName` é propriedade **plana** (NÃO está dentro de objeto `Contract`)
+- ✅ Frontend deve acessar: `lot.SnapshotOfferName` (direto)
+- ❌ **NÃO** acessar: `lot.contract?.snapshotOfferName` (objeto `Contract` não existe no DTO)
+
+**Implementação no Backend**:
+```csharp
+// ServiceBalancesController.cs
+[HttpGet("MyBalances")]
+public async Task<ActionResult<IEnumerable<UnifiedServiceBalanceDto>>> GetMyBalances(...)
+{
+    var (balances, total) = await _balanceRepository.GetPagedByUserIdAsync(...);
+    var dtos = balances.Select(MapToUnifiedDto); // Projeção com Include do Contract
+    return Ok(dtos);
+}
+
+// Mapeamento com Include para evitar N+1
+private static UnifiedServiceBalanceDto MapToUnifiedDto(ServiceBalanceLot lot)
+{
+    return new UnifiedServiceBalanceDto
+    {
+        SnapshotOfferName = lot.Contract?.SnapshotOfferName ?? "Contrato Sem Nome",
+        RemainingQuantity = lot.RemainingQuantity,
+        // ... outros campos
+    };
+}
+```
+
+**Uso no Frontend** (`NewOrderPage.tsx`):
+```typescript
+// ✅ CORRETO
+<SelectItem key={lot.id} value={lot.id}>
+  {lot.SnapshotOfferName || 'Contrato'} - {lot.RemainingQuantity} vídeos
+</SelectItem>
+
+// ❌ ERRADO (causa "Contrato - vídeos" genérico)
+{lot.contract?.snapshotOfferName || 'Contrato'}
+```
+
+**Referência**: Case Study #076 - Correções Críticas na Página de Novo Pedido.
+
+---
+
+## 8. Referências
 
 - [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) - Schema completo
 - [API_ROUTES.md](API_ROUTES.md) - Endpoints que persistem dados

@@ -186,6 +186,18 @@ try {
   - **Impacto**: Redução de 50% nas requisições HTTP (6→3 em cenários típicos), performance melhorada, princípio do menor privilégio respeitado
   - **Lição**: Sempre usar `enabled` para controle fino de execução de queries; evitar chamar múltiplos hooks e decidir depois qual usar
 
+### 6.8. Selective State Isolation em Selects Controlados (Case #076)
+  - **Problema**: Componentes `Select` (Radix UI/shadcn/ui) apareciam com **todos os itens selecionados** ao carregar, com placeholder concatenado com nomes dos itens, e fluxo em cascata bloqueado
+  - **Causa Raiz**: Conflito de estado entre `useState` (estado local) e `setValue` (react-hook-form) criava comportamento indefinido (controlled/uncontrolled)
+  - **Solução**: Isolamento completo do estado dos Selects:
+    - Removido `setValue()` dos handlers de seleção
+    - Removido `value` controlado dos componentes Select
+    - Adicionada validação manual no `onSubmit` com `toast.error()`
+    - Estados locais (`selectedLotId`, `selectedBrandingId`, `selectedEditingId`) gerenciam apenas UI e avanço de step
+  - **Impacto**: Dropdowns funcionais com 1 item selecionado por vez, fluxo em cascata restaurado, UX correta
+  - **Lição**: **NUNCA** misture `useState` + `setValue` para o mesmo dado em componentes controlados. Quando usar Radix Select com react-hook-form, preferir isolamento de estado ou `useController`.
+  - **Hack Documentado**: Validação manual via `if (!selectedId) toast.error()` é preferível à validação automática do Zod que não funciona por conflito de estado.
+
 ---
 
 ## 7. Referências
@@ -198,5 +210,6 @@ try {
 - [Case Study #073: Remoção VideoFormatId](implementations/073-remocao-videoid-orders.md)
 - [Case Study #074: Remoção FK VideoFormatId](implementations/074-remocao-completa-videofk-orders.md)
 - [Case Study #075: Double-Fetch Elimination](implementations/075-eliminacao-double-fetch-orders.md)
+- [Case Study #076: Selective State Isolation](implementations/076-correcoes-criticas-novo-pedido.md)
 - [API Routes](API_ROUTES.md)
 - [Security Guidelines](SECURITY.md)
