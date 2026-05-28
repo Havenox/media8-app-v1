@@ -41,7 +41,7 @@ export const ServiceInventory: React.FC = () => {
       </div>
 
       {/* Unified List */}
-      <ServiceBalanceList canConsume={false} />
+      <ServiceBalanceList canConsume={false} limit={4} />
       
     </motion.div>
   );

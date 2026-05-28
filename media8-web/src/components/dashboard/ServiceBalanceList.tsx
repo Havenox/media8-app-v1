@@ -95,6 +95,8 @@ interface ServiceBalanceListProps {
   onConsume?: (lot: UnifiedServiceBalance) => void;
   className?: string;
   variant?: ServiceListVariant; // Mode: 'grid' (default) or 'list' (stacked)
+  limit?: number;
+  status?: string;
 }
 
 export const ServiceBalanceList: React.FC<ServiceBalanceListProps> = ({
@@ -102,12 +104,18 @@ export const ServiceBalanceList: React.FC<ServiceBalanceListProps> = ({
   canConsume = false,
   onConsume,
   className,
-  variant = 'grid'
+  variant = 'grid',
+  limit,
+  status
 }) => {
+  const isDashboardGrid = variant === 'grid' && !clientId;
+  const queryStatus = status || (isDashboardGrid ? 'dashboard' : 'active');
+  const queryPageSize = limit || 10;
+
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useServiceBalances({
     clientId,
-    status: 'active',
-    pageSize: 10
+    status: queryStatus,
+    pageSize: queryPageSize
   });
 
   const lots = data?.pages.flatMap(page => page.data) || [];
@@ -125,7 +133,7 @@ export const ServiceBalanceList: React.FC<ServiceBalanceListProps> = ({
     return (
       <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 w-full">
         {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-[180px] w-full max-w-[400px] rounded-xl" />
+          <Skeleton key={i} className="h-[180px] w-full lg:max-w-[400px] max-w-none rounded-xl" />
         ))}
       </div>
     );
@@ -385,7 +393,7 @@ const ServiceCard = ({
 
   return (
     <Card className={cn(
-      "relative overflow-hidden transition-all hover:shadow-md border-l-4 p-5 flex flex-col justify-between bg-[#FFFBED] border-[#E8E0D0] w-full max-w-[400px] min-h-[180px]",
+      "relative overflow-hidden transition-all hover:shadow-md border-l-4 p-5 flex flex-col justify-between bg-[#FFFBED] border-[#E8E0D0] w-full lg:max-w-[400px] max-w-none min-h-[180px]",
       isSubscription 
         ? "border-l-[#7B0A0A]" 
         : expInfo.isUrgent 
@@ -403,12 +411,12 @@ const ServiceCard = ({
           </div>
           <div>
             <div className="flex items-center gap-1.5 flex-wrap max-w-[170px] sm:max-w-[200px]">
-              <CardTitle className="text-sm font-bold text-[#400404] line-clamp-1 leading-none" title={lot.SnapshotOfferName}>
+              <CardTitle className="text-base font-bold text-[#400404] line-clamp-1 leading-none" title={lot.SnapshotOfferName}>
                 {lot.SnapshotOfferName}
               </CardTitle>
               {renderContractTypeBadge(lot.ContractType)}
             </div>
-            <p className="text-[10px] text-muted-foreground mt-0.5">
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               {lot.SnapshotVideoFormatName} ({lot.SnapshotMaxDurationSeconds}s)
             </p>
           </div>
@@ -416,13 +424,13 @@ const ServiceCard = ({
 
         {/* Credits */}
         <div className="text-right shrink-0">
-          <span className="text-base font-extrabold text-[#400404]">
+          <span className="text-lg font-extrabold text-[#400404]">
             {lot.RemainingQuantity}
           </span>
-          <span className="text-[10px] text-muted-foreground ml-0.5">
+          <span className="text-[11px] text-muted-foreground ml-0.5">
             /{lot.TotalQuantity}
           </span>
-          <p className="text-[9px] text-muted-foreground leading-none">créditos</p>
+          <p className="text-[10px] text-muted-foreground leading-none">créditos</p>
         </div>
       </div>
 
@@ -437,14 +445,14 @@ const ServiceCard = ({
             style={{ width: `${percentConsumed}%` }}
           />
         </div>
-        <div className="flex justify-between items-center text-[9px] text-muted-foreground mt-1">
+        <div className="flex justify-between items-center text-[10px] text-muted-foreground mt-1">
           <span>{percentConsumed}% consumido</span>
           <span>{lot.RemainingQuantity} restantes</span>
         </div>
       </div>
 
       {/* Footer & Action Row */}
-      <div className="flex items-center justify-between gap-2 mt-3.5 pt-3.5 border-t border-dashed border-[#E8E0D0] text-[10px]">
+      <div className="flex items-center justify-between gap-2 mt-3.5 pt-3.5 border-t border-dashed border-[#E8E0D0] text-[11px]">
         {/* Renewal / Expiry */}
         <div className="flex-1 min-w-0">
           {isSubscription ? (
@@ -473,7 +481,7 @@ const ServiceCard = ({
             onClick={() => onConsume?.(lot)}
             disabled={lot.RemainingQuantity <= 0}
             className={cn(
-              "h-6 px-2.5 text-[10px] font-bold text-[#FFFBED] shrink-0",
+              "h-7 px-3 text-[11px] font-bold text-[#FFFBED] shrink-0",
               isSubscription ? "bg-[#7B0A0A] hover:bg-[#5C1212]" : "bg-[#400404] hover:bg-[#5C1212]"
             )}
           >
