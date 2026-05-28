@@ -96,7 +96,6 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
   // Passo 1: Seleção de saldo
   const handleLotSelect = (lotId: string) => {
     setSelectedLotId(lotId);
-    setValue('serviceBalanceLotId', lotId);
     setStep(2);
   };
 
@@ -107,7 +106,6 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
       return;
     }
     setSelectedBrandingId(value);
-    setValue('brandingProfileId', value);
     setStep(3);
   };
 
@@ -118,7 +116,6 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
       return;
     }
     setSelectedEditingId(value);
-    setValue('editingProfileId', value);
     setStep(4);
   };
 
@@ -155,15 +152,29 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
 
   // Submissão final
   const onSubmit = async (data: OrderFormData) => {
+    // Validação manual dos Selects (não estão mais no react-hook-form)
+    if (!selectedLotId) {
+      toast.error('Selecione um lote de saldo');
+      return;
+    }
+    if (!selectedBrandingId) {
+      toast.error('Selecione um perfil de branding');
+      return;
+    }
+    if (!selectedEditingId) {
+      toast.error('Selecione um perfil de edição');
+      return;
+    }
+
     createOrderMutation.mutate(
       {
         Title: data.title,
         Briefing: data.briefing,
         SourceFilesUrl: data.sourceFilesUrl,
         Deadline: data.deadline,
-        ServiceBalanceLotId: data.serviceBalanceLotId,
-        BrandingProfileId: data.brandingProfileId,
-        EditingProfileId: data.editingProfileId,
+        ServiceBalanceLotId: selectedLotId,
+        BrandingProfileId: selectedBrandingId,
+        EditingProfileId: selectedEditingId,
       },
       {
         onSuccess: () => {
@@ -217,7 +228,6 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
         </CardHeader>
         <CardContent>
           <Select
-            value={selectedLotId ? selectedLotId : undefined}
             onValueChange={handleLotSelect}
             disabled={step !== 1}
           >
@@ -260,7 +270,6 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
         </CardHeader>
         <CardContent>
           <Select
-            value={selectedBrandingId ? selectedBrandingId : undefined}
             onValueChange={handleBrandingSelect}
             disabled={step < 2}
           >
@@ -299,7 +308,6 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
         </CardHeader>
         <CardContent>
           <Select
-            value={selectedEditingId ? selectedEditingId : undefined}
             onValueChange={handleEditingSelect}
             disabled={step < 3}
           >
