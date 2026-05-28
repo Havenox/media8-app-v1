@@ -251,6 +251,7 @@ entity.Property(cc => cc.SnapshotOfferName).HasMaxLength(255).IsRequired();
 entity.Property(cc => cc.SnapshotVideoQuantity).IsRequired();
 entity.Property(cc => cc.SnapshotPrice).IsRequired();
 entity.Property(cc => cc.SnapshotValidityDays);
+entity.Property(cc => cc.SnapshotContractType).IsRequired().HasDefaultValue(ContractType.Avulso);
 
 // Snapshot Técnico (obrigatórios)
 entity.Property(cc => cc.SnapshotVideoFormatName).HasMaxLength(100).IsRequired();

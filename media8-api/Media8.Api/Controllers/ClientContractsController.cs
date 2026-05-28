@@ -63,6 +63,7 @@ SnapshotPrice = cc.SnapshotPrice,
 SnapshotValidityDays = cc.SnapshotValidityDays,
 SnapshotDeliveryDays = cc.SnapshotDeliveryDays,
 SnapshotWarrantyDays = cc.SnapshotWarrantyDays,
+SnapshotContractType = cc.SnapshotContractType,
 
 // Snapshot Técnico
 SnapshotVideoFormatName = cc.SnapshotVideoFormatName,
@@ -120,6 +121,7 @@ SnapshotPrice = cc.SnapshotPrice,
 SnapshotValidityDays = cc.SnapshotValidityDays,
 SnapshotDeliveryDays = cc.SnapshotDeliveryDays,
 SnapshotWarrantyDays = cc.SnapshotWarrantyDays,
+SnapshotContractType = cc.SnapshotContractType,
 
 // Snapshot Técnico
 SnapshotVideoFormatName = cc.SnapshotVideoFormatName,
@@ -198,6 +200,7 @@ SnapshotPrice = offer.Price,
 SnapshotValidityDays = offer.ValidityDays,
 SnapshotDeliveryDays = offer.DeliveryDays,
 SnapshotWarrantyDays = offer.LoyaltyMonths * 30, // Converte meses para dias
+SnapshotContractType = offer.ContractType,
 
 // ==========================================
 // SNAPSHOT TÉCNICO (Imutável - Sem FKs)
@@ -241,6 +244,7 @@ SnapshotPrice = contract.SnapshotPrice,
 SnapshotValidityDays = contract.SnapshotValidityDays,
 SnapshotDeliveryDays = contract.SnapshotDeliveryDays,
 SnapshotWarrantyDays = contract.SnapshotWarrantyDays,
+SnapshotContractType = contract.SnapshotContractType,
 
 // Snapshot Técnico
 SnapshotVideoFormatName = contract.SnapshotVideoFormatName,
@@ -288,6 +292,7 @@ return CreatedAtAction(nameof(GetContractById), new { id = contract.Id }, respon
             SnapshotVideoQuantity = contract.SnapshotVideoQuantity,
             SnapshotPrice = contract.SnapshotPrice,
             SnapshotValidityDays = contract.SnapshotValidityDays,
+            SnapshotContractType = contract.SnapshotContractType,
             AssignedAt = contract.AssignedAt,
             ActivatedAt = contract.ActivatedAt,
             ExpiresAt = contract.ExpiresAt,

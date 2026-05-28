@@ -83,7 +83,7 @@ Id = lot.Id,
 // Snapshot Comercial
 SnapshotOfferName = lot.Contract?.SnapshotOfferName ?? "Contrato Sem Nome",
 SnapshotVideoQuantity = lot.Contract?.SnapshotVideoQuantity ?? lot.Quantity,
-ContractType = lot.Contract?.Offer?.ContractType.ToString() ?? "Desconhecido",
+ContractType = lot.Contract?.SnapshotContractType.ToString() ?? lot.Contract?.Offer?.ContractType.ToString() ?? "Desconhecido",
 
 // Snapshot Técnico
 SnapshotVideoFormatName = lot.Contract?.SnapshotVideoFormatName ?? "Formato Desconhecido",

@@ -61,6 +61,7 @@ public decimal? SnapshotPrice { get; set; }
 public int? SnapshotValidityDays { get; set; }
 public int? SnapshotDeliveryDays { get; set; }
 public int? SnapshotWarrantyDays { get; set; }
+public Domain.Enums.ContractType SnapshotContractType { get; set; }
 
 // ==========================================
 // SNAPSHOT TÉCNICO (Imutável - Sem FKs)

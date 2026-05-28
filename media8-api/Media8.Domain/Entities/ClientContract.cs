@@ -77,10 +77,15 @@ public int? SnapshotValidityDays { get; set; }
 /// </summary>
 public int? SnapshotDeliveryDays { get; set; }
 
-/// <summary>
-/// Tempo de garantia/fidelidade em meses no momento da contratação (imutável)
-/// </summary>
-public int? SnapshotWarrantyDays { get; set; }
+    /// <summary>
+    /// Tempo de garantia/fidelidade em meses no momento da contratação (imutável)
+    /// </summary>
+    public int? SnapshotWarrantyDays { get; set; }
+
+    /// <summary>
+    /// Tipo de contrato no momento da contratação (imutável)
+    /// </summary>
+    public ContractType SnapshotContractType { get; set; }
 
 // ==========================================
 // SNAPSHOT TÉCNICO (Imutável - Sem FKs)
