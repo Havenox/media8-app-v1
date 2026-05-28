@@ -232,7 +232,7 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
               ) : availableBalances.length > 0 ? (
                 availableBalances.map((lot) => (
                   <SelectItem key={lot.id} value={lot.id}>
-                    {lot.contract?.snapshotOfferName || 'Contrato'} - {lot.remainingQuantity} vídeos
+                    {lot.SnapshotOfferName || 'Contrato'} - {lot.RemainingQuantity} vídeos
                   </SelectItem>
                 ))
               ) : (
