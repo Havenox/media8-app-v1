@@ -404,7 +404,7 @@ const ServiceListItem = ({
 
 
 // 2. GRID CARD VIEW (New Design with Snapshot)
-const ServiceCard = ({
+export const ServiceCard = ({
   lot,
   canConsume,
   onConsume
@@ -569,7 +569,7 @@ const ServiceCard = ({
             className="flex items-center gap-2 cursor-pointer text-[#400404] hover:bg-[#E8E0D0]/30 focus:bg-[#E8E0D0]/30 font-medium"
           >
             <Plus className="h-4 w-4" />
-            <span>+ Novo Pedido</span>
+            <span>Novo Pedido</span>
           </DropdownMenuItem>
           <DropdownMenuItem 
             onClick={() => navigate('/')}

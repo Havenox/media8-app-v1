@@ -23,18 +23,16 @@ export const ServiceInventory: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {/* 
-          <Link to="/services">
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-              Ver Todos
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </Link>
-          */}
           <Link to="/">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="gap-2">
               <ShoppingBag className="h-4 w-4" />
               Contratar Mais
+            </Button>
+          </Link>
+          <Link to="/services">
+            <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground hover:text-foreground">
+              Ver Todos
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </Link>
         </div>
