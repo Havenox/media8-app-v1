@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -63,7 +63,10 @@ type OrderFormData = z.infer<typeof orderSchema>;
 
 const NewOrderPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
+
+  const lotIdParam = searchParams.get('lotId');
 
 // Estados de cascata
 const [step, setStep] = useState(1);
@@ -108,6 +111,16 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
     setValue('serviceBalanceLotId', lotId);
     setStep(2);
   };
+
+  // Pre-selection of lot via query parameter
+  useEffect(() => {
+    if (lotIdParam && availableBalances.length > 0) {
+      const found = availableBalances.find((lot) => lot.Id === lotIdParam);
+      if (found) {
+        handleLotSelect(lotIdParam);
+      }
+    }
+  }, [lotIdParam, availableBalances]);
 
   // Passo 2: Seleção de branding
   const handleBrandingSelect = (value: string) => {
