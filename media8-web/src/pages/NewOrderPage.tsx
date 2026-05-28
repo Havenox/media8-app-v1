@@ -276,7 +276,7 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
               </SelectItem>
               {brandingProfiles.map((profile) => (
                 <SelectItem key={profile.id} value={profile.id}>
-                  {profile.name}
+                  {profile.Name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -315,7 +315,7 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
               </SelectItem>
               {editingProfiles.map((profile) => (
                 <SelectItem key={profile.id} value={profile.id}>
-                  {profile.name}
+                  {profile.Name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -343,7 +343,6 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
               <Input
                 id="title"
                 placeholder="Ex: Reels #001 - Janeiro"
-                disabled={step < 4}
                 {...register('title')}
               />
               {errors.title && (
@@ -356,7 +355,6 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
               <Textarea
                 id="briefing"
                 placeholder="Ex: Remover pausas entre 01:10 e 01:25, manter introdução..."
-                disabled={step < 4}
                 rows={4}
                 {...register('briefing')}
               />
@@ -370,7 +368,6 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
               <Input
                 id="sourceFilesUrl"
                 placeholder="Ex: https://drive.google.com/..."
-                disabled={step < 4}
                 {...register('sourceFilesUrl')}
               />
               {errors.sourceFilesUrl && (
@@ -383,7 +380,6 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
               <Input
                 id="deadline"
                 type="date"
-                disabled={step < 4}
                 {...register('deadline')}
               />
               {errors.deadline && (
