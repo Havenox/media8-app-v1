@@ -217,7 +217,7 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
         </CardHeader>
         <CardContent>
           <Select
-            value={selectedLotId || undefined}
+            value={selectedLotId ? selectedLotId : undefined}
             onValueChange={handleLotSelect}
             disabled={step !== 1}
           >
@@ -260,7 +260,7 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
         </CardHeader>
         <CardContent>
           <Select
-            value={selectedBrandingId || undefined}
+            value={selectedBrandingId ? selectedBrandingId : undefined}
             onValueChange={handleBrandingSelect}
             disabled={step < 2}
           >
@@ -299,7 +299,7 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
         </CardHeader>
         <CardContent>
           <Select
-            value={selectedEditingId || undefined}
+            value={selectedEditingId ? selectedEditingId : undefined}
             onValueChange={handleEditingSelect}
             disabled={step < 3}
           >
