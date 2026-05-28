@@ -67,9 +67,9 @@ const NewOrderPage: React.FC = () => {
 
 // Estados de cascata
 const [step, setStep] = useState(1);
-const [selectedLotId, setSelectedLotId] = useState<string | undefined>(undefined);
-const [selectedBrandingId, setSelectedBrandingId] = useState<string | undefined>(undefined);
-const [selectedEditingId, setSelectedEditingId] = useState<string | undefined>(undefined);
+const [selectedLotId, setSelectedLotId] = useState('');
+const [selectedBrandingId, setSelectedBrandingId] = useState('');
+const [selectedEditingId, setSelectedEditingId] = useState('');
 
   // Estados das modais
   const [isBrandingModalOpen, setIsBrandingModalOpen] = useState(false);
@@ -217,7 +217,7 @@ const [selectedEditingId, setSelectedEditingId] = useState<string | undefined>(u
         </CardHeader>
         <CardContent>
           <Select
-            value={selectedLotId}
+            value={selectedLotId || undefined}
             onValueChange={handleLotSelect}
             disabled={step !== 1}
           >
@@ -260,7 +260,7 @@ const [selectedEditingId, setSelectedEditingId] = useState<string | undefined>(u
         </CardHeader>
         <CardContent>
           <Select
-            value={selectedBrandingId}
+            value={selectedBrandingId || undefined}
             onValueChange={handleBrandingSelect}
             disabled={step < 2}
           >
@@ -299,7 +299,7 @@ const [selectedEditingId, setSelectedEditingId] = useState<string | undefined>(u
         </CardHeader>
         <CardContent>
           <Select
-            value={selectedEditingId}
+            value={selectedEditingId || undefined}
             onValueChange={handleEditingSelect}
             disabled={step < 3}
           >
