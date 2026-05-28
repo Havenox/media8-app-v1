@@ -54,6 +54,7 @@ export interface ClientContract {
   SnapshotVideoQuantity?: number;
   SnapshotPrice?: number;
   SnapshotValidityDays?: number;
+  SnapshotContractType?: string;
 
   AssignedAt: string;
   ActivatedAt: string;
