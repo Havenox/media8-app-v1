@@ -65,9 +65,11 @@ const cancelAPI = async (id: string): Promise<Order> => {
   return response.data;
 };
 
-// PascalCase: Backend usa /Orders/AvailableBalances
+// ServiceBalances: Backend usa /ServiceBalances/MyBalances
 const getAvailableBalancesAPI = async (): Promise<ServiceBalanceLot[]> => {
-  const response = await api.get('/Orders/AvailableBalances');
+  const response = await api.get('/ServiceBalances/MyBalances', { 
+    params: { page: 1, pageSize: 100, status: 'active' } 
+  });
   return response.data;
 };
 
