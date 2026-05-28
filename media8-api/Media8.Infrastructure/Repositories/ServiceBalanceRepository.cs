@@ -19,6 +19,7 @@ public async Task<(IEnumerable<ServiceBalanceLot> Items, int TotalCount)> GetPag
     {
         var query = _dbSet
             .Include(x => x.Contract) // Eager Load ClientContract for Snapshot
+                .ThenInclude(c => c.Offer)
             .Where(x => x.UserId == userId);
 
         if (!string.IsNullOrEmpty(status))
