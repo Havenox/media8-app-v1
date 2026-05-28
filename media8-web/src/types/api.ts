@@ -87,7 +87,9 @@ export interface ServiceBalanceLot {
   CreatedAt: string;
   UpdatedAt: string;
   User?: User;
-  Contract?: any;
+  Contract?: {
+    SnapshotOfferName: string;
+  };
   VideoFormat?: VideoFormat;
 }
 
