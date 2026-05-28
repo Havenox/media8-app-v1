@@ -157,8 +157,13 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
   const onSubmit = async (data: OrderFormData) => {
     createOrderMutation.mutate(
       {
-        ...data,
-        serviceBalanceLotId: data.serviceBalanceLotId as any,
+        Title: data.title,
+        Briefing: data.briefing,
+        SourceFilesUrl: data.sourceFilesUrl,
+        Deadline: data.deadline,
+        ServiceBalanceLotId: data.serviceBalanceLotId,
+        BrandingProfileId: data.brandingProfileId,
+        EditingProfileId: data.editingProfileId,
       },
       {
         onSuccess: () => {
