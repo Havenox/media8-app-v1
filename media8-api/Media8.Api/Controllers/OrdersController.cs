@@ -14,12 +14,12 @@ namespace Media8.Api.Controllers;
 public class OrdersController : ControllerBase
 {
     private readonly IOrderService _orderService;
-    private readonly IRepository<ServiceBalanceLot> _balanceRepository;
+    private readonly IServiceBalanceRepository _balanceRepository;
     private readonly ISettingsService _settingsService;
 
     public OrdersController(
         IOrderService orderService,
-        IRepository<ServiceBalanceLot> balanceRepository,
+        IServiceBalanceRepository balanceRepository,
         ISettingsService settingsService)
     {
         _orderService = orderService;
@@ -39,15 +39,8 @@ public class OrdersController : ControllerBase
 
         try
         {
-            var now = DateTime.UtcNow;
-            var allLots = await _balanceRepository.FindAsync(l => l.UserId == userId);
-    
-            var availableLots = allLots
-                .Where(l => l.RemainingQuantity > 0 
-                            && (!l.ExpiresAt.HasValue || l.ExpiresAt.Value > now))
-                .ToList();
-
-            return Ok(availableLots);
+            var availableLots = await _balanceRepository.GetAvailableBalancesByUserIdAsync(userId);
+            return Ok(availableLots.ToList());
         }
         catch (Exception ex)
         {
