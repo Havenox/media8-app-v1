@@ -21,17 +21,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useAllServiceBalances } from '@/hooks/useServiceBalances';
+import { InfiniteScroll } from '@/components/ui/infinite-scroll';
+import { useServiceBalances } from '@/hooks/useServiceBalances';
 import { useAuth } from '@/contexts/AuthContext';
-import { ServiceBalanceCard } from '@/components/dashboard/ServiceBalanceCard';
-import { ServiceBalanceAggregated, ServiceCategory } from '@/types/services';
+import { ServiceCard } from '@/components/dashboard/ServiceBalanceList';
+import { UnifiedServiceBalance, ServiceCategory } from '@/types/services';
 
 type StatusFilter = 'all' | 'active' | 'expired' | 'zeroed';
 type SortOption = 'urgency' | 'recent' | 'alphabetical';
 
 const ServicesPage: React.FC = () => {
   const { user } = useAuth();
-  const { data: services, isLoading, error } = useAllServiceBalances(user?.Id);
+  
+  // Chamar 10 por vez com scroll infinito, no status 'all' para recuperar tudo do backend
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, error } = useServiceBalances({
+    status: 'all',
+    pageSize: 10,
+    enabled: !!user?.Id
+  });
+
+  const services = useMemo(() => {
+    return data?.pages.flatMap(page => page.data) || [];
+  }, [data]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -44,30 +55,31 @@ const ServicesPage: React.FC = () => {
 
     let result = [...services];
 
-  // Search filter
-  if (searchQuery) {
-    const query = searchQuery.toLowerCase();
-    result = result.filter((s) => {
-      // Get snapshot name from first lot's contract (defensive access)
-      const snapshotName = s.lots?.[0]?.contract?.snapshotOfferName || '';
-      return (
-        s.name.toLowerCase().includes(query) ||
-        s.planName?.toLowerCase().includes(query) ||
-        snapshotName.toLowerCase().includes(query)
-      );
-    });
-  }
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter((s) => {
+        return (
+          s.SnapshotVideoFormatName.toLowerCase().includes(query) ||
+          s.SnapshotOfferName.toLowerCase().includes(query) ||
+          s.SnapshotEditingStyleName.toLowerCase().includes(query)
+        );
+      });
+    }
 
     // Status filter
     if (statusFilter !== 'all') {
       result = result.filter((s) => {
+        const today = new Date();
+        const isExpired = s.ExpiresAt ? new Date(s.ExpiresAt) < today : false;
+        
         switch (statusFilter) {
           case 'active':
-            return !s.isExpired && s.totalQuantity > 0;
+            return !isExpired && s.RemainingQuantity > 0;
           case 'expired':
-            return s.isExpired;
+            return isExpired;
           case 'zeroed':
-            return s.isZeroed && !s.isExpired;
+            return s.RemainingQuantity === 0;
           default:
             return true;
         }
@@ -76,46 +88,62 @@ const ServicesPage: React.FC = () => {
 
     // Category filter
     if (categoryFilter !== 'all') {
-      result = result.filter((s) => s.category === categoryFilter);
+      result = result.filter((s) => {
+        const formatLower = s.SnapshotVideoFormatName.toLowerCase();
+        switch (categoryFilter) {
+          case 'reels':
+            return formatLower.includes('reels');
+          case 'youtube':
+            return formatLower.includes('youtube');
+          case 'pacote':
+            return s.ContractType === 'Pacote';
+          case 'avulso':
+            return s.ContractType === 'Avulso';
+          default:
+            return true;
+        }
+      });
     }
 
     // Sort
+    const getDaysRemaining = (lot: UnifiedServiceBalance) => {
+      const isSubscription = lot.ContractType === 'Assinatura';
+      let expirationDate: Date | null = null;
+      if (lot.ExpiresAt) {
+        expirationDate = new Date(lot.ExpiresAt);
+      } else if (isSubscription && lot.PurchaseDate) {
+        const purchase = new Date(lot.PurchaseDate);
+        expirationDate = new Date(purchase.getTime() + 30 * 24 * 60 * 60 * 1000);
+      }
+      if (!expirationDate) return Infinity;
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const target = new Date(expirationDate);
+      target.setHours(0, 0, 0, 0);
+      return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    };
+
     switch (sortOption) {
       case 'urgency':
-        // Prioridade em camadas: 1) Ativos com cota > 2) Ativos zerados > 3) Expirados
         result.sort((a, b) => {
-          // 1. Ativos com cota disponível SEMPRE vêm primeiro
-          const aHasQuota = a.totalQuantity > 0 && !a.isExpired;
-          const bHasQuota = b.totalQuantity > 0 && !b.isExpired;
+          const daysA = getDaysRemaining(a);
+          const daysB = getDaysRemaining(b);
           
-          if (aHasQuota && !bHasQuota) return -1;
-          if (!aHasQuota && bHasQuota) return 1;
+          const isExpiredA = daysA < 0;
+          const isExpiredB = daysB < 0;
           
-          // 2. Se ambos não têm cota, verificar se são ativos (zerados) ou expirados
-          if (!aHasQuota && !bHasQuota) {
-            const aIsActive = !a.isExpired;
-            const bIsActive = !b.isExpired;
-            
-            if (aIsActive && !bIsActive) return -1;
-            if (!aIsActive && bIsActive) return 1;
-          }
+          if (isExpiredA && !isExpiredB) return 1;
+          if (!isExpiredA && isExpiredB) return -1;
           
-          // 3. Dentro do mesmo grupo, ordenar por urgência
-          const daysA = a.daysUntilRenewal ?? a.daysUntilExpiry ?? Infinity;
-          const daysB = b.daysUntilRenewal ?? b.daysUntilExpiry ?? Infinity;
           return daysA - daysB;
         });
         break;
       case 'recent':
-        // Sort by lots with most recent purchase first (defensive access)
-        result.sort((a, b) => {
-          const dateA = a.lots?.[0]?.purchasedAt || '';
-          const dateB = b.lots?.[0]?.purchasedAt || '';
-          return new Date(dateB).getTime() - new Date(dateA).getTime();
-        });
+        result.sort((a, b) => new Date(b.PurchaseDate).getTime() - new Date(a.PurchaseDate).getTime());
         break;
       case 'alphabetical':
-        result.sort((a, b) => a.name.localeCompare(b.name));
+        result.sort((a, b) => a.SnapshotVideoFormatName.localeCompare(b.SnapshotVideoFormatName));
         break;
     }
 
@@ -258,18 +286,20 @@ const ServicesPage: React.FC = () => {
         </Link>
       </motion.div>
 
-      {/* Services Grid */}
+      {/* Services Grid with InfiniteScroll */}
       {filteredServices.length > 0 ? (
-        <motion.div
-          variants={containerVariants}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch"
+        <InfiniteScroll
+          next={fetchNextPage}
+          hasMore={!!hasNextPage}
+          isLoading={isFetchingNextPage}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch w-full"
         >
-          {filteredServices.map((balance, index) => (
-            <motion.div key={`${balance.serviceType}-${balance.planName}`} variants={itemVariants}>
-              <ServiceBalanceCard balance={balance} index={index} />
+          {filteredServices.map((lot, index) => (
+            <motion.div key={lot.Id} variants={itemVariants} className="h-full">
+              <ServiceCard lot={lot} canConsume={false} />
             </motion.div>
           ))}
-        </motion.div>
+        </InfiniteScroll>
       ) : (
         <motion.div variants={itemVariants} className="text-center py-16">
           <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
