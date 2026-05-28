@@ -74,6 +74,8 @@ export interface UserRegisterRequest {
 
 // Order
 // PascalCase Pattern - Backend .NET DTO Alignment
+// Nota: Endpoint /ServiceBalances/MyBalances retorna UnifiedServiceBalanceDto
+// que tem SnapshotOfferName direto (sem objeto Contract aninhado)
 export interface ServiceBalanceLot {
   Id: string;
   UserId: string;
@@ -87,6 +89,16 @@ export interface ServiceBalanceLot {
   CreatedAt: string;
   UpdatedAt: string;
   User?: User;
+  // UnifiedServiceBalanceDto fields (endpoint /MyBalances)
+  SnapshotOfferName?: string;
+  SnapshotVideoQuantity?: number;
+  ContractType?: string;
+  SnapshotVideoFormatName?: string;
+  SnapshotEditingStyleName?: string;
+  SnapshotMaxDurationSeconds?: number;
+  TotalQuantity?: number;
+  Status?: string;
+  // Legacy ServiceBalanceLot fields (outros endpoints)
   Contract?: {
     SnapshotOfferName: string;
   };
