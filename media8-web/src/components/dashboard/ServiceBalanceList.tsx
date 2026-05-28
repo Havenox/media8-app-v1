@@ -207,77 +207,85 @@ const ServiceListItem = ({
 
   return (
     <div className={cn(
-      "relative rounded-lg p-4 border transition-all hover:bg-muted/50 border-l-4",
+      "relative rounded-lg p-3 border transition-all hover:bg-muted/50 border-l-4",
       isSubscription 
-        ? "bg-[#F7FAFC] border-[#E2E8F0] border-l-blue-500" 
-        : "bg-[#FFFCF5] border-[#E8E0D0] border-l-primary"
+        ? "bg-[#FFFBED] border-[#E8E0D0] border-l-[#7B0A0A]" 
+        : expInfo.isUrgent
+          ? "bg-[#FFFBED] border-[#E8E0D0] border-l-amber-600"
+          : "bg-[#FFFBED] border-[#E8E0D0] border-l-[#400404]"
     )}>
-      {/* Top Row: Title + Qty + Alert */}
-      <div className="flex justify-between items-start mb-2">
-        <div className="flex items-start gap-3">
+      {/* Main Flex Row */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        {/* Left Section: Icon, Title, Format */}
+        <div className="flex items-center gap-3">
           <div className={cn(
-            "p-2 rounded-md shrink-0 mt-0.5",
-            isSubscription ? "bg-blue-100/60 text-blue-800" : "bg-amber-100/50 text-amber-800"
+            "p-1.5 rounded-md text-white shrink-0",
+            isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
           )}>
-            <Icon className="h-4 w-4" />
+            <Icon className="h-3.5 w-3.5" />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-foreground leading-tight">
-              {lot.SnapshotOfferName}
-            </h4>
-            <div className="flex items-center gap-2 mt-0.5">
-              <p className="text-xs text-muted-foreground">
-                {lot.SnapshotVideoFormatName} ({lot.SnapshotMaxDurationSeconds}s)
-              </p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h4 className="text-sm font-bold text-[#400404] leading-none">
+                {lot.SnapshotOfferName}
+              </h4>
               {isSubscription && (
-                <Badge variant="secondary" className="bg-blue-50 text-blue-700 border border-blue-200 text-[9px] px-1.5 py-0 h-4 shrink-0 font-medium hover:bg-blue-50">
+                <Badge variant="secondary" className="bg-[#400404]/10 text-[#400404] border border-[#400404]/20 text-[9px] px-1 py-0 h-4 font-semibold hover:bg-[#400404]/10">
                   Assinatura
                 </Badge>
               )}
             </div>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              {lot.SnapshotVideoFormatName} ({lot.SnapshotMaxDurationSeconds}s)
+            </p>
           </div>
         </div>
 
-        <div className="text-right shrink-0">
-          <div className="flex items-center justify-end gap-1">
-            <span className={cn("text-lg font-bold", isSubscription ? "text-blue-950" : "text-amber-950")}>
+        {/* Right Section: Credits & Usage */}
+        <div className="flex items-center gap-4 shrink-0 justify-between sm:justify-end">
+          <div className="text-right">
+            <span className="text-base font-extrabold text-[#400404]">
               {lot.RemainingQuantity}
             </span>
-            <span className="text-xs text-muted-foreground">
-              / {lot.TotalQuantity}
+            <span className="text-xs text-muted-foreground ml-1">
+              / {lot.TotalQuantity} créditos
             </span>
           </div>
-          {expInfo.isUrgent && (
-            <div className="flex items-center justify-end gap-1 text-[10px] text-orange-600 font-semibold mt-0.5 animate-pulse">
-              <AlertTriangle className="h-3 w-3" />
-              <span>Expira em breve</span>
-            </div>
+
+          {canConsume && (
+            <Button
+              size="sm"
+              className={cn(
+                "h-7 px-3 text-xs font-semibold text-[#FFFBED]",
+                isSubscription 
+                  ? "bg-[#7B0A0A] hover:bg-[#5C1212]" 
+                  : "bg-[#400404] hover:bg-[#5C1212]"
+              )}
+              onClick={() => onConsume?.(lot)}
+              disabled={lot.RemainingQuantity <= 0}
+            >
+              Usar
+            </Button>
           )}
         </div>
       </div>
 
-      {/* Progress Bar of Consumption */}
-      <div className="w-full my-2">
-        <div className="w-full h-1.5 bg-[#E8E0D0]/60 rounded-full overflow-hidden">
+      {/* Thin elegant Progress Bar */}
+      <div className="w-full mt-2.5">
+        <div className="w-full h-1 bg-[#E8E0D0]/50 rounded-full overflow-hidden">
           <div 
             className={cn(
               "h-full rounded-full transition-all duration-500",
-              isSubscription ? "bg-blue-600" : "bg-primary"
+              isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
             )}
             style={{ width: `${percentConsumed}%` }}
           />
         </div>
-        <div className="flex justify-between items-center text-[9px] text-muted-foreground mt-1 px-0.5">
-          <span>{percentConsumed}% de uso da cota</span>
-          <span>{lot.RemainingQuantity} restantes</span>
-        </div>
       </div>
 
-      <Separator className="my-2 bg-amber-200/30" />
-
-      {/* Bottom Row: Conditional Footer based on ContractType */}
-      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-        <div className="flex items-center gap-1.5 opacity-80">
+      {/* Footer Info */}
+      <div className="flex items-center justify-between text-[10px] text-muted-foreground mt-1.5 pt-1.5 border-t border-dashed border-[#E8E0D0]">
+        <div className="flex items-center gap-1 opacity-80">
           <Calendar className="h-3 w-3" />
           <span>Ativado: {lot.PurchaseDate ? format(new Date(lot.PurchaseDate), 'dd/MM/yy') : '-'}</span>
         </div>
@@ -286,11 +294,11 @@ const ServiceListItem = ({
           {isSubscription ? (
             <div className={cn(
               "flex items-center gap-1",
-              expInfo.isUrgent ? "text-orange-600 font-bold" : "text-blue-700"
+              expInfo.isUrgent ? "text-orange-600 font-bold" : "text-[#7B0A0A]"
             )}>
               <RefreshCw className={cn("h-3 w-3 shrink-0", expInfo.isUrgent && "animate-spin")} style={{ animationDuration: '3s' }} />
               <span>{expInfo.text}</span>
-              <span className="text-[10px] font-normal opacity-85 ml-1 hidden sm:inline">(não-acumulativo)</span>
+              <span className="text-[9px] font-normal opacity-85 ml-1 hidden sm:inline">(não-acumulativo)</span>
             </div>
           ) : (
             <div className={cn(
@@ -303,24 +311,6 @@ const ServiceListItem = ({
           )}
         </div>
       </div>
-
-      {canConsume && (
-        <div className="mt-3">
-          <Button
-            size="sm"
-            className={cn(
-              "w-full h-7 text-xs",
-              isSubscription 
-                ? "bg-blue-700 hover:bg-blue-800 text-white" 
-                : "bg-amber-900/90 hover:bg-amber-900"
-            )}
-            onClick={() => onConsume?.(lot)}
-            disabled={lot.RemainingQuantity <= 0}
-          >
-            Usar Crédito
-          </Button>
-        </div>
-      )}
     </div>
   );
 };
@@ -346,114 +336,110 @@ const ServiceCard = ({
 
   return (
     <Card className={cn(
-      "relative overflow-hidden transition-all hover:shadow-lg border-l-4",
+      "relative overflow-hidden transition-all hover:shadow-md border-l-4 p-3.5 flex flex-col justify-between bg-[#FFFBED] border-[#E8E0D0]",
       isSubscription 
-        ? "border-l-blue-500 bg-[#F7FAFC]/80" 
+        ? "border-l-[#7B0A0A]" 
         : expInfo.isUrgent 
-          ? "border-l-yellow-500" 
-          : "border-l-primary"
+          ? "border-l-amber-600" 
+          : "border-l-[#400404]"
     )}>
-      <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-        <div className="flex items-center gap-2">
+      {/* Top Section: Title & Credits Row */}
+      <div className="flex justify-between items-start gap-2 mb-2">
+        <div className="flex items-center gap-2.5">
           <div className={cn(
-            "p-2 rounded-full",
-            isSubscription ? "bg-blue-100 text-blue-700" : "bg-primary/10 text-primary"
+            "p-1.5 rounded-full text-[#FFFBED]",
+            isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
           )}>
-            <Icon className="h-4 w-4" />
+            <Icon className="h-3.5 w-3.5" />
           </div>
           <div>
-            <div className="flex items-center gap-1.5 max-w-[150px] sm:max-w-[200px]">
-              <CardTitle className="text-base font-bold text-foreground line-clamp-1" title={lot.SnapshotOfferName}>
+            <div className="flex items-center gap-1.5 flex-wrap max-w-[130px] sm:max-w-[170px]">
+              <CardTitle className="text-sm font-bold text-[#400404] line-clamp-1 leading-none" title={lot.SnapshotOfferName}>
                 {lot.SnapshotOfferName}
               </CardTitle>
               {isSubscription && (
-                <Badge variant="secondary" className="bg-blue-50 text-blue-700 border border-blue-200 text-[9px] px-1.5 py-0 h-4 shrink-0 font-medium hover:bg-blue-50">
+                <Badge variant="secondary" className="bg-[#400404]/10 text-[#400404] border border-[#400404]/20 text-[9px] px-1 py-0 h-4 font-semibold hover:bg-[#400404]/10">
                   Assinatura
                 </Badge>
               )}
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-[10px] text-muted-foreground mt-0.5">
               {lot.SnapshotVideoFormatName} ({lot.SnapshotMaxDurationSeconds}s)
             </p>
           </div>
         </div>
-        {expInfo.isUrgent && (
-          <Badge variant="secondary" className="bg-orange-100 text-orange-800 hover:bg-orange-100 animate-pulse text-[10px]">
-            {isSubscription ? 'Renova' : 'Expira'}
-          </Badge>
-        )}
-      </CardHeader>
-      <CardContent>
-        {/* Visual Progress Bar of Consumption */}
-        <div className="w-full mt-1 mb-3">
-          <div className="w-full h-1.5 bg-[#E8E0D0]/50 rounded-full overflow-hidden">
-            <div 
-              className={cn(
-                "h-full rounded-full transition-all duration-500",
-                isSubscription ? "bg-blue-600" : "bg-primary"
-              )}
-              style={{ width: `${percentConsumed}%` }}
-            />
-          </div>
-          <div className="flex justify-between items-center text-[9px] text-muted-foreground mt-1 px-0.5">
-            <span>{percentConsumed}% consumido</span>
-            <span>{lot.TotalQuantity - lot.RemainingQuantity} de {lot.TotalQuantity} vídeos</span>
-          </div>
+
+        {/* Credits */}
+        <div className="text-right shrink-0">
+          <span className="text-base font-extrabold text-[#400404]">
+            {lot.RemainingQuantity}
+          </span>
+          <span className="text-[10px] text-muted-foreground ml-0.5">
+            /{lot.TotalQuantity}
+          </span>
+          <p className="text-[9px] text-muted-foreground leading-none">créditos</p>
         </div>
+      </div>
 
-        <div className="flex justify-between items-end mt-4">
-          <div>
-            <span className={cn("text-3xl font-extrabold", isSubscription ? "text-blue-950" : "text-primary")}>
-              {lot.RemainingQuantity}
-            </span>
-            <span className="text-sm text-muted-foreground ml-1">
-              / {lot.TotalQuantity} créditos
-            </span>
-          </div>
-
-          {canConsume && (
-            <Button
-              size="sm"
-              onClick={() => onConsume?.(lot)}
-              disabled={lot.RemainingQuantity <= 0}
-              className={cn(
-                isSubscription && "bg-blue-700 hover:bg-blue-800 text-white"
-              )}
-            >
-              Usar Crédito
-            </Button>
-          )}
+      {/* Progress Bar */}
+      <div className="w-full my-2">
+        <div className="w-full h-1 bg-[#E8E0D0]/50 rounded-full overflow-hidden">
+          <div 
+            className={cn(
+              "h-full rounded-full transition-all duration-500",
+              isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
+            )}
+            style={{ width: `${percentConsumed}%` }}
+          />
         </div>
+        <div className="flex justify-between items-center text-[9px] text-muted-foreground mt-1">
+          <span>{percentConsumed}% consumido</span>
+          <span>{lot.RemainingQuantity} restantes</span>
+        </div>
+      </div>
 
-        <div className="mt-4 flex flex-col gap-1 text-xs text-muted-foreground border-t pt-3">
+      {/* Footer & Action Row */}
+      <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-dashed border-[#E8E0D0] text-[10px]">
+        {/* Renewal / Expiry */}
+        <div className="flex-1 min-w-0">
           {isSubscription ? (
             <div className={cn(
-              "flex items-start gap-2",
-              expInfo.isUrgent ? "text-orange-600 font-bold" : "text-blue-700 font-medium"
+              "flex items-center gap-1 min-w-0",
+              expInfo.isUrgent ? "text-orange-600 font-bold" : "text-[#7B0A0A] font-medium"
             )}>
-              <RefreshCw className={cn("h-3.5 w-3.5 mt-0.5 shrink-0", expInfo.isUrgent && "animate-spin")} style={{ animationDuration: '4s' }} />
-              <div className="flex flex-col">
-                <span>{expInfo.text}</span>
-                <span className="text-[10px] font-normal opacity-75 mt-0.5 leading-none">
-                  (Saldo não acumulativo • Perde se não usar)
-                </span>
-              </div>
+              <RefreshCw className={cn("h-3 w-3 shrink-0", expInfo.isUrgent && "animate-spin")} style={{ animationDuration: '4s' }} />
+              <span className="truncate" title={expInfo.text}>{expInfo.text}</span>
             </div>
           ) : (
             <div className={cn(
-              "flex items-center gap-2",
+              "flex items-center gap-1 min-w-0",
               expInfo.isUrgent ? "text-orange-600 font-bold" : "text-amber-900/70"
             )}>
-              <Clock className="h-3.5 w-3.5 shrink-0" />
-              <span>{expInfo.text}</span>
+              <Clock className="h-3 w-3 shrink-0" />
+              <span className="truncate" title={expInfo.text}>{expInfo.text}</span>
             </div>
           )}
         </div>
-      </CardContent>
+
+        {/* Consume Button */}
+        {canConsume && (
+          <Button
+            size="sm"
+            onClick={() => onConsume?.(lot)}
+            disabled={lot.RemainingQuantity <= 0}
+            className={cn(
+              "h-6 px-2.5 text-[10px] font-bold text-[#FFFBED] shrink-0",
+              isSubscription ? "bg-[#7B0A0A] hover:bg-[#5C1212]" : "bg-[#400404] hover:bg-[#5C1212]"
+            )}
+          >
+            Usar
+          </Button>
+        )}
+      </div>
 
       {/* Background decoration */}
-      <div className="absolute -right-4 -bottom-4 opacity-5">
-        <Icon className="h-24 w-24 transform -rotate-12" />
+      <div className="absolute -right-4 -bottom-4 opacity-5 pointer-events-none">
+        <Icon className="h-16 w-16 transform -rotate-12" />
       </div>
     </Card>
   );
