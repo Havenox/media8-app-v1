@@ -123,9 +123,9 @@ export const ServiceBalanceList: React.FC<ServiceBalanceListProps> = ({
       );
     }
     return (
-      <div className="flex flex-wrap gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 w-full">
         {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-40 w-full sm:w-[300px] rounded-xl" />
+          <Skeleton key={i} className="h-[180px] w-full max-w-[400px] rounded-xl" />
         ))}
       </div>
     );
@@ -143,9 +143,44 @@ export const ServiceBalanceList: React.FC<ServiceBalanceListProps> = ({
     );
   }
 
+  // Helper para obter dias restantes de validade para ordenação
+  const getDaysRemainingForSort = (lot: UnifiedServiceBalance) => {
+    const isSubscription = lot.ContractType === 'Assinatura';
+    let expirationDate: Date | null = null;
+    if (lot.ExpiresAt) {
+      expirationDate = new Date(lot.ExpiresAt);
+    } else if (isSubscription && lot.PurchaseDate) {
+      const purchase = new Date(lot.PurchaseDate);
+      expirationDate = new Date(purchase.getTime() + 30 * 24 * 60 * 60 * 1000);
+    }
+    if (!expirationDate) return Infinity; // Sem validade vai para o final
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(expirationDate);
+    target.setHours(0, 0, 0, 0);
+    
+    const diffTime = target.getTime() - today.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  // Ordenação: Ativos (não vencidos/expirados) com menor prazo à frente, seguidos de expirados e sem validade por último
+  const sortedLots = [...lots].sort((a, b) => {
+    const daysA = getDaysRemainingForSort(a);
+    const daysB = getDaysRemainingForSort(b);
+    
+    const isExpiredA = daysA < 0;
+    const isExpiredB = daysB < 0;
+    
+    if (isExpiredA && !isExpiredB) return 1; // a expirou, b não. b vem antes
+    if (!isExpiredA && isExpiredB) return -1; // b expirou, a não. a vem antes
+    
+    return daysA - daysB; // menor quantidade de dias (mais próximo do vencimento) vem primeiro
+  });
+
   const containerClasses = variant === 'list' 
     ? cn("flex flex-col gap-3", className)
-    : cn("flex flex-wrap gap-4", className);
+    : cn("grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 w-full", className);
 
   return (
     <InfiniteScroll
@@ -154,7 +189,7 @@ export const ServiceBalanceList: React.FC<ServiceBalanceListProps> = ({
       isLoading={isFetchingNextPage}
       className={containerClasses}
     >
-      {lots.map((lot) => (
+      {sortedLots.map((lot) => (
         variant === 'list' ? (
           <ServiceListItem
             key={lot.Id}
@@ -184,6 +219,24 @@ const getIcon = (name: string) => {
   if (name.toLowerCase().includes('youtube')) return Youtube;
   if (name.toLowerCase().includes('pacote')) return Package;
   return Video;
+};
+
+const renderContractTypeBadge = (contractType: string) => {
+  if (!contractType || contractType === 'Desconhecido') return null;
+  
+  const styles: Record<string, string> = {
+    Assinatura: "bg-[#7B0A0A]/10 text-[#7B0A0A] border-[#7B0A0A]/20 hover:bg-[#7B0A0A]/10",
+    Pacote: "bg-[#400404]/10 text-[#400404] border-[#400404]/20 hover:bg-[#400404]/10",
+    Avulso: "bg-amber-600/10 text-amber-800 border-amber-600/20 hover:bg-amber-600/10"
+  };
+  
+  const style = styles[contractType] || "bg-[#400404]/10 text-[#400404] border-[#400404]/20 hover:bg-[#400404]/10";
+  
+  return (
+    <Badge variant="secondary" className={cn("text-[9px] px-1.5 py-0.5 h-4 font-semibold border rounded-sm", style)}>
+      {contractType}
+    </Badge>
+  );
 };
 
 
@@ -229,11 +282,7 @@ const ServiceListItem = ({
               <h4 className="text-sm font-bold text-[#400404] leading-none">
                 {lot.SnapshotOfferName}
               </h4>
-              {isSubscription && (
-                <Badge variant="secondary" className="bg-[#400404]/10 text-[#400404] border border-[#400404]/20 text-[9px] px-1 py-0 h-4 font-semibold hover:bg-[#400404]/10">
-                  Assinatura
-                </Badge>
-              )}
+              {renderContractTypeBadge(lot.ContractType)}
             </div>
             <p className="text-[11px] text-muted-foreground mt-0.5">
               {lot.SnapshotVideoFormatName} ({lot.SnapshotMaxDurationSeconds}s)
@@ -336,7 +385,7 @@ const ServiceCard = ({
 
   return (
     <Card className={cn(
-      "relative overflow-hidden transition-all hover:shadow-md border-l-4 p-3.5 flex flex-col justify-between bg-[#FFFBED] border-[#E8E0D0] w-full sm:w-[300px]",
+      "relative overflow-hidden transition-all hover:shadow-md border-l-4 p-5 flex flex-col justify-between bg-[#FFFBED] border-[#E8E0D0] w-full max-w-[400px] min-h-[180px]",
       isSubscription 
         ? "border-l-[#7B0A0A]" 
         : expInfo.isUrgent 
@@ -344,7 +393,7 @@ const ServiceCard = ({
           : "border-l-[#400404]"
     )}>
       {/* Top Section: Title & Credits Row */}
-      <div className="flex justify-between items-start gap-2 mb-2">
+      <div className="flex justify-between items-start gap-2 mb-3.5">
         <div className="flex items-center gap-2.5">
           <div className={cn(
             "p-1.5 rounded-full text-[#FFFBED]",
@@ -353,15 +402,11 @@ const ServiceCard = ({
             <Icon className="h-3.5 w-3.5" />
           </div>
           <div>
-            <div className="flex items-center gap-1.5 flex-wrap max-w-[130px] sm:max-w-[170px]">
+            <div className="flex items-center gap-1.5 flex-wrap max-w-[170px] sm:max-w-[200px]">
               <CardTitle className="text-sm font-bold text-[#400404] line-clamp-1 leading-none" title={lot.SnapshotOfferName}>
                 {lot.SnapshotOfferName}
               </CardTitle>
-              {isSubscription && (
-                <Badge variant="secondary" className="bg-[#400404]/10 text-[#400404] border border-[#400404]/20 text-[9px] px-1 py-0 h-4 font-semibold hover:bg-[#400404]/10">
-                  Assinatura
-                </Badge>
-              )}
+              {renderContractTypeBadge(lot.ContractType)}
             </div>
             <p className="text-[10px] text-muted-foreground mt-0.5">
               {lot.SnapshotVideoFormatName} ({lot.SnapshotMaxDurationSeconds}s)
@@ -382,7 +427,7 @@ const ServiceCard = ({
       </div>
 
       {/* Progress Bar */}
-      <div className="w-full my-2">
+      <div className="w-full my-3">
         <div className="w-full h-1 bg-[#E8E0D0]/50 rounded-full overflow-hidden">
           <div 
             className={cn(
@@ -399,7 +444,7 @@ const ServiceCard = ({
       </div>
 
       {/* Footer & Action Row */}
-      <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-dashed border-[#E8E0D0] text-[10px]">
+      <div className="flex items-center justify-between gap-2 mt-3.5 pt-3.5 border-t border-dashed border-[#E8E0D0] text-[10px]">
         {/* Renewal / Expiry */}
         <div className="flex-1 min-w-0">
           {isSubscription ? (
