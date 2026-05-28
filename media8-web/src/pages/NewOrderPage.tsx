@@ -265,7 +265,9 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
             disabled={step < 2}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Selecione um perfil de branding" />
+              <SelectValue placeholder="Selecione um perfil de branding">
+                {selectedBrandingId && brandingProfiles.find(p => p.id === selectedBrandingId)?.Name}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="+new" className="text-primary font-medium">
@@ -304,7 +306,9 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
             disabled={step < 3}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Selecione um perfil de edição" />
+              <SelectValue placeholder="Selecione um perfil de edição">
+                {selectedEditingId && editingProfiles.find(p => p.id === selectedEditingId)?.Name}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="+new" className="text-primary font-medium">
