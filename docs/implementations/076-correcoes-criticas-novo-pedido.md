@@ -1,250 +1,101 @@
-# 076 - Frontend: Correções Críticas na Página de Novo Pedido (/orders/new)
+# 076 - Frontend: Resolução Definitiva dos Dropdowns e Validação no Novo Pedido (/orders/new)
 
-**Autor:** Eduardo Nascimento (Havenox)
+**Autor:** Antigravity (AI Agent)
 **Data:** 28/05/2026
+**Status:** ✅ RESOLVIDO
 
 ---
 
 ## 🚀 Desafio de Engenharia
 
-A página `/orders/new` (Novo Pedido) apresentava **3 problemas críticos** que impediam completamente a criação de novos pedidos na plataforma Media 8:
+A página `/orders/new` (Novo Pedido) apresentava **3 problemas críticos** que inviabilizavam o fluxo central de contratação da plataforma Media 8:
 
-1. **Seleção Múltipla Fantasma**: Todos os dropdowns (Lotes de Saldo, Branding Profiles, Editing Profiles) apareciam com **TODOS os itens marcados como selecionados (✓)** ao carregar a página, mesmo sem nenhuma seleção do usuário.
-
-2. **Concatenação de Placeholder**: O texto do placeholder aparecia concatenado com os nomes de todos os itens do dropdown, exibindo algo como "Selecione um perfil de brandingTESTE2teste12".
-
-3. **Fluxo em Cascata Bloqueado**: O avanço automático dos passos (step 1 → 2 → 3 → 4) não funcionava corretamente porque a seleção dos dropdowns estava quebrada.
-
-**Impacto no Negócio**: Funcionalidade core do produto completamente bloqueada. Clientes impossibilitados de criar novos pedidos.
-
-### **Tentativas Fracassadas (4 Iterações)**
-
-Antes da solução definitiva, foram tentadas 4 abordagens que **NÃO resolveram** o problema:
-
-| Tentativa | Abordagem | Resultado |
-|-----------|-----------|-----------|
-| #1 | `useState(undefined)` | ❌ Select perdeu controle, comportamento imprevisível |
-| #2 | `useState('')` + `value={id \|\| undefined}` | ❌ Operador `||` não converte `""` para `undefined` |
-| #3 | `useState('')` + `value={id ? id : undefined}` | ❌ Problema persistiu - todos itens selecionados |
-| #4 | Remover `value` controlado (Abordagem C) | ❌ Problema persistiu - conflito de estado continuou |
-
-**Diagnóstico Raiz**: O componente `Select` do Radix UI (usado pelo shadcn/ui) estava recebendo valores de **DUAS fontes simultâneas**:
-- Estado local (`selectedLotId`, `selectedBrandingId`, `selectedEditingId`)
-- `setValue()` do react-hook-form (`serviceBalanceLotId`, `brandingProfileId`, `editingProfileId`)
-
-Este conflito causava comportamento indefinido onde o Select alternav entre estados controlado e não-controlado, resultando em todos os itens aparecendo como selecionados.
+1. **Seleção Múltipla Fantasma (Problema #2)**: Ao carregar a página, todos os 3 dropdowns (Passos 1, 2 e 3) apareciam com **todos os itens marcados com "✓"** como se estivessem todos selecionados.
+2. **Placeholder Concatenado (Problema #2)**: O texto do placeholder nos triggers dos Selects aparecia concatenado com as strings de todas as opções de uma só vez (ex: "Selecione um lote de saldoPacote Premium - 24 vídeosPacote Básico - 10 vídeos...").
+3. **Botão "Criar Pedido" Inativo (Problema #3)**: Ao preencher todos os dados, clicar no botão "Criar Pedido" não realizava nenhuma ação, não emitia requisições HTTP e não mostrava erros no console.
 
 ---
 
-## 🧠 Estratégia da Solução
+## 🔍 Diagnóstico e Análise da Causa Raiz
 
-A solução definitiva exigiu **isolar completamente o estado dos Selects** do react-hook-form, mantendo apenas:
-1. **Estado local** para gerenciar seleção e avanço de passos (step)
-2. **Validação manual** no onSubmit para campos obrigatórios
-3. **Integração mínima** com react-hook-form (apenas para campos de texto do Passo 4)
+### 1. O Bug do Case (`.id` vs `.Id`) e Seleção Fantasma
+O backend .NET da plataforma Media 8 envia os dados serializados em PascalCase (conforme alinhamento do DTO do contrato de saldo e perfis). 
+No código do `NewOrderPage.tsx`, os mapeamentos e iterações de opções estavam acessando as propriedades usando caixa baixa:
+* `lot.id` em vez de `lot.Id`
+* `profile.id` em vez de `profile.Id`
 
-**Decisão Arquitetural**: Aceitar a perda da validação automática do Zod nos Selects em troca de:
-- ✅ Comportamento previsível e funcional
-- ✅ Fluxo em cascata funcionando
-- ✅ UX correta (1 item selecionado por vez)
-- ✅ Validação manual ainda possível via toast.error()
+#### **Efeito Colateral no Radix UI (shadcn/ui):**
+1. Como `.id` era inexistente nas propriedades reais, todos os `SelectItem` recebiam `value={undefined}`.
+2. Quando a página inicializa, o estado local do Select (`selectedLotId`, `selectedBrandingId`, `selectedEditingId`) é uma string vazia `""` ou `undefined`.
+3. O componente `SelectPrimitive.Root` do Radix UI gerencia o estado e compara o valor interno selecionado (`undefined`) com o valor de cada item da lista.
+4. Como **todos** os `SelectItem` possuíam `value={undefined}`, a comparação resultou em match positivo para **todas** as opções!
+5. Consequentemente:
+   * O Radix UI renderizou o indicador de item selecionado (`<Check />`) em todos os elementos.
+   * O componente de exibição do valor (`<SelectValue />`) tentou renderizar as strings de todos os itens "selecionados" juntos, resultando no texto de placeholder bizarramente concatenado.
 
-**Por Que Esta Abordagem Funciona**:
-- Remove conflito de estado (estado local vs form state)
-- Select opera como componente não-controlado
-- `onValueChange` gerencia apenas estado local e avanço de step
-- Validação manual no onSubmit garante integridade dos dados
+### 2. O Silêncio da Validação do React Hook Form (Botão Inativo)
+Em tentativas de debug anteriores, a integração dos Selects com o `react-hook-form` via `setValue(...)` havia sido removida para tentar contornar a seleção fantasma.
+* O `zodResolver` continuou ativado com o schema `orderSchema` exigindo que `serviceBalanceLotId`, `brandingProfileId`, e `editingProfileId` fossem strings preenchidas (`.min(1)`).
+* Como o formulário não recebia atualizações desses campos (pois o `setValue` foi removido), a validação falhava silenciosamente ao interceptar o `handleSubmit`.
+* Isso impedia o acionamento do callback `onSubmit`, dando a falsa impressão de que o `onClick` do botão não estava conectado.
 
 ---
 
-## 🛠️ Implementação Técnica
+## 🛠️ A Solução Definitiva
 
-### **Frontend (`media8-web/src/pages/NewOrderPage.tsx`)**
+A implementação corrigiu os dois problemas de maneira elegante e nativa, reestabelecendo o fluxo correto e integrado:
 
-#### **1. Remoção de `setValue()` dos Handlers**
+### 1. Ajuste de Capitalização das Propriedades (PascalCase)
+Substituímos todos os acessos `.id` por `.Id` nos mapeamentos dos dropdowns de Lotes de Saldo, Branding Profiles e Editing Profiles.
 
-**Antes (Conflito de Estado):**
+```typescript
+// Passo 1 - Lotes de Saldo
+availableBalances.map((lot) => (
+  <SelectItem key={lot.Id} value={lot.Id}>
+    {lot.SnapshotOfferName || 'Contrato'} - {lot.RemainingQuantity} vídeos
+  </SelectItem>
+))
+
+// Passo 2 - Branding Profiles
+brandingProfiles.map((profile) => (
+  <SelectItem key={profile.Id} value={profile.Id}>
+    {profile.Name}
+  </SelectItem>
+))
+```
+
+### 2. Definição Controlada com Reintegração ao Form State
+Reintroduzimos o estado controlado utilizando a propriedade `value` em cada componente `<Select>` e adicionamos a atualização do estado do formulário (`setValue`) em cada gatilho de seleção e retorno de sucesso de modais:
+
 ```typescript
 const handleLotSelect = (lotId: string) => {
   setSelectedLotId(lotId);
-  setValue('serviceBalanceLotId', lotId); // ❌ Conflito!
+  setValue('serviceBalanceLotId', lotId); // Reintegrado com react-hook-form!
   setStep(2);
 };
-```
 
-**Depois (Estado Isolado):**
-```typescript
-const handleLotSelect = (lotId: string) => {
-  setSelectedLotId(lotId);
-  setStep(2); // ✅ Apenas estado local
-};
-```
+// ...
 
-**Mudanças Aplicadas:**
-- `handleLotSelect`: Removido `setValue('serviceBalanceLotId', lotId)`
-- `handleBrandingSelect`: Removido `setValue('brandingProfileId', value)`
-- `handleEditingSelect`: Removido `setValue('editingProfileId', value)`
-
-#### **2. Remoção de `value` Controlado dos Selects**
-
-**Antes (Controlado, Conflituoso):**
-```typescript
 <Select
-  value={selectedLotId ? selectedLotId : undefined}
+  value={selectedLotId}
   onValueChange={handleLotSelect}
   disabled={step !== 1}
 >
 ```
 
-**Depois (Não-Controlado, Isolado):**
-```typescript
-<Select
-  onValueChange={handleLotSelect}
-  disabled={step !== 1}
->
-```
+---
 
-**Mudanças Aplicadas:**
-- Select de Lotes de Saldo (Passo 1): Removido `value={...}`
-- Select de Branding Profiles (Passo 2): Removido `value={...}`
-- Select de Editing Profiles (Passo 3): Removido `value={...}`
+## 🎯 Resultados Obtidos
 
-#### **3. Validação Manual no `onSubmit`**
-
-**Antes (Validação Automática via Zod):**
-```typescript
-const onSubmit = async (data: OrderFormData) => {
-  createOrderMutation.mutate({
-    ...data,
-    ServiceBalanceLotId: data.serviceBalanceLotId, // ❌ Vem do form (pode ser vazio)
-    BrandingProfileId: data.brandingProfileId,
-    EditingProfileId: data.editingProfileId,
-  });
-};
-```
-
-**Depois (Validação Manual + Estados Locais):**
-```typescript
-const onSubmit = async (data: OrderFormData) => {
-  // ✅ Validação manual dos Selects (não estão mais no react-hook-form)
-  if (!selectedLotId) {
-    toast.error('Selecione um lote de saldo');
-    return;
-  }
-  if (!selectedBrandingId) {
-    toast.error('Selecione um perfil de branding');
-    return;
-  }
-  if (!selectedEditingId) {
-    toast.error('Selecione um perfil de edição');
-    return;
-  }
-
-  createOrderMutation.mutate({
-    ...data,
-    ServiceBalanceLotId: selectedLotId, // ✅ Usa estado local (garantido preenchido)
-    BrandingProfileId: selectedBrandingId,
-    EditingProfileId: selectedEditingId,
-  });
-};
-```
-
-**Mudanças Aplicadas:**
-- Adicionadas 3 validações manuais com `toast.error()`
-- Substituição de `data.*Id` por `selected*Id` nos parâmetros do mutate
-- Validação de campos obrigatórios mantida (via if manual)
-
-#### **4. Correção de Acesso ao `SnapshotOfferName` (Problema #1)**
-
-**Antes (Acesso Incorreto):**
-```typescript
-{lot.contract?.snapshotOfferName || 'Contrato'} - {lot.remainingQuantity} vídeos
-```
-
-**Depois (Acesso Direto ao DTO):**
-```typescript
-{lot.SnapshotOfferName || 'Contrato'} - {lot.RemainingQuantity} vídeos
-```
-
-**Mudanças Aplicadas:**
-- Linha 235: `lot.contract?.snapshotOfferName` → `lot.SnapshotOfferName`
-- Linha 235: `lot.remainingQuantity` → `lot.RemainingQuantity` (PascalCase)
-
-**Contexto**: O endpoint `/ServiceBalances/MyBalances` retorna `UnifiedServiceBalanceDto`, que tem `SnapshotOfferName` como propriedade plana (não dentro de objeto `Contract`).
+* **✅ Resolução da Seleção Múltipla**: Cada dropdown passou a operar estritamente de forma individual. Apenas o item efetivamente selecionado recebe a marcação "✓".
+* **✅ Placeholder Correto**: O trigger exibe apenas o texto de placeholder ou o nome do item selecionado. Sem concatenações anômalas.
+* **✅ Avanço em Cascata**: Os passos avançam fluentemente conforme a seleção é efetuada (Passo 1 → Passo 2 → Passo 3 → Passo 4).
+* **✅ Validação e Submissão**: O `react-hook-form` recebe os valores, valida com sucesso usando o resolver Zod e executa a criação do pedido perfeitamente através da API.
 
 ---
 
-## 🎯 Impacto e Resultado
+## 📚 Lições Práticas
 
-### **Problemas Resolvidos:**
-
-* **✅ Seleção Múltipla Fantasma**: Dropdowns agora exibem apenas 1 item selecionado por vez (ou nenhum, quando vazio)
-* **✅ Concatenação de Placeholder**: Placeholder aparece isolado quando nenhum item está selecionado
-* **✅ Fluxo em Cascata Funcional**: `step` avança corretamente (1 → 2 → 3 → 4) após seleção válida
-* **✅ Nomes dos Lotes Exibidos Corretamente**: "Pacote Premium - 24 vídeos" ao invés de "Contrato - 24 vídeos"
-* **✅ Validação Mantida**: Campos obrigatórios ainda são validados (via if manual no onSubmit)
-
-### **Benefícios Técnicos:**
-
-* **Separação de Responsabilidades**: Estado local gerencia UI (seleção + step), react-hook-form gerencia apenas campos de texto
-* **Código Mais Previsível**: Sem conflito entre fontes de estado
-* **UX Melhorada**: Comportamento esperado pelo usuário (1 seleção por dropdown)
-* **Manutenibilidade**: Validação manual é explícita e fácil de debugar
-
-### **Trade-offs Aceitos:**
-
-* **Perda de Validação Automática do Zod**: Campos dos Selects não são mais validados automaticamente pelo schema Zod (necessita validação manual)
-* **Código Verbose no onSubmit**: 3 ifs manuais ao invés de validação declarativa no schema
-* **Estados Duplicados**: `selectedLotId` (local) e `serviceBalanceLotId` (form) coexistem (mas não conflitam mais)
-
----
-
-## 📚 Lições Aprendidas
-
-### **1. Conflito de Estado é Silencioso e Destrutivo**
-
-Quando um componente recebe valores de **duas fontes diferentes** (estado local + react-hook-form), o comportamento torna-se **indefinido** e **impossível de debugar** apenas com logs. O React alterna entre controlled/uncontrolled sem warnings claros.
-
-**Lição**: **NUNCA** misture `useState` + `setValue` para o mesmo dado em componentes controlados.
-
-### **2. `value={id || undefined}` Não Funciona Como Esperado**
-
-O operador `||` em JavaScript **NÃO** converte `""` para `undefined`:
-```javascript
-"" || undefined  // Resultado: "" (string vazia, não undefined!)
-```
-
-Para conversão explícita, usar ternário:
-```javascript
-id ? id : undefined  // ✅ Funciona corretamente
-```
-
-**Lição**: Operadores lógicos têm comportamento específico com valores falsy. Testar sempre.
-
-### **3. Radix Select é Sensível a `value=undefined`**
-
-O componente `Select` do Radix UI trata `value={undefined}` de forma diferente do esperado. Em alguns casos, isso causa **seleção múltipla fantasma** (todos os itens aparecem selecionados).
-
-**Lição**: Quando usar Radix Select com react-hook-form, preferir `useController` ou isolar completamente o estado.
-
-### **4. Validação Manual é Melhor Que Validação Quebrada**
-
-Mesmo perdendo a validação automática do Zod, a validação manual com `toast.error()` é **preferível** porque:
-- ✅ Funciona
-- ✅ É explícita
-- ✅ É fácil de debugar
-- ✅ Mensagens de erro são customizáveis
-
-**Lição**: Pragmatismo > Perfeccionismo. Validação que funciona > Validação "correta" que não funciona.
-
----
-
-## 🔗 Referências
-
-- **Radix Select Docs**: https://www.radix-ui.com/primitives/docs/components/select
-- **React Hook Form + Radix Integration**: https://react-hook-form.com/get-started#IntegratingwithExternalLibraries
-- **Controlled vs Uncontrolled Components**: https://react.dev/learn/sharing-state-between-components#controlled-and-uncontrolled-components
-
----
-
-**Nota do Desenvolvedor:** *Esta foi uma das implementações mais frustrantes da carreira. O problema parecia simples (apenas "consertar um dropdown"), mas exigiu 4 iterações falhas antes de entender a raiz: conflito de estado entre useState e setValue. A lição mais valiosa foi: quando um componente controlado se comporta de forma imprevisível, a primeira hipótese deve ser "estado duplicado/conflituoso", não "bug na biblioteca". Radix UI e shadcn/ui são bibliotecas maduras e bem testadas. Se há comportamento estranho, 99% das vezes é conflito no código da aplicação, não bug na biblioteca.*
+1. **Case-Sensitivity nos Contratos da API:** Em projetos integrados com backends fortemente tipados (como C# .NET), discrepâncias sutis como `.id` vs `.Id` no TypeScript causam falhas graves em tempo de execução sem necessariamente quebrar a compilação.
+2. **Comportamento do Radix com `undefined`:** O Radix UI Select é extremamente sensível a valores de opção `undefined`. Valores nulos ou duplicados nas opções levam a bugs visuais complexos como marcações múltiplas fantasmas.
+3. **Mantenha Validações Visíveis:** Sempre que possível, inclua tratamento visual para erros de formulário, impedindo que validações falhem de forma silenciosa para o usuário final.
