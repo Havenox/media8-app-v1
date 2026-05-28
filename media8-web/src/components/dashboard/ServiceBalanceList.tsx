@@ -125,7 +125,7 @@ export const ServiceBalanceList: React.FC<ServiceBalanceListProps> = ({
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-40 w-full rounded-xl" />
+          <Skeleton key={i} className="h-40 w-full max-w-[320px] rounded-xl" />
         ))}
       </div>
     );
@@ -336,7 +336,7 @@ const ServiceCard = ({
 
   return (
     <Card className={cn(
-      "relative overflow-hidden transition-all hover:shadow-md border-l-4 p-3.5 flex flex-col justify-between bg-[#FFFBED] border-[#E8E0D0]",
+      "relative overflow-hidden transition-all hover:shadow-md border-l-4 p-3.5 flex flex-col justify-between bg-[#FFFBED] border-[#E8E0D0] w-full max-w-[320px]",
       isSubscription 
         ? "border-l-[#7B0A0A]" 
         : expInfo.isUrgent 
