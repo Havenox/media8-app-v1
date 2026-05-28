@@ -9,6 +9,4 @@ public interface IServiceBalanceRepository : IRepository<ServiceBalanceLot>
         int page, 
         int pageSize, 
         string? status);
-    
-    Task<IEnumerable<ServiceBalanceLot>> GetAvailableBalancesByUserIdAsync(Guid userId);
 }

@@ -51,15 +51,4 @@ public async Task<(IEnumerable<ServiceBalanceLot> Items, int TotalCount)> GetPag
 
         return (items, total);
     }
-
-    public async Task<IEnumerable<ServiceBalanceLot>> GetAvailableBalancesByUserIdAsync(Guid userId)
-    {
-        var now = DateTime.UtcNow;
-        return await _dbSet
-            .Include(l => l.Contract)
-            .Where(l => l.UserId == userId 
-                        && l.RemainingQuantity > 0 
-                        && (!l.ExpiresAt.HasValue || l.ExpiresAt.Value > now))
-            .ToListAsync();
-    }
 }

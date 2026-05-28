@@ -14,38 +14,17 @@ namespace Media8.Api.Controllers;
 public class OrdersController : ControllerBase
 {
     private readonly IOrderService _orderService;
-    private readonly IServiceBalanceRepository _balanceRepository;
+    private readonly IRepository<ServiceBalanceLot> _balanceRepository;
     private readonly ISettingsService _settingsService;
 
     public OrdersController(
         IOrderService orderService,
-        IServiceBalanceRepository balanceRepository,
+        IRepository<ServiceBalanceLot> balanceRepository,
         ISettingsService settingsService)
     {
         _orderService = orderService;
         _balanceRepository = balanceRepository;
         _settingsService = settingsService;
-    }
-
-    [HttpGet("available-balances")]
-    [HttpGet("AvailableBalances")] // PascalCase alias for frontend compatibility
-    public async Task<ActionResult<List<ServiceBalanceLot>>> GetAvailableBalances()
-    {
-        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
-        {
-            return Unauthorized();
-        }
-
-        try
-        {
-            var availableLots = await _balanceRepository.GetAvailableBalancesByUserIdAsync(userId);
-            return Ok(availableLots.ToList());
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
     }
 
     [HttpPost]
