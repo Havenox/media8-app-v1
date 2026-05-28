@@ -67,9 +67,9 @@ const NewOrderPage: React.FC = () => {
 
 // Estados de cascata
 const [step, setStep] = useState(1);
-const [selectedLotId, setSelectedLotId] = useState('');
-const [selectedBrandingId, setSelectedBrandingId] = useState('');
-const [selectedEditingId, setSelectedEditingId] = useState('');
+const [selectedLotId, setSelectedLotId] = useState<string | undefined>(undefined);
+const [selectedBrandingId, setSelectedBrandingId] = useState<string | undefined>(undefined);
+const [selectedEditingId, setSelectedEditingId] = useState<string | undefined>(undefined);
 
   // Estados das modais
   const [isBrandingModalOpen, setIsBrandingModalOpen] = useState(false);
@@ -265,9 +265,7 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
             disabled={step < 2}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Selecione um perfil de branding">
-                {selectedBrandingId && brandingProfiles.find(p => p.id === selectedBrandingId)?.Name}
-              </SelectValue>
+              <SelectValue placeholder="Selecione um perfil de branding" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="+new" className="text-primary font-medium">
@@ -306,9 +304,7 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
             disabled={step < 3}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Selecione um perfil de edição">
-                {selectedEditingId && editingProfiles.find(p => p.id === selectedEditingId)?.Name}
-              </SelectValue>
+              <SelectValue placeholder="Selecione um perfil de edição" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="+new" className="text-primary font-medium">
