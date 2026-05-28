@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useServiceBalances } from '@/hooks/useServiceBalances';
 import { UnifiedServiceBalance } from '@/types/services';
 import { ClientContract } from '@/types/offers';
@@ -10,7 +11,26 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Package, Smartphone, Youtube, Video, AlertCircle, AlertTriangle, Calendar, RefreshCw, Clock } from 'lucide-react';
+import { 
+  Package, 
+  Smartphone, 
+  Youtube, 
+  Video, 
+  AlertCircle, 
+  AlertTriangle, 
+  Calendar, 
+  RefreshCw, 
+  Clock,
+  MoreHorizontal,
+  Plus,
+  ShoppingCart
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 
 type ServiceListVariant = 'grid' | 'list';
@@ -190,6 +210,32 @@ export const ServiceBalanceList: React.FC<ServiceBalanceListProps> = ({
     ? cn("flex flex-col gap-3", className)
     : cn("grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 w-full", className);
 
+  const renderedLots = sortedLots.map((lot) => (
+    variant === 'list' ? (
+      <ServiceListItem
+        key={lot.Id}
+        lot={lot}
+        canConsume={canConsume}
+        onConsume={onConsume}
+      />
+    ) : (
+      <ServiceCard 
+        key={lot.Id} 
+        lot={lot} 
+        canConsume={canConsume} 
+        onConsume={onConsume} 
+      />
+    )
+  ));
+
+  if (limit) {
+    return (
+      <div className={containerClasses}>
+        {renderedLots}
+      </div>
+    );
+  }
+
   return (
     <InfiniteScroll
       next={fetchNextPage}
@@ -197,23 +243,7 @@ export const ServiceBalanceList: React.FC<ServiceBalanceListProps> = ({
       isLoading={isFetchingNextPage}
       className={containerClasses}
     >
-      {sortedLots.map((lot) => (
-        variant === 'list' ? (
-          <ServiceListItem
-            key={lot.Id}
-            lot={lot}
-            canConsume={canConsume}
-            onConsume={onConsume}
-          />
-        ) : (
-          <ServiceCard 
-            key={lot.Id} 
-            lot={lot} 
-            canConsume={canConsume} 
-            onConsume={onConsume} 
-          />
-        )
-      ))}
+      {renderedLots}
     </InfiniteScroll>
   );
 };
@@ -383,6 +413,10 @@ const ServiceCard = ({
   canConsume: boolean;
   onConsume?: (lot: UnifiedServiceBalance) => void;
 }) => {
+  const navigate = useNavigate();
+  const [isHovered, setIsHovered] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
   const Icon = getIcon(lot.SnapshotVideoFormatName);
   const isSubscription = lot.ContractType === 'Assinatura';
   const expInfo = getExpirationInfo(lot);
@@ -391,14 +425,16 @@ const ServiceCard = ({
     ? Math.round(((lot.TotalQuantity - lot.RemainingQuantity) / lot.TotalQuantity) * 100)
     : 0;
 
-  return (
+  const cardContent = (
     <Card className={cn(
-      "relative overflow-hidden transition-all hover:shadow-md border-l-4 p-5 flex flex-col justify-between bg-[#FFFBED] border-[#E8E0D0] w-full lg:max-w-[400px] max-w-none min-h-[180px]",
+      "relative overflow-hidden transition-all hover:shadow-md border-l-4 p-5 flex flex-col justify-between bg-[#FFFBED] border-[#E8E0D0] w-full min-h-[180px] select-none",
       isSubscription 
         ? "border-l-[#7B0A0A]" 
         : expInfo.isUrgent 
           ? "border-l-amber-600" 
-          : "border-l-[#400404]"
+          : "border-l-[#400404]",
+      !canConsume && "cursor-pointer",
+      !canConsume && (isHovered || menuOpen) && "shadow-lg ring-1 ring-primary/20 bg-[#FFFDF6]"
     )}>
       {/* Top Section: Title & Credits Row */}
       <div className="flex justify-between items-start gap-2 mb-3.5">
@@ -478,7 +514,10 @@ const ServiceCard = ({
         {canConsume && (
           <Button
             size="sm"
-            onClick={() => onConsume?.(lot)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onConsume?.(lot);
+            }}
             disabled={lot.RemainingQuantity <= 0}
             className={cn(
               "h-7 px-3 text-[11px] font-bold text-[#FFFBED] shrink-0",
@@ -494,6 +533,53 @@ const ServiceCard = ({
       <div className="absolute -right-4 -bottom-4 opacity-5 pointer-events-none">
         <Icon className="h-16 w-16 transform -rotate-12" />
       </div>
+
+      {/* Ellipsis indicator - appears on hover when not in consume mode */}
+      {!canConsume && (
+        <div className={cn(
+          "absolute bottom-3 right-3 p-1.5 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 transition-opacity duration-200",
+          (isHovered || menuOpen) ? "opacity-100" : "opacity-0"
+        )}>
+          <MoreHorizontal className="h-3.5 w-3.5 text-[#400404]" />
+        </div>
+      )}
     </Card>
+  );
+
+  if (canConsume) {
+    return cardContent;
+  }
+
+  return (
+    <div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="h-full w-full lg:max-w-[400px] max-w-none relative"
+    >
+      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+        <DropdownMenuTrigger asChild>
+          {cardContent}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent 
+          align="end" 
+          className="w-48 bg-[#FFFBED] border-[#E8E0D0] shadow-xl z-50"
+        >
+          <DropdownMenuItem 
+            onClick={() => navigate(`/orders/new?lotId=${lot.Id}`)}
+            className="flex items-center gap-2 cursor-pointer text-[#400404] hover:bg-[#E8E0D0]/30 focus:bg-[#E8E0D0]/30 font-medium"
+          >
+            <Plus className="h-4 w-4" />
+            <span>+ Novo Pedido</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem 
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 cursor-pointer text-[#400404] hover:bg-[#E8E0D0]/30 focus:bg-[#E8E0D0]/30"
+          >
+            <ShoppingCart className="h-4 w-4" />
+            <span>Contratar mais</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 };
