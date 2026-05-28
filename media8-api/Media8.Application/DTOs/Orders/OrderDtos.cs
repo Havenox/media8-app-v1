@@ -15,14 +15,14 @@ public class CreateOrderRequest
   public Guid ServiceBalanceLotId { get; set; }
 
   /// <summary>
-  /// ID do perfil de branding (opcional)
+  /// ID do perfil de branding (obrigatório)
   /// </summary>
-  public Guid? BrandingProfileId { get; set; }
+  public Guid BrandingProfileId { get; set; }
 
   /// <summary>
-  /// ID do perfil de edição (opcional)
+  /// ID do perfil de edição (obrigatório)
   /// </summary>
-  public Guid? EditingProfileId { get; set; }
+  public Guid EditingProfileId { get; set; }
 
   public DateOnly Deadline { get; set; }
 }
