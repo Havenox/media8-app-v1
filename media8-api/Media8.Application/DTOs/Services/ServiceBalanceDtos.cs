@@ -31,6 +31,7 @@ public Guid Id { get; set; } // Balance Lot ID
 public string SnapshotOfferName { get; set; } = string.Empty; // e.g. "Plano Growth"
 public int SnapshotVideoQuantity { get; set; } // Snapshot Quantity
 public string ContractType { get; set; } = string.Empty; // e.g. "Assinatura", "Pacote"
+public int? SnapshotWarrantyDays { get; set; }
 
 // ==========================================
 // SNAPSHOT TÉCNICO (Imutável - Sem FKs)
