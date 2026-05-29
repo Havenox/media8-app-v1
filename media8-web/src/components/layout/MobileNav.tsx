@@ -27,12 +27,12 @@ interface NavItem {
 const navItems: NavItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
   { icon: FolderKanban, label: 'Pedidos', path: '/orders', roles: ['Admin', 'Client'] },
-  { icon: FileText, label: 'Contratos', path: '/contracts', roles: ['Admin', 'Client'] },
   { icon: ShoppingBag, label: 'Serviços', path: '/services', roles: ['Admin', 'Client'] },
   { icon: Scissors, label: 'Edições', path: '/edits', roles: ['Admin', 'Editor'] },
   { icon: Users, label: 'Usuários', path: '/users', roles: ['Admin'] },
   { icon: Package, label: 'Ofertas', path: '/admin/offers', roles: ['Admin'] },
   { icon: CreditCard, label: 'Pagamentos', path: '/admin/payments', roles: ['Admin'] },
+  { icon: FileText, label: 'Contratos', path: '/contracts', roles: ['Admin', 'Client'] },
   { icon: Settings, label: 'Configurações', path: '/settings' },
   { icon: ExternalLink, label: 'Contratar Mais', path: '/', external: true, roles: ['Client'] },
 ];
