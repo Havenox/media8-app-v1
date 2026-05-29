@@ -52,4 +52,5 @@ public DateTime PurchaseDate { get; set; } // Data de compra
     public string? InvoiceStatus { get; set; }
     public Guid? ContractId { get; set; }
     public int? ContractSequentialId { get; set; }
+    public DateTime? OldestUnpaidInvoiceDueDate { get; set; }
 }

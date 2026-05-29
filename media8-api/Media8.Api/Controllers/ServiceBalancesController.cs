@@ -1,8 +1,10 @@
 using Media8.Application.DTOs.Services;
 using Media8.Application.Interfaces;
 using Media8.Domain.Entities;
+using Media8.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace Media8.Api.Controllers;
@@ -34,7 +36,22 @@ public class ServiceBalancesController : ControllerBase
 
         var (balances, total) = await _balanceRepository.GetPagedByUserIdAsync(currentUserId, page, pageSize, status);
 
-        var dtos = balances.Select(MapToUnifiedDto);
+        var unpaidInvoices = await _balanceRepository.Query<Invoice>()
+            .Where(i => i.ClientId == currentUserId && (i.Status == InvoiceStatus.Pending || i.Status == InvoiceStatus.Overdue))
+            .ToListAsync();
+
+        var dtos = balances.Select(lot => {
+            var dto = MapToUnifiedDto(lot);
+            var relatedUnpaidInvoices = unpaidInvoices
+                .Where(i => (lot.ContractId != Guid.Empty && i.ContractId == lot.ContractId) || i.Id == lot.InvoiceId)
+                .OrderBy(i => i.DueDate)
+                .ToList();
+            if (relatedUnpaidInvoices.Any())
+            {
+                dto.OldestUnpaidInvoiceDueDate = relatedUnpaidInvoices.First().DueDate;
+            }
+            return dto;
+        }).ToList();
 
         Response.Headers.Append("X-Total-Count", total.ToString());
         return Ok(dtos);
@@ -51,7 +68,22 @@ public class ServiceBalancesController : ControllerBase
     {
         var (balances, total) = await _balanceRepository.GetPagedByUserIdAsync(clientId, page, pageSize, status);
 
-        var dtos = balances.Select(MapToUnifiedDto);
+        var unpaidInvoices = await _balanceRepository.Query<Invoice>()
+            .Where(i => i.ClientId == clientId && (i.Status == InvoiceStatus.Pending || i.Status == InvoiceStatus.Overdue))
+            .ToListAsync();
+
+        var dtos = balances.Select(lot => {
+            var dto = MapToUnifiedDto(lot);
+            var relatedUnpaidInvoices = unpaidInvoices
+                .Where(i => (lot.ContractId != Guid.Empty && i.ContractId == lot.ContractId) || i.Id == lot.InvoiceId)
+                .OrderBy(i => i.DueDate)
+                .ToList();
+            if (relatedUnpaidInvoices.Any())
+            {
+                dto.OldestUnpaidInvoiceDueDate = relatedUnpaidInvoices.First().DueDate;
+            }
+            return dto;
+        }).ToList();
 
         Response.Headers.Append("X-Total-Count", total.ToString());
         return Ok(dtos);
@@ -68,7 +100,22 @@ public class ServiceBalancesController : ControllerBase
     {
         var (balances, total) = await _balanceRepository.GetPagedByUserIdAsync(clientId, page, pageSize, status);
 
-        var dtos = balances.Select(MapToUnifiedDto);
+        var unpaidInvoices = await _balanceRepository.Query<Invoice>()
+            .Where(i => i.ClientId == clientId && (i.Status == InvoiceStatus.Pending || i.Status == InvoiceStatus.Overdue))
+            .ToListAsync();
+
+        var dtos = balances.Select(lot => {
+            var dto = MapToUnifiedDto(lot);
+            var relatedUnpaidInvoices = unpaidInvoices
+                .Where(i => (lot.ContractId != Guid.Empty && i.ContractId == lot.ContractId) || i.Id == lot.InvoiceId)
+                .OrderBy(i => i.DueDate)
+                .ToList();
+            if (relatedUnpaidInvoices.Any())
+            {
+                dto.OldestUnpaidInvoiceDueDate = relatedUnpaidInvoices.First().DueDate;
+            }
+            return dto;
+        }).ToList();
 
         Response.Headers.Append("X-Total-Count", total.ToString());
         return Ok(dtos);

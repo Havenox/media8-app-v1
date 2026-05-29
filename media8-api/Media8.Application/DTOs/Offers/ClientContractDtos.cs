@@ -79,6 +79,14 @@ public Domain.Enums.AssignmentStatus Status { get; set; }
 public DateTime CreatedAt { get; set; }
 public DateTime UpdatedAt { get; set; }
 
-// Navegação (opcional no response)
-public OfferResponse? Offer { get; set; }
+// Informações do Cliente (para visão do Admin)
+public string? ClientName { get; set; }
+public string? ClientEmail { get; set; }
+
+// Informações de Lote e Faturamento
+public Guid? ActiveLotId { get; set; }
+public int? ActiveLotRemainingQuantity { get; set; }
+public bool HasPendingInvoice { get; set; }
+public DateTime? OldestUnpaidInvoiceDueDate { get; set; }
 }
+

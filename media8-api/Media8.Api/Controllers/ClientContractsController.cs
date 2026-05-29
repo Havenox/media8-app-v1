@@ -35,11 +35,13 @@ _sequenceGeneratorService = sequenceGeneratorService;
     /// <summary>
     /// Lista todos os contratos de clientes (com filtros opcionais)
     /// </summary>
-    [HttpGet]
+    [HttpGet("~/api/v1/admin/ClientContracts")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<ClientContractResponse>>> GetAllContracts(
         [FromQuery] Guid? clientId = null,
-        [FromQuery] AssignmentStatus? status = null)
+        [FromQuery] AssignmentStatus? status = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
     {
         var query = _context.ClientContracts
             .Include(cc => cc.Offer)
@@ -52,10 +54,18 @@ _sequenceGeneratorService = sequenceGeneratorService;
         if (status.HasValue)
             query = query.Where(cc => cc.Status == status.Value);
 
-var contracts = await query
-.OrderByDescending(cc => cc.AssignedAt)
-.Select(cc => new ClientContractResponse
-{
+        var total = await query.CountAsync();
+
+        var contracts = await query
+            .OrderByDescending(cc => _context.Invoices.Any(i => i.ContractId == cc.Id && (i.Status == InvoiceStatus.Pending || i.Status == InvoiceStatus.Overdue)))
+            .ThenBy(cc => _context.Invoices
+                .Where(i => i.ContractId == cc.Id && (i.Status == InvoiceStatus.Pending || i.Status == InvoiceStatus.Overdue))
+                .Min(i => (DateTime?)i.DueDate))
+            .ThenByDescending(cc => cc.AssignedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(cc => new ClientContractResponse
+            {
 Id = cc.Id,
 OfferId = cc.OfferId,
 ClientId = cc.ClientId,
@@ -83,19 +93,36 @@ ExpiresAt = cc.ExpiresAt,
 Status = cc.Status,
 CreatedAt = cc.CreatedAt,
 UpdatedAt = cc.UpdatedAt,
-Offer = new OfferResponse
-{
-Id = cc.Offer.Id,
-Name = cc.Offer.Name,
-Slug = cc.Offer.Slug,
-ContractType = cc.Offer.ContractType,
-Price = cc.Offer.Price,
-VideoQuantity = cc.Offer.VideoQuantity,
-MaxDurationSeconds = cc.Offer.MaxDurationSeconds
-}
+
+ClientName = cc.Client != null && cc.Client.Profile != null ? cc.Client.Profile.Name : "Cliente",
+ClientEmail = cc.Client != null ? cc.Client.Email : string.Empty,
+
+ActiveLotId = cc.ServiceBalanceLots
+    .Where(lot => lot.ExpiresAt == null || lot.ExpiresAt > DateTime.UtcNow)
+    .OrderBy(lot => lot.CreatedAt)
+    .Select(lot => (Guid?)lot.Id)
+    .FirstOrDefault() ?? cc.ServiceBalanceLots
+    .OrderByDescending(lot => lot.CreatedAt)
+    .Select(lot => (Guid?)lot.Id)
+    .FirstOrDefault(),
+
+ActiveLotRemainingQuantity = cc.ServiceBalanceLots
+    .Where(lot => lot.ExpiresAt == null || lot.ExpiresAt > DateTime.UtcNow)
+    .Sum(lot => (int?)lot.RemainingQuantity) ?? 0,
+
+HasPendingInvoice = _context.Invoices.Any(i =>
+    i.ContractId == cc.Id &&
+    (i.Status == InvoiceStatus.Pending || i.Status == InvoiceStatus.Overdue)),
+
+OldestUnpaidInvoiceDueDate = _context.Invoices
+    .Where(i => i.ContractId == cc.Id && (i.Status == InvoiceStatus.Pending || i.Status == InvoiceStatus.Overdue))
+    .OrderBy(i => i.DueDate)
+    .Select(i => (DateTime?)i.DueDate)
+    .FirstOrDefault()
 })
 .ToListAsync();
 
+        Response.Headers.Append("X-Total-Count", total.ToString());
         return Ok(contracts);
     }
 
@@ -142,7 +169,30 @@ ActivatedAt = cc.ActivatedAt,
 ExpiresAt = cc.ExpiresAt,
 Status = cc.Status,
 CreatedAt = cc.CreatedAt,
-UpdatedAt = cc.UpdatedAt
+UpdatedAt = cc.UpdatedAt,
+
+ActiveLotId = cc.ServiceBalanceLots
+    .Where(lot => lot.ExpiresAt == null || lot.ExpiresAt > DateTime.UtcNow)
+    .OrderBy(lot => lot.CreatedAt)
+    .Select(lot => (Guid?)lot.Id)
+    .FirstOrDefault() ?? cc.ServiceBalanceLots
+    .OrderByDescending(lot => lot.CreatedAt)
+    .Select(lot => (Guid?)lot.Id)
+    .FirstOrDefault(),
+
+ActiveLotRemainingQuantity = cc.ServiceBalanceLots
+    .Where(lot => lot.ExpiresAt == null || lot.ExpiresAt > DateTime.UtcNow)
+    .Sum(lot => (int?)lot.RemainingQuantity) ?? 0,
+
+HasPendingInvoice = _context.Invoices.Any(i =>
+    i.ContractId == cc.Id &&
+    (i.Status == InvoiceStatus.Pending || i.Status == InvoiceStatus.Overdue)),
+
+OldestUnpaidInvoiceDueDate = _context.Invoices
+    .Where(i => i.ContractId == cc.Id && (i.Status == InvoiceStatus.Pending || i.Status == InvoiceStatus.Overdue))
+    .OrderBy(i => i.DueDate)
+    .Select(i => (DateTime?)i.DueDate)
+    .FirstOrDefault()
 })
 .FirstOrDefaultAsync();
 
@@ -162,7 +212,7 @@ UpdatedAt = cc.UpdatedAt
 /// Cria um novo contrato (atribuição de oferta a um cliente)
 /// Regra de Negócio: Gera snapshot imutável dos dados da oferta e provisiona saldos
 /// </summary>
-[HttpPost]
+[HttpPost("~/api/v1/admin/ClientContracts")]
 [Authorize(Roles = "Admin")]
 public async Task<ActionResult<ClientContractResponse>> CreateContract([FromBody] CreateClientContractRequest request)
 {
@@ -242,33 +292,37 @@ return StatusCode(500, new { message = $"Erro ao provisionar saldos: {ex.Message
 
 var response = new ClientContractResponse
 {
-Id = contract.Id,
-OfferId = contract.OfferId,
-ClientId = contract.ClientId,
-AssignedBy = contract.AssignedBy,
-SequentialId = contract.SequentialId,
-IsArchived = contract.IsArchived,
+    Id = contract.Id,
+    OfferId = contract.OfferId,
+    ClientId = contract.ClientId,
+    AssignedBy = contract.AssignedBy,
+    SequentialId = contract.SequentialId,
+    IsArchived = contract.IsArchived,
 
-// Snapshot Comercial
-SnapshotOfferName = contract.SnapshotOfferName,
-SnapshotVideoQuantity = contract.SnapshotVideoQuantity,
-SnapshotPrice = contract.SnapshotPrice,
-SnapshotValidityDays = contract.SnapshotValidityDays,
-SnapshotDeliveryDays = contract.SnapshotDeliveryDays,
-SnapshotWarrantyDays = contract.SnapshotWarrantyDays,
-SnapshotContractType = contract.SnapshotContractType,
+    // Snapshot Comercial
+    SnapshotOfferName = contract.SnapshotOfferName,
+    SnapshotVideoQuantity = contract.SnapshotVideoQuantity,
+    SnapshotPrice = contract.SnapshotPrice,
+    SnapshotValidityDays = contract.SnapshotValidityDays,
+    SnapshotDeliveryDays = contract.SnapshotDeliveryDays,
+    SnapshotWarrantyDays = contract.SnapshotWarrantyDays,
+    SnapshotContractType = contract.SnapshotContractType,
 
-// Snapshot Técnico
-SnapshotVideoFormatName = contract.SnapshotVideoFormatName,
-SnapshotEditingStyleName = contract.SnapshotEditingStyleName,
-SnapshotMaxDurationSeconds = contract.SnapshotMaxDurationSeconds,
+    // Snapshot Técnico
+    SnapshotVideoFormatName = contract.SnapshotVideoFormatName,
+    SnapshotEditingStyleName = contract.SnapshotEditingStyleName,
+    SnapshotMaxDurationSeconds = contract.SnapshotMaxDurationSeconds,
 
-AssignedAt = contract.AssignedAt,
-ActivatedAt = contract.ActivatedAt,
-ExpiresAt = contract.ExpiresAt,
-Status = contract.Status,
-CreatedAt = contract.CreatedAt,
-UpdatedAt = contract.UpdatedAt
+    AssignedAt = contract.AssignedAt,
+    ActivatedAt = contract.ActivatedAt,
+    ExpiresAt = contract.ExpiresAt,
+    Status = contract.Status,
+    CreatedAt = contract.CreatedAt,
+    UpdatedAt = contract.UpdatedAt,
+
+    ActiveLotId = null,
+    ActiveLotRemainingQuantity = contract.SnapshotVideoQuantity,
+    HasPendingInvoice = false
 };
 
 return CreatedAtAction(nameof(GetContractById), new { id = contract.Id }, response);
@@ -277,7 +331,7 @@ return CreatedAtAction(nameof(GetContractById), new { id = contract.Id }, respon
     /// <summary>
     /// Atualiza um contrato existente (ex: alteração de status)
     /// </summary>
-    [HttpPut("{id:guid}")]
+    [HttpPut("~/api/v1/admin/ClientContracts/{id:guid}")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ClientContractResponse>> UpdateContract(Guid id, [FromBody] UpdateClientContractRequest request)
     {
@@ -312,7 +366,10 @@ return CreatedAtAction(nameof(GetContractById), new { id = contract.Id }, respon
             ExpiresAt = contract.ExpiresAt,
             Status = contract.Status,
             CreatedAt = contract.CreatedAt,
-            UpdatedAt = contract.UpdatedAt
+            UpdatedAt = contract.UpdatedAt,
+            ActiveLotId = null,
+            ActiveLotRemainingQuantity = contract.SnapshotVideoQuantity,
+            HasPendingInvoice = false
         };
 
         return Ok(response);
@@ -321,7 +378,7 @@ return CreatedAtAction(nameof(GetContractById), new { id = contract.Id }, respon
     /// <summary>
     /// Cancela um contrato (soft delete via status)
     /// </summary>
-    [HttpDelete("{id:guid}")]
+    [HttpDelete("~/api/v1/admin/ClientContracts/{id:guid}")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult> DeleteContract(Guid id)
     {
@@ -340,7 +397,7 @@ return CreatedAtAction(nameof(GetContractById), new { id = contract.Id }, respon
     /// Renova manualmente o ciclo de uma assinatura ativa (apenas para administradores).
     /// Utilizado quando a confirmação manual de pagamento está ativada.
     /// </summary>
-    [HttpPost("{id:guid}/renew")]
+    [HttpPost("~/api/v1/admin/ClientContracts/{id:guid}/renew")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult> RenewContract(Guid id)
     {
@@ -360,7 +417,9 @@ return CreatedAtAction(nameof(GetContractById), new { id = contract.Id }, respon
     [Authorize]
     public async Task<ActionResult<List<ClientContractResponse>>> GetMyContracts(
         [FromQuery] bool showArchived = false,
-        [FromQuery] AssignmentStatus? status = null)
+        [FromQuery] AssignmentStatus? status = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
     {
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (!Guid.TryParse(userIdClaim, out var clientId))
@@ -368,14 +427,23 @@ return CreatedAtAction(nameof(GetContractById), new { id = contract.Id }, respon
 
         var query = _context.ClientContracts
             .Include(cc => cc.Offer)
+            .Include(cc => cc.Client)
             .Where(cc => cc.ClientId == clientId && cc.IsArchived == showArchived)
             .AsQueryable();
 
         if (status.HasValue)
             query = query.Where(cc => cc.Status == status.Value);
 
+        var total = await query.CountAsync();
+
         var contracts = await query
-            .OrderByDescending(cc => cc.AssignedAt)
+            .OrderByDescending(cc => _context.Invoices.Any(i => i.ContractId == cc.Id && (i.Status == InvoiceStatus.Pending || i.Status == InvoiceStatus.Overdue)))
+            .ThenBy(cc => _context.Invoices
+                .Where(i => i.ContractId == cc.Id && (i.Status == InvoiceStatus.Pending || i.Status == InvoiceStatus.Overdue))
+                .Min(i => (DateTime?)i.DueDate))
+            .ThenByDescending(cc => cc.AssignedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(cc => new ClientContractResponse
             {
                 Id = cc.Id,
@@ -405,19 +473,36 @@ return CreatedAtAction(nameof(GetContractById), new { id = contract.Id }, respon
                 Status = cc.Status,
                 CreatedAt = cc.CreatedAt,
                 UpdatedAt = cc.UpdatedAt,
-                Offer = new OfferResponse
-                {
-                    Id = cc.Offer.Id,
-                    Name = cc.Offer.Name,
-                    Slug = cc.Offer.Slug,
-                    ContractType = cc.Offer.ContractType,
-                    Price = cc.Offer.Price,
-                    VideoQuantity = cc.Offer.VideoQuantity,
-                    MaxDurationSeconds = cc.Offer.MaxDurationSeconds
-                }
+
+                ClientName = cc.Client != null && cc.Client.Profile != null ? cc.Client.Profile.Name : "Cliente",
+                ClientEmail = cc.Client != null ? cc.Client.Email : string.Empty,
+
+                ActiveLotId = cc.ServiceBalanceLots
+                    .Where(lot => lot.ExpiresAt == null || lot.ExpiresAt > DateTime.UtcNow)
+                    .OrderBy(lot => lot.CreatedAt)
+                    .Select(lot => (Guid?)lot.Id)
+                    .FirstOrDefault() ?? cc.ServiceBalanceLots
+                    .OrderByDescending(lot => lot.CreatedAt)
+                    .Select(lot => (Guid?)lot.Id)
+                    .FirstOrDefault(),
+
+                ActiveLotRemainingQuantity = cc.ServiceBalanceLots
+                    .Where(lot => lot.ExpiresAt == null || lot.ExpiresAt > DateTime.UtcNow)
+                    .Sum(lot => (int?)lot.RemainingQuantity) ?? 0,
+
+                HasPendingInvoice = _context.Invoices.Any(i =>
+                    i.ContractId == cc.Id &&
+                    (i.Status == InvoiceStatus.Pending || i.Status == InvoiceStatus.Overdue)),
+
+                OldestUnpaidInvoiceDueDate = _context.Invoices
+                    .Where(i => i.ContractId == cc.Id && (i.Status == InvoiceStatus.Pending || i.Status == InvoiceStatus.Overdue))
+                    .OrderBy(i => i.DueDate)
+                    .Select(i => (DateTime?)i.DueDate)
+                    .FirstOrDefault()
             })
             .ToListAsync();
 
+        Response.Headers.Append("X-Total-Count", total.ToString());
         return Ok(contracts);
     }
 

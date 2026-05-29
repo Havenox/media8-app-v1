@@ -24,7 +24,7 @@ public class ClientContractsControllerTests : IClassFixture<CustomWebApplication
         var client = _factory.CreateClient();
 
         // Act
-        var response = await client.GetAsync("/api/v1/client-contracts");
+        var response = await client.GetAsync("/api/v1/admin/ClientContracts");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -71,6 +71,13 @@ public class ClientContractsControllerTests : IClassFixture<CustomWebApplication
         var videoFormats = JsonSerializer.Deserialize<List<VideoFormatDto>>(videoFormatsContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         var videoFormatId = videoFormats.First().Id;
 
+        // Get editing style from seed
+        var editingStylesResponse = await client.GetAsync("/api/v1/editing-styles");
+        editingStylesResponse.EnsureSuccessStatusCode();
+        var editingStylesContent = await editingStylesResponse.Content.ReadAsStringAsync();
+        var editingStyles = JsonSerializer.Deserialize<List<EditingStyleDto>>(editingStylesContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var editingStyleId = editingStyles.First().Id;
+
         // Create offer first (with unique name/slug to avoid conflicts)
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
         var newOffer = new
@@ -85,6 +92,7 @@ public class ClientContractsControllerTests : IClassFixture<CustomWebApplication
             LoyaltyMonths = 0,
             DeliveryDays = 3,
             VideoFormatId = videoFormatId,
+            EditingStyleId = editingStyleId,
             IsPublic = true
         };
 
@@ -103,7 +111,7 @@ public class ClientContractsControllerTests : IClassFixture<CustomWebApplication
         };
 
         // Act - Create contract
-        var response = await client.PostAsync("/api/v1/client-contracts",
+        var response = await client.PostAsync("/api/v1/admin/ClientContracts",
             new StringContent(JsonSerializer.Serialize(assignContractRequest), Encoding.UTF8, "application/json"));
         
         var errorContent = await response.Content.ReadAsStringAsync();
@@ -112,7 +120,7 @@ public class ClientContractsControllerTests : IClassFixture<CustomWebApplication
         response.StatusCode.Should().Be(HttpStatusCode.Created, $"Expected 201 but got {response.StatusCode}. Content: {errorContent}");
         
         // Verify contract was created with snapshot
-        var contractsResponse = await client.GetAsync($"/api/v1/client-contracts?clientId={clientId}");
+        var contractsResponse = await client.GetAsync($"/api/v1/admin/ClientContracts?clientId={clientId}");
         contractsResponse.EnsureSuccessStatusCode();
         var contractsContent = await contractsResponse.Content.ReadAsStringAsync();
         contractsContent.Should().Contain(offerData.Name);
@@ -132,4 +140,10 @@ public class OfferResponse
 public class AuthResponse
 {
     public string Token { get; set; } = string.Empty;
+}
+
+public class EditingStyleDto
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
 }

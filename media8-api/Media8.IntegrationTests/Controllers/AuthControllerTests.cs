@@ -35,7 +35,7 @@ public class AuthControllerTests : IClassFixture<CustomWebApplicationFactory<Pro
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var responseContent = await response.Content.ReadAsStringAsync();
         responseContent.Should().NotBeNullOrEmpty();
-        responseContent.Should().Contain("token");
+        responseContent.Should().Contain("Token");
     }
 
     [Fact]
