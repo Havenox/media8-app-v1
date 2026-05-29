@@ -190,6 +190,31 @@ const AdminSettingsSection: React.FC = () => {
 
         <Separator />
 
+        {/* BillingAntecipationDays */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="BillingAntecipationDays" className="text-base font-semibold">
+              Antecedência de Faturamento (dias)
+            </Label>
+            <span className="text-xs text-muted-foreground bg-primary/10 px-2 py-1 rounded">
+              {localSettings['BillingAntecipationDays'] ? `${localSettings['BillingAntecipationDays']} dias` : '—'}
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Quantidade de dias antes do vencimento do lote de saldo atual em que o sistema irá pré-gerar a fatura do próximo ciclo de assinatura.
+          </p>
+          <Input
+            id="BillingAntecipationDays"
+            type="number"
+            value={localSettings['BillingAntecipationDays'] ?? ''}
+            onChange={(e) => handleSettingChange('BillingAntecipationDays', e.target.value)}
+            className="max-w-xs"
+            placeholder="Carregando..."
+          />
+        </div>
+
+        <Separator />
+
         {/* RequireManualPaymentConfirmation */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
