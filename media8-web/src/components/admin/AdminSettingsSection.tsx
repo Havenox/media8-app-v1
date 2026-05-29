@@ -29,6 +29,27 @@ const AdminSettingsSection: React.FC = () => {
   const queryClient = useQueryClient();
   const [localSettings, setLocalSettings] = useState<Record<string, string>>({});
   const [isDirty, setIsDirty] = useState(false);
+  const [isTriggeringRenewal, setIsTriggeringRenewal] = useState(false);
+
+  const handleTriggerRenewal = async () => {
+    setIsTriggeringRenewal(true);
+    try {
+      const response = await api.post('/admin/billing/trigger-renewal');
+      toast({
+        title: 'Verificação concluída',
+        description: response.data.message || 'Ciclo de renovação processado.',
+      });
+      queryClient.invalidateQueries();
+    } catch (err: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro ao disparar processo',
+        description: err.response?.data?.message || err.message || 'Ocorreu um erro ao processar as renovações.',
+      });
+    } finally {
+      setIsTriggeringRenewal(false);
+    }
+  };
 
   // Fetch system settings (Admin only)
   const { data: settingsData, isLoading, error } = useQuery({
@@ -186,6 +207,36 @@ const AdminSettingsSection: React.FC = () => {
               onCheckedChange={(checked) => handleSettingChange('RequireManualPaymentConfirmation', checked ? 'true' : 'false')}
             />
           </div>
+        </div>
+
+        <Separator />
+
+        {/* Manual Renewal Trigger */}
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <h4 className="text-base font-semibold">Processamento Manual de Assinaturas</h4>
+            <p className="text-xs text-muted-foreground">
+              Força o processamento imediato de verificação e renovação de ciclo para todos os contratos de assinatura ativos que possuem lotes de saldo expirados, ignorando o timer automático do servidor.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={handleTriggerRenewal}
+            disabled={isTriggeringRenewal}
+            className="gap-2 border-[#7B0A0A] text-[#7B0A0A] hover:bg-[#7B0A0A]/10 hover:text-[#7B0A0A]"
+          >
+            {isTriggeringRenewal ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Processando...
+              </>
+            ) : (
+              <>
+                <Settings className="h-4 w-4" />
+                Disparar Verificação de Ciclos
+              </>
+            )}
+          </Button>
         </div>
 
           <Separator />

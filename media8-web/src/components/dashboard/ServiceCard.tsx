@@ -297,26 +297,28 @@ export const ServiceCard = ({
       </div>
 
       {/* Progress Bar */}
-      <div className="w-full my-2">
-        <div className={cn(
-          "w-full h-1 rounded-full overflow-hidden",
-          isBlocked || expInfo.isExpired ? "bg-neutral-200" : "bg-[#E8E0D0]/50"
-        )}>
-          <div 
-            className={cn(
-              "h-full rounded-full transition-all duration-500",
-              isBlocked || expInfo.isExpired
-                ? "bg-neutral-400"
-                : isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
-            )}
-            style={{ width: `${percentConsumed}%` }}
-          />
+      {!expInfo.isExpired && (
+        <div className="w-full my-2">
+          <div className={cn(
+            "w-full h-1 rounded-full overflow-hidden",
+            isBlocked || expInfo.isExpired ? "bg-neutral-200" : "bg-[#E8E0D0]/50"
+          )}>
+            <div 
+              className={cn(
+                "h-full rounded-full transition-all duration-500",
+                isBlocked || expInfo.isExpired
+                  ? "bg-neutral-400"
+                  : isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
+              )}
+              style={{ width: `${percentConsumed}%` }}
+            />
+          </div>
+          <div className="flex justify-between items-center text-[10px] text-muted-foreground mt-1">
+            <span>{percentConsumed}% consumido</span>
+            <span>{lot.RemainingQuantity} restantes</span>
+          </div>
         </div>
-        <div className="flex justify-between items-center text-[10px] text-muted-foreground mt-1">
-          <span>{percentConsumed}% consumido</span>
-          <span>{lot.RemainingQuantity} restantes</span>
-        </div>
-      </div>
+      )}
 
       {/* UX Warning Banner (Prazo acabando, rollover, etc.) */}
       {(() => {
@@ -631,22 +633,24 @@ export const ServiceListItem = ({
       </div>
 
       {/* Thin elegant Progress Bar */}
-      <div className="w-full mt-2.5">
-        <div className={cn(
-          "w-full h-1 rounded-full overflow-hidden",
-          isBlocked || expInfo.isExpired ? "bg-neutral-200" : "bg-[#E8E0D0]/50"
-        )}>
-          <div 
-            className={cn(
-              "h-full rounded-full transition-all duration-500",
-              isBlocked || expInfo.isExpired
-                ? "bg-neutral-400"
-                : isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
-            )}
-            style={{ width: `${percentConsumed}%` }}
-          />
+      {!expInfo.isExpired && (
+        <div className="w-full mt-2.5">
+          <div className={cn(
+            "w-full h-1 rounded-full overflow-hidden",
+            isBlocked || expInfo.isExpired ? "bg-neutral-200" : "bg-[#E8E0D0]/50"
+          )}>
+            <div 
+              className={cn(
+                "h-full rounded-full transition-all duration-500",
+                isBlocked || expInfo.isExpired
+                  ? "bg-neutral-400"
+                  : isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
+              )}
+              style={{ width: `${percentConsumed}%` }}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Warning message */}
       {(() => {

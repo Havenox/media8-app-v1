@@ -171,6 +171,63 @@ public class BillingController : ControllerBase
     }
 
     /// <summary>
+    /// Endpoint administrativo para disparar manualmente o processamento do worker de renovação de ciclo para todas as assinaturas ativas.
+    /// </summary>
+    [HttpPost("trigger-renewal")]
+    public async Task<ActionResult> TriggerRenewal()
+    {
+        var now = DateTime.UtcNow;
+
+        // Filtra apenas assinaturas ativas
+        var activeSubscriptions = await _context.ClientContracts
+            .Include(c => c.ServiceBalanceLots)
+            .Where(c => c.SnapshotContractType == ContractType.Assinatura && c.Status == AssignmentStatus.Active)
+            .ToListAsync();
+
+        int processedCount = 0;
+        int renewedCount = 0;
+        int blockedCount = 0;
+
+        foreach (var contract in activeSubscriptions)
+        {
+            var latestLot = contract.ServiceBalanceLots
+                .OrderByDescending(l => l.ExpiresAt ?? DateTime.MinValue)
+                .FirstOrDefault();
+
+            if (latestLot != null && latestLot.ExpiresAt.HasValue && latestLot.ExpiresAt.Value <= now)
+            {
+                processedCount++;
+                try
+                {
+                    // Tentativa de renovação do ciclo (usando as configurações do sistema para determinar se bloqueia ou auto-paga)
+                    var success = await _serviceBalanceService.RenewSubscriptionCycleAsync(contract.Id, isManualAdminAction: false);
+                    if (success)
+                    {
+                        renewedCount++;
+                    }
+                    else
+                    {
+                        blockedCount++;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Falha ao tentar renovar contrato {ContractId} no trigger manual.", contract.Id);
+                }
+            }
+        }
+
+        return Ok(new 
+        { 
+            message = "Processamento manual de renovação de assinaturas finalizado com sucesso.",
+            totalActiveContractsChecked = activeSubscriptions.Count,
+            eligibleExpiredLotsFound = processedCount,
+            renewedActive = renewedCount,
+            renewedBlockedPendingPayment = blockedCount
+        });
+    }
+
+    /// <summary>
     /// Endpoint de desenvolvimento para gerar assinaturas de teste retroativas e faturas pendentes.
     /// </summary>
     [HttpPost("seed-test-data")]
