@@ -10,17 +10,20 @@ public class ServiceBalanceService : IServiceBalanceService
 {
     private readonly IRepository<ServiceBalanceLot> _balanceRepository;
     private readonly IRepository<ClientContract> _contractRepository;
+    private readonly IRepository<Invoice> _invoiceRepository;
     private readonly ISettingsService _settingsService;
     private readonly ILogger<ServiceBalanceService> _logger;
 
     public ServiceBalanceService(
         IRepository<ServiceBalanceLot> balanceRepository,
         IRepository<ClientContract> contractRepository,
+        IRepository<Invoice> invoiceRepository,
         ISettingsService settingsService,
         ILogger<ServiceBalanceService> logger)
     {
         _balanceRepository = balanceRepository;
         _contractRepository = contractRepository;
+        _invoiceRepository = invoiceRepository;
         _settingsService = settingsService;
         _logger = logger;
     }
@@ -110,12 +113,35 @@ public class ServiceBalanceService : IServiceBalanceService
 
         await _balanceRepository.AddAsync(balanceLot);
 
+        // Cria Fatura Inicial (Mês 1 ou Contratação) já com Pago
+        var isSubscription = contract.SnapshotContractType == ContractType.Assinatura;
+        var description = isSubscription 
+            ? $"Assinatura - {contract.SnapshotOfferName} - Mês 1"
+            : $"Contratação - {contract.SnapshotOfferName}";
+
+        var invoice = new Invoice
+        {
+            ClientId = contract.ClientId,
+            ContractId = contract.Id,
+            Description = description,
+            Amount = contract.SnapshotPrice ?? offer.Price,
+            CycleNumber = isSubscription ? 1 : null,
+            DueDate = contract.ActivatedAt,
+            Status = InvoiceStatus.Paid,
+            PaidAt = DateTime.UtcNow,
+            PaymentMethod = "Manual",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        await _invoiceRepository.AddAsync(invoice);
+
         _logger.LogInformation(
-            "✅ Saldo provisionado: Contrato {ContractId} | Cliente {ClientId} | Quantidade {Quantity} | Expira em {ExpiresAt}",
+            "✅ Saldo provisionado e fatura inicial criada: Contrato {ContractId} | Cliente {ClientId} | Quantidade {Quantity} | Fatura: {InvoiceId}",
             contract.Id,
             contract.ClientId,
             offer.VideoQuantity,
-            expiresAt?.ToString("yyyy-MM-dd") ?? "Nunca"
+            invoice.Id
         );
     }
 
@@ -196,42 +222,102 @@ public class ServiceBalanceService : IServiceBalanceService
             return false;
         }
 
-        // 7. Validação de Pagamento (Switch Manual vs Automático)
-        if (!isManualAdminAction)
+        // 7. Obter ou Criar a Fatura do Próximo Ciclo (Aniversário)
+        int nextCycleNumber = generatedCount + 1;
+        DateTime nextExpiresAt = contract.ActivatedAt.AddDays(nextCycleNumber * 30);
+        DateTime nextDueDate = contract.ActivatedAt.AddDays(generatedCount * 30);
+
+        // Verifica se já existe uma fatura para o próximo ciclo
+        var existingInvoices = await _invoiceRepository.FindAsync(i => 
+            i.ContractId == contract.Id && 
+            i.CycleNumber == nextCycleNumber
+        );
+        var cycleInvoice = existingInvoices.FirstOrDefault();
+
+        if (cycleInvoice == null)
         {
+            // Cria a fatura do novo ciclo
+            var description = $"Assinatura - {contract.SnapshotOfferName} - Mês {nextCycleNumber}";
+            var amount = contract.SnapshotPrice ?? 0;
+
+            // Define o status inicial da fatura
+            InvoiceStatus status = InvoiceStatus.Pending;
+            DateTime? paidAt = null;
+            string? paymentMethod = null;
+
+            // Se for ação manual do admin ou renovação automática sem switch manual
             var requireManualPayment = await _settingsService.GetSettingAsync("RequireManualPaymentConfirmation", false);
-            if (requireManualPayment)
+            if (isManualAdminAction || !requireManualPayment)
             {
-                _logger.LogWarning("⏳ PAGAMENTO PENDENTE: O ciclo do Contrato {ContractId} expirou em {ExpiresAt}, mas 'RequireManualPaymentConfirmation' está ativado. Aguardando confirmação manual do administrador.", 
-                    contractId, latestLot.ExpiresAt?.ToString("yyyy-MM-dd") ?? "desconhecido");
-                return false;
+                status = InvoiceStatus.Paid;
+                paidAt = now;
+                paymentMethod = isManualAdminAction ? "Manual" : "Automatic";
             }
+
+            cycleInvoice = new Invoice
+            {
+                ClientId = contract.ClientId,
+                ContractId = contract.Id,
+                Description = description,
+                Amount = amount,
+                CycleNumber = nextCycleNumber,
+                DueDate = nextDueDate,
+                Status = status,
+                PaidAt = paidAt,
+                PaymentMethod = paymentMethod,
+                GatewayInvoiceId = null,
+                TransactionId = null,
+                CreatedAt = now,
+                UpdatedAt = now
+            };
+
+            await _invoiceRepository.AddAsync(cycleInvoice);
+            _logger.LogInformation("📝 Fatura criada: {InvoiceId} | Contrato {ContractId} | Ciclo {Cycle} | Status {Status}",
+                cycleInvoice.Id, contract.Id, nextCycleNumber, status);
         }
 
-        // 8. Criação do novo Lote de Saldo (Cycle Rollover)
-        // Para evitar desvios cumulativos de data, o vencimento é baseado estritamente na data de ativação original do contrato
-        DateTime nextExpiresAt = contract.ActivatedAt.AddDays((generatedCount + 1) * 30);
-
-        // O lote anterior é mantido no banco exatamente como está (com RemainingQuantity intacto para rastreamento histórico)
-        var newLot = new ServiceBalanceLot
+        // 8. Se a fatura ainda está Pendente e não é ação manual do admin
+        if (cycleInvoice.Status == InvoiceStatus.Pending && !isManualAdminAction)
         {
-            UserId = contract.ClientId,
-            ContractId = contract.Id,
-            Quantity = contract.SnapshotVideoQuantity ?? 0,
-            RemainingQuantity = contract.SnapshotVideoQuantity ?? 0,
-            CreatedAt = now,
-            ExpiresAt = nextExpiresAt,
-            Source = LotSource.Subscription,
-            AssignmentId = contract.Id,
-            UpdatedAt = now
-        };
+            _logger.LogWarning("⏳ PAGAMENTO PENDENTE: Fatura {InvoiceId} do ciclo {Cycle} do Contrato {ContractId} está Pendente. Aguardando conciliação.", 
+                cycleInvoice.Id, nextCycleNumber, contract.Id);
+            return false;
+        }
 
-        await _balanceRepository.AddAsync(newLot);
+        // 9. Se a fatura está Paga, provisiona o lote de saldo
+        if (cycleInvoice.Status == InvoiceStatus.Paid)
+        {
+            // Verifica se já existe um lote para este ciclo específico para garantir idempotência estrita
+            // Se o número de lotes já corresponder ao ciclo atual, abortamos
+            if (contract.ServiceBalanceLots.Count >= nextCycleNumber)
+            {
+                _logger.LogInformation("ℹ️ Lote de saldo para o ciclo {Cycle} já provido anteriormente no contrato {ContractId}.", 
+                    nextCycleNumber, contract.Id);
+                return true;
+            }
 
-        _logger.LogInformation("✅ RENOVAÇÃO CONCLUÍDA: Contrato {ContractId} | Ciclo {Cycle} provido. Novo lote expira em {ExpiresAt} | Créditos: {Credits}", 
-            contract.Id, generatedCount + 1, nextExpiresAt.ToString("yyyy-MM-dd HH:mm:ss"), contract.SnapshotVideoQuantity);
+            var newLot = new ServiceBalanceLot
+            {
+                UserId = contract.ClientId,
+                ContractId = contract.Id,
+                Quantity = contract.SnapshotVideoQuantity ?? 0,
+                RemainingQuantity = contract.SnapshotVideoQuantity ?? 0,
+                CreatedAt = now,
+                ExpiresAt = nextExpiresAt,
+                Source = LotSource.Subscription,
+                AssignmentId = contract.Id,
+                UpdatedAt = now
+            };
 
-        return true;
+            await _balanceRepository.AddAsync(newLot);
+
+            _logger.LogInformation("✅ RENOVAÇÃO CONCLUÍDA E SALDO PROVISIONADO: Contrato {ContractId} | Ciclo {Cycle} provido. Novo lote expira em {ExpiresAt}", 
+                contract.Id, nextCycleNumber, nextExpiresAt.ToString("yyyy-MM-dd HH:mm:ss"));
+
+            return true;
+        }
+
+        return false;
     }
 }
 
