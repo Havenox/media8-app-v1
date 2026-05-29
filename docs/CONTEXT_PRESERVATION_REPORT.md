@@ -83,7 +83,7 @@ Abaixo está a trilha de commits atômicos gerados, agrupados por ordem cronoló
 
 | Hash | Componente | Descrição |
 |---|---|---|
-| `[Novo-2]` | Documentação | Cria estudo de caso 087 sobre bloqueio autoritativo e atualiza relatório de contexto |
+| `6ecf710` | Documentação | Cria estudo de caso 087 sobre bloqueio autoritativo e atualiza relatório de contexto |
 | `bf91fd1` | Frontend/Backend | Implementa bloqueio autoritativo de saldos por faturas pendentes e visual âmbar |
 | `e280133` | Documentação | Adiciona estudo de caso 086 sobre ordenação de expirados e cards cinza |
 | `c442ee0` | Frontend/Backend | Corrige ordenação por urgência colocando expirados mais recentes no topo |
