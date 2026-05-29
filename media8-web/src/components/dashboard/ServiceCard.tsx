@@ -272,16 +272,16 @@ export const ServiceCard = ({
                 <span>{lot.SnapshotOfferName}</span>
                 {fidelityInfo && (
                   <span className={cn(
-                    "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm text-[9px] font-bold border border-dashed relative ml-1 shadow-sm shrink-0",
+                    "inline-flex items-center rounded-[2px] text-[10px] font-bold border border-dashed relative ml-2 px-2 py-0.5 pr-3.5 shadow-sm shrink-0",
                     isGrayedOut 
                       ? "bg-neutral-100 text-neutral-500 border-neutral-300" 
                       : "bg-[#7B0A0A]/5 text-[#7B0A0A] border-[#7B0A0A]/20"
                   )}>
-                    <span className={cn(
-                      "w-1 h-1 rounded-full shrink-0",
-                      isGrayedOut ? "bg-neutral-400" : "bg-[#7B0A0A]"
-                    )} />
                     Mês {fidelityInfo.currentMonth}/{fidelityInfo.totalMonths}
+                    <span className={cn(
+                      "absolute w-1.5 h-1.5 rounded-full shrink-0",
+                      isGrayedOut ? "bg-neutral-400/80" : "bg-[#7B0A0A]/80"
+                    )} style={{ top: '3px', right: '3px' }} />
                   </span>
                 )}
               </CardTitle>
@@ -597,16 +597,16 @@ export const ServiceListItem = ({
                 <span>{lot.SnapshotOfferName}</span>
                 {fidelityInfo && (
                   <span className={cn(
-                    "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm text-[9px] font-bold border border-dashed relative ml-1 shadow-sm shrink-0",
+                    "inline-flex items-center rounded-[2px] text-[10px] font-bold border border-dashed relative ml-2 px-2 py-0.5 pr-3.5 shadow-sm shrink-0",
                     isGrayedOut 
                       ? "bg-neutral-100 text-neutral-500 border-neutral-300" 
                       : "bg-[#7B0A0A]/5 text-[#7B0A0A] border-[#7B0A0A]/20"
                   )}>
-                    <span className={cn(
-                      "w-1 h-1 rounded-full shrink-0",
-                      isGrayedOut ? "bg-neutral-400" : "bg-[#7B0A0A]"
-                    )} />
                     Mês {fidelityInfo.currentMonth}/{fidelityInfo.totalMonths}
+                    <span className={cn(
+                      "absolute w-1.5 h-1.5 rounded-full shrink-0",
+                      isGrayedOut ? "bg-neutral-400/80" : "bg-[#7B0A0A]/80"
+                    )} style={{ top: '3px', right: '3px' }} />
                   </span>
                 )}
               </h4>
