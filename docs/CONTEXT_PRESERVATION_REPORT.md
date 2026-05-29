@@ -83,7 +83,10 @@ Abaixo está a trilha de commits atômicos gerados, agrupados por ordem cronoló
 
 | Hash | Componente | Descrição |
 |---|---|---|
+| `74fd82b` | Frontend (Style) | Altera texto sob a barra de progresso para exibir "X% dos créditos disponíveis" |
+| `b8065bb` | Documentação | Atualiza o relatório de preservação de contexto com o hash do commit do estudo de caso 088 |
 | `aa0ac7e` | Documentação | Adiciona o estudo de caso 088 sobre faturamento antecipado |
+| `ad13258` | Documentação | Atualiza o relatório de preservação com o hash do commit de inversão da barra de progresso |
 | `968a737` | Frontend (Style) | Inverte a lógica da largura da barra de progresso para exibir o restante e decrescer conforme consumo |
 | `62479e8` | Frontend (UI) | Adiciona o input de dias de antecedência de faturamento no painel de configurações do admin |
 | `f37b746` | Backend (Services) | Implementa controle e seed de `BillingAntecipationDays`, pré-geração de faturas antecipadas e restrição de segurança de `CancellationWindowHours` para 1h |
