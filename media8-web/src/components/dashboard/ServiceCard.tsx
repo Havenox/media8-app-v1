@@ -264,15 +264,15 @@ export const ServiceCard = ({
             <Icon className="h-3.5 w-3.5" />
           </div>
           <div>
-            <div className="flex items-center gap-1.5 flex-wrap max-w-[170px] sm:max-w-[200px]">
+            <div className="flex items-center gap-1.5 flex-wrap max-w-[220px] sm:max-w-[280px] min-w-0">
               <CardTitle className={cn(
-                "text-base font-bold line-clamp-1 leading-none flex items-center gap-1.5 flex-wrap",
+                "text-base font-bold flex items-center gap-1.5 flex-wrap min-w-0 w-full",
                 isGrayedOut ? "text-neutral-500" : "text-[#400404]"
               )} title={`${lot.SnapshotOfferName}${fidelityInfo ? ` [Mês ${fidelityInfo.currentMonth}/${fidelityInfo.totalMonths}]` : ''}`}>
-                <span>{lot.SnapshotOfferName}</span>
+                <span className="truncate max-w-[140px] sm:max-w-[190px]" title={lot.SnapshotOfferName}>{lot.SnapshotOfferName}</span>
                 {fidelityInfo && (
                   <span className={cn(
-                    "inline-flex items-center rounded-[2px] text-[10px] font-bold border border-dashed relative ml-2 px-2 py-0.5 pr-3.5 shadow-sm shrink-0",
+                    "inline-flex items-center rounded-[2px] text-[10px] font-bold border border-dashed relative ml-1.5 px-2 py-0.5 pr-3.5 shadow-sm shrink-0",
                     isGrayedOut 
                       ? "bg-neutral-100 text-neutral-500 border-neutral-300" 
                       : "bg-[#7B0A0A]/5 text-[#7B0A0A] border-[#7B0A0A]/20"
