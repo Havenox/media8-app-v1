@@ -51,6 +51,7 @@ public Guid Id { get; set; }
 public Guid OfferId { get; set; }
 public Guid ClientId { get; set; }
 public Guid AssignedBy { get; set; }
+public int SequentialId { get; set; }
 
 // ==========================================
 // SNAPSHOT COMERCIAL (Imutável)

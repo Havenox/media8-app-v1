@@ -20,11 +20,16 @@ public class ClientContractsController : ControllerBase
 {
 private readonly ApplicationDbContext _context;
 private readonly IServiceBalanceService _serviceBalanceService;
+private readonly ISequenceGeneratorService _sequenceGeneratorService;
 
-public ClientContractsController(ApplicationDbContext context, IServiceBalanceService serviceBalanceService)
+public ClientContractsController(
+    ApplicationDbContext context, 
+    IServiceBalanceService serviceBalanceService,
+    ISequenceGeneratorService sequenceGeneratorService)
 {
 _context = context;
 _serviceBalanceService = serviceBalanceService;
+_sequenceGeneratorService = sequenceGeneratorService;
 }
 
     /// <summary>
@@ -55,6 +60,7 @@ Id = cc.Id,
 OfferId = cc.OfferId,
 ClientId = cc.ClientId,
 AssignedBy = cc.AssignedBy,
+SequentialId = cc.SequentialId,
 
 // Snapshot Comercial
 SnapshotOfferName = cc.SnapshotOfferName,
@@ -113,6 +119,7 @@ Id = cc.Id,
 OfferId = cc.OfferId,
 ClientId = cc.ClientId,
 AssignedBy = cc.AssignedBy,
+SequentialId = cc.SequentialId,
 
 // Snapshot Comercial
 SnapshotOfferName = cc.SnapshotOfferName,
@@ -185,6 +192,7 @@ var contract = new ClientContract
 {
 OfferId = request.OfferId,
 ClientId = request.ClientId,
+SequentialId = await _sequenceGeneratorService.GetNextSequenceAsync(request.ClientId, "Contract"),
 AssignedBy = request.AssignedByUserId,
 AssignedAt = DateTime.UtcNow,
 ActivatedAt = DateTime.UtcNow,
@@ -236,6 +244,7 @@ Id = contract.Id,
 OfferId = contract.OfferId,
 ClientId = contract.ClientId,
 AssignedBy = contract.AssignedBy,
+SequentialId = contract.SequentialId,
 
 // Snapshot Comercial
 SnapshotOfferName = contract.SnapshotOfferName,
@@ -288,6 +297,7 @@ return CreatedAtAction(nameof(GetContractById), new { id = contract.Id }, respon
             OfferId = contract.OfferId,
             ClientId = contract.ClientId,
             AssignedBy = contract.AssignedBy,
+            SequentialId = contract.SequentialId,
             SnapshotOfferName = contract.SnapshotOfferName,
             SnapshotVideoQuantity = contract.SnapshotVideoQuantity,
             SnapshotPrice = contract.SnapshotPrice,

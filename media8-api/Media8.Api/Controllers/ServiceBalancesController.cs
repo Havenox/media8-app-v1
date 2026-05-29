@@ -99,7 +99,8 @@ public class ServiceBalancesController : ControllerBase
             Status = lot.ExpiresAt.HasValue && lot.ExpiresAt.Value < DateTime.UtcNow ? "expired" : "active",
             InvoiceId = lot.InvoiceId,
             InvoiceStatus = lot.Invoice?.Status.ToString(),
-            ContractId = lot.ContractId
+            ContractId = lot.ContractId,
+            ContractSequentialId = lot.Contract?.SequentialId
         };
     }
 }

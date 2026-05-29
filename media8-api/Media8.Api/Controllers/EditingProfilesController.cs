@@ -35,6 +35,7 @@ public class EditingProfilesController : ControllerBase
         {
             Id = p.Id,
             UserId = p.UserId,
+            SequentialId = p.SequentialId,
             Name = p.Name,
             ReferenceUrl = p.ReferenceUrl,
             CutGuidelines = p.CutGuidelines,
@@ -78,6 +79,7 @@ public class EditingProfilesController : ControllerBase
         {
             Id = profile.Id,
             UserId = profile.UserId,
+            SequentialId = profile.SequentialId,
             Name = profile.Name,
             ReferenceUrl = profile.ReferenceUrl,
             CutGuidelines = profile.CutGuidelines,
@@ -109,6 +111,7 @@ public class EditingProfilesController : ControllerBase
             {
                 Id = profile.Id,
                 UserId = profile.UserId,
+                SequentialId = profile.SequentialId,
                 Name = profile.Name,
                 ReferenceUrl = profile.ReferenceUrl,
                 CutGuidelines = profile.CutGuidelines,
@@ -160,6 +163,7 @@ public class EditingProfilesController : ControllerBase
             {
                 Id = updatedProfile.Id,
                 UserId = updatedProfile.UserId,
+                SequentialId = updatedProfile.SequentialId,
                 Name = updatedProfile.Name,
                 ReferenceUrl = updatedProfile.ReferenceUrl,
                 CutGuidelines = updatedProfile.CutGuidelines,

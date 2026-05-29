@@ -35,6 +35,7 @@ public class BrandingProfilesController : ControllerBase
         {
             Id = p.Id,
             UserId = p.UserId,
+            SequentialId = p.SequentialId,
             Name = p.Name,
             SocialHandles = p.SocialHandles,
             BrandColors = p.BrandColors,
@@ -76,6 +77,7 @@ public class BrandingProfilesController : ControllerBase
         {
             Id = profile.Id,
             UserId = profile.UserId,
+            SequentialId = profile.SequentialId,
             Name = profile.Name,
             SocialHandles = profile.SocialHandles,
             BrandColors = profile.BrandColors,
@@ -104,6 +106,7 @@ public class BrandingProfilesController : ControllerBase
             {
                 Id = profile.Id,
                 UserId = profile.UserId,
+                SequentialId = profile.SequentialId,
                 Name = profile.Name,
                 SocialHandles = profile.SocialHandles,
                 BrandColors = profile.BrandColors,
@@ -150,6 +153,7 @@ public class BrandingProfilesController : ControllerBase
             {
                 Id = updatedProfile.Id,
                 UserId = updatedProfile.UserId,
+                SequentialId = updatedProfile.SequentialId,
                 Name = updatedProfile.Name,
                 SocialHandles = updatedProfile.SocialHandles,
                 BrandColors = updatedProfile.BrandColors,

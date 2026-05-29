@@ -70,6 +70,7 @@ public class EditingProfileResponse
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
+    public int SequentialId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string ReferenceUrl { get; set; } = string.Empty;
     public string CutGuidelines { get; set; } = string.Empty;

@@ -13,6 +13,7 @@ public class InvoiceResponse
     public string ClientEmail { get; set; } = string.Empty;
     public Guid? ContractId { get; set; }
     public string? ContractOfferName { get; set; }
+    public int SequentialId { get; set; }
     public string Description { get; set; } = string.Empty;
     public decimal Amount { get; set; }
     public int? CycleNumber { get; set; }

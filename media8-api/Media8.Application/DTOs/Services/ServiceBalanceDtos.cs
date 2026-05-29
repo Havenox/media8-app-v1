@@ -51,4 +51,5 @@ public DateTime PurchaseDate { get; set; } // Data de compra
     public Guid? InvoiceId { get; set; }
     public string? InvoiceStatus { get; set; }
     public Guid? ContractId { get; set; }
+    public int? ContractSequentialId { get; set; }
 }

@@ -82,6 +82,7 @@ public class BillingController : ControllerBase
                     ClientEmail = i.Client != null ? i.Client.Email : string.Empty,
                     ContractId = i.ContractId,
                     ContractOfferName = i.Contract != null ? i.Contract.SnapshotOfferName : string.Empty,
+                    SequentialId = i.SequentialId,
                     Description = i.Description,
                     Amount = i.Amount,
                     CycleNumber = i.CycleNumber,

@@ -41,6 +41,7 @@ public class OrderResponse
     public Guid Id { get; set; }
     public Guid ClientId { get; set; }
     public Guid? EditorId { get; set; }
+    public int SequentialId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Briefing { get; set; } = string.Empty;
     public string SourceFilesUrl { get; set; } = string.Empty;

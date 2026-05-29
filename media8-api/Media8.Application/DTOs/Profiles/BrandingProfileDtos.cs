@@ -59,6 +59,7 @@ public class BrandingProfileResponse
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
+    public int SequentialId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string SocialHandles { get; set; } = string.Empty;
     public string BrandColors { get; set; } = string.Empty;
