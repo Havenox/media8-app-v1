@@ -310,7 +310,7 @@ export const ServiceCard = ({
                   ? "bg-neutral-400"
                   : isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
               )}
-              style={{ width: `${percentConsumed}%` }}
+              style={{ width: `${100 - percentConsumed}%` }}
             />
           </div>
           <div className="flex justify-between items-center text-[10px] text-muted-foreground mt-1">
@@ -646,7 +646,7 @@ export const ServiceListItem = ({
                   ? "bg-neutral-400"
                   : isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
               )}
-              style={{ width: `${percentConsumed}%` }}
+              style={{ width: `${100 - percentConsumed}%` }}
             />
           </div>
         </div>
