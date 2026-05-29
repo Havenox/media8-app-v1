@@ -10,13 +10,14 @@ Ele serve como o ponto único de verdade para que futuros agentes ou desenvolved
 
 O projeto passou por uma profunda reestruturação financeira, lógica e visual. O objetivo foi resolver gargalos graves de usabilidade na criação de pedidos, implementar o padrão ouro de UX nos cartões de saldo do dashboard, ressuscitar a página de listagem de serviços, automatizar a renovação de ciclos de assinatura recorrentes com segurança e introduzir um ecossistema completo de conciliação financeira de faturas (Invoices).
 
-Os desenvolvimentos foram divididos em **5 Grandes Marcos de Entrega**:
+Os desenvolvimentos foram divididos em **6 Grandes Marcos de Entrega**:
 
 1. **Correção de Novo Pedido (`/orders/new`)**: Desbloqueio do wizard e dropdowns reativos.
 2. **Aprimoramento de UX de Saldos (`ServiceCard`)**: Nova interface visual sob a identidade da marca, barras de progresso, ordenação FIFO/Urgência, badges de fidelidade e prevenção do loop infinito.
 3. **Ressurreição da Tela de Serviços (`/services`)**: Reestruturação com InfiniteScroll paged-by-10 e agregação compatível no frontend.
 4. **Motor de Ciclos e Faturamento (`Invoices` & `RenewalWorker`)**: Introdução de faturas físicas no banco de dados Postgres, hosted service automatizado em background, conciliação manual por administradores e switch no painel admin.
 5. **Correção de Datas por Calendário (`AddMonths`)**: Transição da matemática de dias fixos (30 dias) para meses de calendário completos, eliminando o desvio de calendário (drift) e espelhando gateways como Stripe/Asaas.
+6. **Bloqueio de Saldos por Fatura Pendente**: Provisionamento de créditos imediatos vinculados a faturas na virada do ciclo, com bloqueio rígido e autoritativo no backend (Consume e Create Order) e alertas visuais / redirecionamentos premium no frontend.
 
 ---
 
@@ -66,6 +67,14 @@ Os desenvolvimentos foram divididos em **5 Grandes Marcos de Entrega**:
   - Aplicado visual acinzentado (`bg-[#F3F4F6]/70`, `border-l-[#9CA3AF]`, `opacity-75` e textos `text-neutral-500`) em cartões e itens de lista expirados em `ServiceCard.tsx`.
   - Corrigido o algoritmo de ordenação por urgência no frontend (`ServiceBalanceList.tsx` e `ServicesPage.tsx`) e backend (`ServiceBalanceRepository.cs`) para classificar lotes expirados de forma descendente (mais recentes no topo).
 
+### 6. Bloqueio de Saldos por Fatura Pendente (Autoritativo no Backend)
+* **Desafio**: Impedir que créditos gerados na virada de ciclo de assinaturas sejam usados antes de suas faturas estarem devidamente quitadas, assegurando validação autoritativa e inviolável no backend, enquanto o frontend sinaliza o bloqueio de forma premium e oferece atalhos simplificados de checkout.
+* **Solução**:
+  - **Mapeamento de Banco**: Introduzido relacionamento de chave estrangeira opcional `InvoiceId` nos lotes de saldos (`ServiceBalanceLots`).
+  - **Autoridade no Servidor**: Modificados `ServiceBalanceService.ConsumeAsync` e `OrdersController.Create` para eager-load a fatura e recusar qualquer consumo se a fatura correspondente estiver em aberto (retornando exceção de regra de negócio com código `INVOICE_PENDING`).
+  - **UX/Visual Premium**: Atualizado `ServiceCard.tsx` (modos grid e list) para pintar cartões bloqueados em tons amarelos/âmbar (`bg-[#FFFDF0] border-amber-200 border-l-amber-500`), ocultar/desabilitar botões de uso e renderizar atalhos contextualizados "Pagar Fatura" para `/admin/payments`.
+  - **Validação de Formulários**: Atualizado `NewOrderPage.tsx` para desativar seleções de lotes bloqueados e alertar via toast em caso de pré-seleções inválidas por query params.
+
 ---
 
 ## 🛠️ Histórico Completo de Commits Realizados
@@ -74,6 +83,8 @@ Abaixo está a trilha de commits atômicos gerados, agrupados por ordem cronoló
 
 | Hash | Componente | Descrição |
 |---|---|---|
+| `[Novo-2]` | Documentação | Cria estudo de caso 087 sobre bloqueio autoritativo e atualiza relatório de contexto |
+| `bf91fd1` | Frontend/Backend | Implementa bloqueio autoritativo de saldos por faturas pendentes e visual âmbar |
 | `e280133` | Documentação | Adiciona estudo de caso 086 sobre ordenação de expirados e cards cinza |
 | `c442ee0` | Frontend/Backend | Corrige ordenação por urgência colocando expirados mais recentes no topo |
 | `519e979` | Frontend (Comp) | Aplica visual acinzentado (grey-out) a cartões de saldo expirados |
