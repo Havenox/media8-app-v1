@@ -314,7 +314,7 @@ export const ServiceCard = ({
             />
           </div>
           <div className="flex justify-between items-center text-[10px] text-muted-foreground mt-1">
-            <span>{percentConsumed}% consumido</span>
+            <span>{100 - percentConsumed}% dos créditos disponíveis</span>
             <span>{lot.RemainingQuantity} restantes</span>
           </div>
         </div>
