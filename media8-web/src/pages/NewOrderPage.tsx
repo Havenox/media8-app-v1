@@ -117,7 +117,12 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
     if (lotIdParam && availableBalances.length > 0) {
       const found = availableBalances.find((lot) => lot.Id === lotIdParam);
       if (found) {
-        handleLotSelect(lotIdParam);
+        const isBlocked = !!found.InvoiceId && found.InvoiceStatus !== 'Paid';
+        if (isBlocked) {
+          toast.error("Este saldo está bloqueado aguardando o pagamento da fatura.");
+        } else {
+          handleLotSelect(lotIdParam);
+        }
       }
     }
   }, [lotIdParam, availableBalances]);
@@ -266,11 +271,14 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
                   Carregando...
                 </SelectItem>
               ) : availableBalances.length > 0 ? (
-                availableBalances.map((lot) => (
-                  <SelectItem key={lot.Id} value={lot.Id}>
-                    {lot.SnapshotOfferName || 'Contrato'} - {lot.RemainingQuantity} vídeos
-                  </SelectItem>
-                ))
+                availableBalances.map((lot) => {
+                  const isBlocked = !!lot.InvoiceId && lot.InvoiceStatus !== 'Paid';
+                  return (
+                    <SelectItem key={lot.Id} value={lot.Id} disabled={isBlocked}>
+                      {lot.SnapshotOfferName || 'Contrato'} - {lot.RemainingQuantity} vídeos {isBlocked ? '(Fatura Pendente)' : ''}
+                    </SelectItem>
+                  );
+                })
               ) : (
                 <SelectItem value="none" disabled>
                   Nenhum lote disponível

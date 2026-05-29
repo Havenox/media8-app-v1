@@ -16,7 +16,8 @@ import {
   Clock,
   MoreHorizontal,
   Plus,
-  ShoppingCart
+  ShoppingCart,
+  CreditCard
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -203,6 +204,9 @@ export const ServiceCard = ({
   const expInfo = getExpirationInfo(lot);
   const fidelityInfo = isSubscription ? getFidelityInfo(lot.PurchaseDate, lot.ExpiresAt, lot.SnapshotWarrantyDays) : null;
 
+  const isBlocked = !!lot.InvoiceId && lot.InvoiceStatus !== 'Paid';
+  const isOverdue = lot.InvoiceStatus === 'Overdue';
+
   const percentConsumed = lot.TotalQuantity > 0 
     ? Math.round(((lot.TotalQuantity - lot.RemainingQuantity) / lot.TotalQuantity) * 100)
     : 0;
@@ -212,16 +216,22 @@ export const ServiceCard = ({
       "relative overflow-hidden transition-all hover:shadow-md border-l-4 p-5 flex flex-col justify-between w-full min-h-[220px] h-full select-none",
       expInfo.isExpired
         ? "bg-[#F3F4F6]/70 border-[#E5E7EB] border-l-[#9CA3AF] opacity-75"
-        : cn(
-            "bg-[#FFFBED] border-[#E8E0D0]",
-            isSubscription 
-              ? "border-l-[#7B0A0A]" 
-              : expInfo.isUrgent 
-                ? "border-l-amber-600" 
-                : "border-l-[#400404]"
-          ),
+        : isBlocked
+          ? "bg-[#FFFDF0] border-amber-200 border-l-amber-500"
+          : cn(
+              "bg-[#FFFBED] border-[#E8E0D0]",
+              isSubscription 
+                ? "border-l-[#7B0A0A]" 
+                : expInfo.isUrgent 
+                  ? "border-l-amber-600" 
+                  : "border-l-[#400404]"
+            ),
       !canConsume && "cursor-pointer",
-      !canConsume && !expInfo.isExpired && (isHovered || menuOpen) && "shadow-lg ring-1 ring-primary/20 bg-[#FFFDF6]"
+      !canConsume && !expInfo.isExpired && (isHovered || menuOpen) && (
+        isBlocked
+          ? "shadow-lg ring-1 ring-amber-500/20 bg-[#FFFDF5]"
+          : "shadow-lg ring-1 ring-primary/20 bg-[#FFFDF6]"
+      )
     )}>
       {/* Top Section: Title & Credits Row */}
       <div className="flex justify-between items-start gap-2 mb-3">
@@ -230,11 +240,13 @@ export const ServiceCard = ({
             "p-1.5 rounded-full text-[#FFFBED]",
             expInfo.isExpired
               ? "bg-[#9CA3AF]"
-              : isSubscription 
-                ? "bg-[#7B0A0A]" 
-                : expInfo.isUrgent 
-                  ? "bg-amber-600" 
-                  : "bg-[#400404]"
+              : isBlocked
+                ? "bg-amber-500"
+                : isSubscription 
+                  ? "bg-[#7B0A0A]" 
+                  : expInfo.isUrgent 
+                    ? "bg-amber-600" 
+                    : "bg-[#400404]"
           )}>
             <Icon className="h-3.5 w-3.5" />
           </div>
@@ -288,12 +300,12 @@ export const ServiceCard = ({
       <div className="w-full my-2">
         <div className={cn(
           "w-full h-1 rounded-full overflow-hidden",
-          expInfo.isExpired ? "bg-neutral-200" : "bg-[#E8E0D0]/50"
+          isBlocked || expInfo.isExpired ? "bg-neutral-200" : "bg-[#E8E0D0]/50"
         )}>
           <div 
             className={cn(
               "h-full rounded-full transition-all duration-500",
-              expInfo.isExpired
+              isBlocked || expInfo.isExpired
                 ? "bg-neutral-400"
                 : isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
             )}
@@ -307,21 +319,30 @@ export const ServiceCard = ({
       </div>
 
       {/* UX Warning Banner (Prazo acabando, rollover, etc.) */}
-      {expInfo.warningText && (
-        <div className={cn(
-          "flex items-center gap-1.5 text-[10px] font-semibold py-1 px-2 rounded-md my-2 w-full border",
-          expInfo.isExpired
-            ? "bg-red-500/10 text-red-700 border-red-500/20"
-            : "bg-amber-500/10 text-amber-800 border-amber-500/20"
-        )}>
-          {expInfo.isExpired ? (
-            <AlertCircle className="h-3 w-3 shrink-0" />
-          ) : (
-            <AlertTriangle className="h-3 w-3 shrink-0" />
-          )}
-          <span className="truncate">{expInfo.warningText}</span>
-        </div>
-      )}
+      {(() => {
+        const warningText = isBlocked 
+          ? (isOverdue 
+              ? 'Fatura Atrasada • Saldo bloqueado aguardando pagamento' 
+              : 'Fatura Pendente • Saldo bloqueado aguardando pagamento')
+          : expInfo.warningText;
+        return warningText ? (
+          <div className={cn(
+            "flex items-center gap-1.5 text-[10px] font-semibold py-1 px-2 rounded-md my-2 w-full border",
+            isBlocked
+              ? "bg-amber-500/10 text-amber-800 border-amber-500/20"
+              : expInfo.isExpired
+                ? "bg-red-500/10 text-red-700 border-red-500/20"
+                : "bg-amber-500/10 text-amber-800 border-amber-500/20"
+          )}>
+            {isBlocked || !expInfo.isExpired ? (
+              <AlertTriangle className="h-3 w-3 shrink-0" />
+            ) : (
+              <AlertCircle className="h-3 w-3 shrink-0" />
+            )}
+            <span className="truncate">{warningText}</span>
+          </div>
+        ) : null;
+      })()}
 
       {/* Footer & Action Row */}
       <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-dashed border-[#E8E0D0] text-[11px]">
@@ -356,19 +377,46 @@ export const ServiceCard = ({
 
         {/* Consume Button */}
         {canConsume && (
+          <div className="flex items-center gap-1.5 shrink-0">
+            {isBlocked && (
+              <Button
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate('/admin/payments');
+                }}
+                className="h-7 px-3 text-[11px] font-bold bg-amber-600 hover:bg-amber-700 text-white shrink-0"
+              >
+                Pagar Fatura
+              </Button>
+            )}
+            <Button
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onConsume?.(lot);
+              }}
+              disabled={lot.RemainingQuantity <= 0 || expInfo.isExpired || isBlocked}
+              className={cn(
+                "h-7 px-3 text-[11px] font-bold text-[#FFFBED] shrink-0",
+                isSubscription ? "bg-[#7B0A0A] hover:bg-[#5C1212]" : "bg-[#400404] hover:bg-[#5C1212]"
+              )}
+            >
+              Usar
+            </Button>
+          </div>
+        )}
+
+        {!canConsume && isBlocked && (
           <Button
             size="sm"
             onClick={(e) => {
               e.stopPropagation();
-              onConsume?.(lot);
+              navigate('/admin/payments');
             }}
-            disabled={lot.RemainingQuantity <= 0 || expInfo.isExpired}
-            className={cn(
-              "h-7 px-3 text-[11px] font-bold text-[#FFFBED] shrink-0",
-              isSubscription ? "bg-[#7B0A0A] hover:bg-[#5C1212]" : "bg-[#400404] hover:bg-[#5C1212]"
-            )}
+            className="h-7 px-3 text-[11px] font-bold bg-amber-600 hover:bg-amber-700 text-white shrink-0"
           >
-            Usar
+            Pagar Fatura
           </Button>
         )}
       </div>
@@ -408,17 +456,27 @@ export const ServiceCard = ({
           align="end" 
           className="w-48 bg-[#FFFBED] border-[#E8E0D0] shadow-xl z-50"
         >
-          <DropdownMenuItem 
-            onClick={() => navigate(`/orders/new?lotId=${lot.Id}`)}
-            disabled={expInfo.isExpired}
-            className={cn(
-              "flex items-center gap-2 cursor-pointer text-[#400404] hover:bg-[#E8E0D0]/30 focus:bg-[#E8E0D0]/30 font-medium",
-              expInfo.isExpired && "opacity-50 cursor-not-allowed"
-            )}
-          >
-            <Plus className="h-4 w-4" />
-            <span>Novo Pedido</span>
-          </DropdownMenuItem>
+          {isBlocked ? (
+            <DropdownMenuItem 
+              onClick={() => navigate('/admin/payments')}
+              className="flex items-center gap-2 cursor-pointer text-amber-800 hover:bg-amber-500/10 focus:bg-amber-500/10 font-semibold"
+            >
+              <CreditCard className="h-4 w-4" />
+              <span>Pagar Fatura</span>
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem 
+              onClick={() => navigate(`/orders/new?lotId=${lot.Id}`)}
+              disabled={expInfo.isExpired}
+              className={cn(
+                "flex items-center gap-2 cursor-pointer text-[#400404] hover:bg-[#E8E0D0]/30 focus:bg-[#E8E0D0]/30 font-medium",
+                expInfo.isExpired && "opacity-50 cursor-not-allowed"
+              )}
+            >
+              <Plus className="h-4 w-4" />
+              <span>Novo Pedido</span>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem 
             onClick={() => navigate('/')}
             className="flex items-center gap-2 cursor-pointer text-[#400404] hover:bg-[#E8E0D0]/30 focus:bg-[#E8E0D0]/30"
@@ -445,11 +503,15 @@ export const ServiceListItem = ({
   canConsume: boolean;
   onConsume?: (lot: UnifiedServiceBalance) => void;
 }) => {
+  const navigate = useNavigate();
   const Icon = getIcon(lot.SnapshotVideoFormatName);
   const isSubscription = lot.ContractType === 'Assinatura';
   const expInfo = getExpirationInfo(lot);
   const fidelityInfo = isSubscription ? getFidelityInfo(lot.PurchaseDate, lot.ExpiresAt, lot.SnapshotWarrantyDays) : null;
   
+  const isBlocked = !!lot.InvoiceId && lot.InvoiceStatus !== 'Paid';
+  const isOverdue = lot.InvoiceStatus === 'Overdue';
+
   const percentConsumed = lot.TotalQuantity > 0 
     ? Math.round(((lot.TotalQuantity - lot.RemainingQuantity) / lot.TotalQuantity) * 100)
     : 0;
@@ -459,14 +521,16 @@ export const ServiceListItem = ({
       "relative rounded-lg p-3 border transition-all border-l-4",
       expInfo.isExpired
         ? "bg-[#F3F4F6]/70 border-[#E5E7EB] border-l-[#9CA3AF] opacity-75"
-        : cn(
-            "bg-[#FFFBED] border-[#E8E0D0] hover:bg-muted/50",
-            isSubscription 
-              ? "border-l-[#7B0A0A]" 
-              : expInfo.isUrgent
-                ? "border-l-amber-600"
-                : "border-l-[#400404]"
-          )
+        : isBlocked
+          ? "bg-[#FFFDF0] border-amber-200 border-l-amber-500"
+          : cn(
+              "bg-[#FFFBED] border-[#E8E0D0] hover:bg-muted/50",
+              isSubscription 
+                ? "border-l-[#7B0A0A]" 
+                : expInfo.isUrgent
+                  ? "border-l-amber-600"
+                  : "border-l-[#400404]"
+            )
     )}>
       {/* Main Flex Row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -476,7 +540,9 @@ export const ServiceListItem = ({
             "p-1.5 rounded-md text-white shrink-0",
             expInfo.isExpired
               ? "bg-[#9CA3AF]"
-              : isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
+              : isBlocked
+                ? "bg-amber-500"
+                : isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
           )}>
             <Icon className="h-3.5 w-3.5" />
           </div>
@@ -525,20 +591,41 @@ export const ServiceListItem = ({
             </span>
           </div>
 
-          {canConsume && (
-            <Button
-              size="sm"
-              className={cn(
-                "h-7 px-3 text-xs font-semibold text-[#FFFBED]",
-                isSubscription 
-                  ? "bg-[#7B0A0A] hover:bg-[#5C1212]" 
-                  : "bg-[#400404] hover:bg-[#5C1212]"
+          {canConsume ? (
+            <div className="flex items-center gap-2">
+              {isBlocked && (
+                <Button
+                  size="sm"
+                  className="h-7 px-3 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white"
+                  onClick={() => navigate('/admin/payments')}
+                >
+                  Pagar Fatura
+                </Button>
               )}
-              onClick={() => onConsume?.(lot)}
-              disabled={lot.RemainingQuantity <= 0 || expInfo.isExpired}
-            >
-              Usar
-            </Button>
+              <Button
+                size="sm"
+                className={cn(
+                  "h-7 px-3 text-xs font-semibold text-[#FFFBED]",
+                  isSubscription 
+                    ? "bg-[#7B0A0A] hover:bg-[#5C1212]" 
+                    : "bg-[#400404] hover:bg-[#5C1212]"
+                )}
+                onClick={() => onConsume?.(lot)}
+                disabled={lot.RemainingQuantity <= 0 || expInfo.isExpired || isBlocked}
+              >
+                Usar
+              </Button>
+            </div>
+          ) : (
+            isBlocked && (
+              <Button
+                size="sm"
+                className="h-7 px-3 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white"
+                onClick={() => navigate('/admin/payments')}
+              >
+                Pagar Fatura
+              </Button>
+            )
           )}
         </div>
       </div>
@@ -547,12 +634,12 @@ export const ServiceListItem = ({
       <div className="w-full mt-2.5">
         <div className={cn(
           "w-full h-1 rounded-full overflow-hidden",
-          expInfo.isExpired ? "bg-neutral-200" : "bg-[#E8E0D0]/50"
+          isBlocked || expInfo.isExpired ? "bg-neutral-200" : "bg-[#E8E0D0]/50"
         )}>
           <div 
             className={cn(
               "h-full rounded-full transition-all duration-500",
-              expInfo.isExpired
+              isBlocked || expInfo.isExpired
                 ? "bg-neutral-400"
                 : isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
             )}
@@ -562,21 +649,30 @@ export const ServiceListItem = ({
       </div>
 
       {/* Warning message */}
-      {expInfo.warningText && (
-        <div className={cn(
-          "flex items-center gap-1.5 text-[9px] font-semibold py-0.5 px-1.5 rounded mt-2 border w-fit",
-          expInfo.isExpired
-            ? "bg-red-500/10 text-red-700 border-red-500/10"
-            : "bg-amber-500/10 text-amber-800 border-amber-500/10"
-        )}>
-          {expInfo.isExpired ? (
-            <AlertCircle className="h-3 w-3" />
-          ) : (
-            <AlertTriangle className="h-3 w-3" />
-          )}
-          <span>{expInfo.warningText}</span>
-        </div>
-      )}
+      {(() => {
+        const warningText = isBlocked 
+          ? (isOverdue 
+              ? 'Fatura Atrasada • Saldo bloqueado aguardando pagamento' 
+              : 'Fatura Pendente • Saldo bloqueado aguardando pagamento')
+          : expInfo.warningText;
+        return warningText ? (
+          <div className={cn(
+            "flex items-center gap-1.5 text-[9px] font-semibold py-0.5 px-1.5 rounded mt-2 border w-fit",
+            isBlocked
+              ? "bg-amber-500/10 text-amber-800 border-amber-500/10"
+              : expInfo.isExpired
+                ? "bg-red-500/10 text-red-700 border-red-500/10"
+                : "bg-amber-500/10 text-amber-800 border-amber-500/10"
+          )}>
+            {isBlocked || !expInfo.isExpired ? (
+              <AlertTriangle className="h-3 w-3" />
+            ) : (
+              <AlertCircle className="h-3 w-3" />
+            )}
+            <span>{warningText}</span>
+          </div>
+        ) : null;
+      })()}
 
       {/* Footer Info */}
       <div className="flex items-center justify-between text-[10px] text-muted-foreground mt-1.5 pt-1.5 border-t border-dashed border-[#E8E0D0]">

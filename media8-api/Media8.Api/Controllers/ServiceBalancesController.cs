@@ -74,29 +74,31 @@ public class ServiceBalancesController : ControllerBase
         return Ok(dtos);
     }
 
-private static UnifiedServiceBalanceDto MapToUnifiedDto(ServiceBalanceLot lot)
-{
-return new UnifiedServiceBalanceDto
-{
-Id = lot.Id,
+    private static UnifiedServiceBalanceDto MapToUnifiedDto(ServiceBalanceLot lot)
+    {
+        return new UnifiedServiceBalanceDto
+        {
+            Id = lot.Id,
 
-// Snapshot Comercial
-SnapshotOfferName = lot.Contract?.SnapshotOfferName ?? "Contrato Sem Nome",
-SnapshotVideoQuantity = lot.Contract?.SnapshotVideoQuantity ?? lot.Quantity,
-ContractType = lot.Contract?.SnapshotContractType.ToString() ?? lot.Contract?.Offer?.ContractType.ToString() ?? "Desconhecido",
-SnapshotWarrantyDays = lot.Contract?.SnapshotWarrantyDays,
+            // Snapshot Comercial
+            SnapshotOfferName = lot.Contract?.SnapshotOfferName ?? "Contrato Sem Nome",
+            SnapshotVideoQuantity = lot.Contract?.SnapshotVideoQuantity ?? lot.Quantity,
+            ContractType = lot.Contract?.SnapshotContractType.ToString() ?? lot.Contract?.Offer?.ContractType.ToString() ?? "Desconhecido",
+            SnapshotWarrantyDays = lot.Contract?.SnapshotWarrantyDays,
 
-// Snapshot Técnico
-SnapshotVideoFormatName = lot.Contract?.SnapshotVideoFormatName ?? "Formato Desconhecido",
-SnapshotEditingStyleName = lot.Contract?.SnapshotEditingStyleName ?? "Estilo Desconhecido",
-SnapshotMaxDurationSeconds = lot.Contract?.SnapshotMaxDurationSeconds ?? 0,
+            // Snapshot Técnico
+            SnapshotVideoFormatName = lot.Contract?.SnapshotVideoFormatName ?? "Formato Desconhecido",
+            SnapshotEditingStyleName = lot.Contract?.SnapshotEditingStyleName ?? "Estilo Desconhecido",
+            SnapshotMaxDurationSeconds = lot.Contract?.SnapshotMaxDurationSeconds ?? 0,
 
-// Dados do Lote
-RemainingQuantity = lot.RemainingQuantity,
-TotalQuantity = lot.Contract?.SnapshotVideoQuantity ?? lot.Quantity,
-ExpiresAt = lot.ExpiresAt,
-PurchaseDate = lot.Contract?.ActivatedAt ?? lot.Contract?.CreatedAt ?? lot.CreatedAt,
-Status = lot.ExpiresAt.HasValue && lot.ExpiresAt.Value < DateTime.UtcNow ? "expired" : "active"
-};
-}
+            // Dados do Lote
+            RemainingQuantity = lot.RemainingQuantity,
+            TotalQuantity = lot.Contract?.SnapshotVideoQuantity ?? lot.Quantity,
+            ExpiresAt = lot.ExpiresAt,
+            PurchaseDate = lot.Contract?.ActivatedAt ?? lot.Contract?.CreatedAt ?? lot.CreatedAt,
+            Status = lot.ExpiresAt.HasValue && lot.ExpiresAt.Value < DateTime.UtcNow ? "expired" : "active",
+            InvoiceId = lot.InvoiceId,
+            InvoiceStatus = lot.Invoice?.Status.ToString()
+        };
+    }
 }

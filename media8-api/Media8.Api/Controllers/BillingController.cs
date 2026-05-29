@@ -284,21 +284,6 @@ public class BillingController : ControllerBase
             };
             _context.ClientContracts.Add(contractToday);
 
-            var lotToday = new ServiceBalanceLot
-            {
-                Id = Guid.NewGuid(),
-                UserId = clientId,
-                ContractId = contractToday.Id,
-                Quantity = planoStart.VideoQuantity,
-                RemainingQuantity = planoStart.VideoQuantity,
-                CreatedAt = now,
-                ExpiresAt = now.AddMonths(1),
-                Source = LotSource.Purchase,
-                AssignmentId = contractToday.Id,
-                UpdatedAt = now
-            };
-            _context.ServiceBalanceLots.Add(lotToday);
-
             var invoiceToday = new Invoice
             {
                 Id = Guid.NewGuid(),
@@ -315,6 +300,22 @@ public class BillingController : ControllerBase
                 UpdatedAt = now
             };
             _context.Invoices.Add(invoiceToday);
+
+            var lotToday = new ServiceBalanceLot
+            {
+                Id = Guid.NewGuid(),
+                UserId = clientId,
+                ContractId = contractToday.Id,
+                Quantity = planoStart.VideoQuantity,
+                RemainingQuantity = planoStart.VideoQuantity,
+                CreatedAt = now,
+                ExpiresAt = now.AddMonths(1),
+                Source = LotSource.Purchase,
+                AssignmentId = contractToday.Id,
+                InvoiceId = invoiceToday.Id, // Vincula à fatura
+                UpdatedAt = now
+            };
+            _context.ServiceBalanceLots.Add(lotToday);
 
             // 2. Três assinaturas na data de 15/03/2026 (renovada em abril, aguardando maio)
             var date15March = new DateTime(2026, 3, 15, 12, 0, 0, DateTimeKind.Utc);
@@ -376,6 +377,7 @@ public class BillingController : ControllerBase
                     ExpiresAt = date15April,
                     Source = LotSource.Purchase,
                     AssignmentId = contractPast.Id,
+                    InvoiceId = invoiceM1.Id, // Vincula à fatura M1
                     UpdatedAt = date15March
                 };
                 _context.ServiceBalanceLots.Add(lotM1);
@@ -409,11 +411,12 @@ public class BillingController : ControllerBase
                     ExpiresAt = date15May,
                     Source = LotSource.Subscription,
                     AssignmentId = contractPast.Id,
+                    InvoiceId = invoiceM2.Id, // Vincula à fatura M2
                     UpdatedAt = date15April
                 };
                 _context.ServiceBalanceLots.Add(lotM2);
 
-                // Mês 3: Pendente (aguardando renovar pro mes 5)
+                // Mês 3: Pendente (saldo gerado na virada do ciclo, mas travado aguardando pagamento)
                 var invoiceM3 = new Invoice
                 {
                     Id = Guid.NewGuid(),
@@ -430,6 +433,22 @@ public class BillingController : ControllerBase
                     UpdatedAt = date15May
                 };
                 _context.Invoices.Add(invoiceM3);
+
+                var lotM3 = new ServiceBalanceLot
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = clientId,
+                    ContractId = contractPast.Id,
+                    Quantity = planoScale.VideoQuantity,
+                    RemainingQuantity = planoScale.VideoQuantity, // 10 créditos pendentes
+                    CreatedAt = date15May,
+                    ExpiresAt = date15May.AddMonths(1), // Vence em 15/06
+                    Source = LotSource.Subscription,
+                    AssignmentId = contractPast.Id,
+                    InvoiceId = invoiceM3.Id, // Vincula à fatura M3 pendente!
+                    UpdatedAt = date15May
+                };
+                _context.ServiceBalanceLots.Add(lotM3);
             }
 
             await _context.SaveChangesAsync();

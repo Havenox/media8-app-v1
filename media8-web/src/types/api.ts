@@ -103,6 +103,8 @@ export interface ServiceBalanceLot {
     SnapshotOfferName: string;
   };
   VideoFormat?: VideoFormat;
+  InvoiceId?: string | null;
+  InvoiceStatus?: string | null;
 }
 
 export interface Order {

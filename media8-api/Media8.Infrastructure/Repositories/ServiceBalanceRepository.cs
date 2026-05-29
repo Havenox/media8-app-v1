@@ -20,6 +20,7 @@ public class ServiceBalanceRepository : Repository<ServiceBalanceLot>, IServiceB
         var query = _dbSet
             .Include(x => x.Contract) // Eager Load ClientContract for Snapshot
                 .ThenInclude(c => c.Offer)
+            .Include(x => x.Invoice) // Eager Load Invoice
             .Where(x => x.UserId == userId);
 
         var now = DateTime.UtcNow;

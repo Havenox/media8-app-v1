@@ -31,6 +31,8 @@ export interface UnifiedServiceBalance {
   ExpiresAt: string | null; // Data de expiração
   PurchaseDate: string; // Data de compra
   Status: string; // "active", "expired", "depleted"
+  InvoiceId: string | null;
+  InvoiceStatus: string | null;
 }
 
 // Resultado do consumo de serviço

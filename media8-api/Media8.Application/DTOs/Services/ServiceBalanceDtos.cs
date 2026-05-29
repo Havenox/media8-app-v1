@@ -47,5 +47,7 @@ public int RemainingQuantity { get; set; } // Saldo restante
 public int TotalQuantity { get; set; } // Total original
 public DateTime? ExpiresAt { get; set; } // Data de expiração
 public DateTime PurchaseDate { get; set; } // Data de compra
-public string Status { get; set; } = "active"; // active, expired, depleted
+    public string Status { get; set; } = "active"; // active, expired, depleted
+    public Guid? InvoiceId { get; set; }
+    public string? InvoiceStatus { get; set; }
 }

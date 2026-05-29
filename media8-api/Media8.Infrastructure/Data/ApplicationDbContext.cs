@@ -97,6 +97,13 @@ public DbSet<BrandingProfile> BrandingProfiles => Set<BrandingProfile>();
 
         // Configurations
 
+        // ServiceBalanceLot relationship with Invoice
+        modelBuilder.Entity<ServiceBalanceLot>()
+            .HasOne(x => x.Invoice)
+            .WithMany()
+            .HasForeignKey(x => x.InvoiceId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // User
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Email)

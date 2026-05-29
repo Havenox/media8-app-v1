@@ -5,6 +5,7 @@ using Media8.Domain.Common;
 using Media8.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Media8.Api.Controllers;
 
@@ -38,7 +39,9 @@ public class OrdersController : ControllerBase
 
         try
         {
-            var balanceLot = await _balanceRepository.GetByIdAsync(request.ServiceBalanceLotId);
+            var balanceLot = await _balanceRepository.Query<ServiceBalanceLot>()
+                .Include(x => x.Invoice)
+                .FirstOrDefaultAsync(x => x.Id == request.ServiceBalanceLotId);
 
             if (balanceLot == null)
             {
@@ -58,6 +61,11 @@ public class OrdersController : ControllerBase
             if (balanceLot.ExpiresAt.HasValue && balanceLot.ExpiresAt.Value < DateTime.UtcNow)
             {
                 throw new BusinessRuleException("Lote de saldo expirado.", "BALANCE_LOT_EXPIRED");
+            }
+
+            if (balanceLot.InvoiceId.HasValue && balanceLot.Invoice != null && balanceLot.Invoice.Status != Domain.Enums.InvoiceStatus.Paid)
+            {
+                throw new BusinessRuleException("Não é possível utilizar um saldo associado a uma fatura pendente.", "INVOICE_PENDING");
             }
 
             var response = await _orderService.CreateAsync(request, userId, request.ServiceBalanceLotId);
