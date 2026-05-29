@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, ExternalLink, HelpCircle, Scissors, Package, ShoppingBag } from 'lucide-react';
+import { Menu, ExternalLink, HelpCircle, Scissors, Package, ShoppingBag, FileText } from 'lucide-react';
 import {
   LayoutDashboard,
   FolderKanban,
@@ -27,6 +27,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
   { icon: FolderKanban, label: 'Pedidos', path: '/orders', roles: ['Admin', 'Client'] },
+  { icon: FileText, label: 'Contratos', path: '/contracts', roles: ['Admin', 'Client'] },
   { icon: ShoppingBag, label: 'Serviços', path: '/services', roles: ['Admin', 'Client'] },
   { icon: Scissors, label: 'Edições', path: '/edits', roles: ['Admin', 'Editor'] },
   { icon: Users, label: 'Usuários', path: '/users', roles: ['Admin'] },

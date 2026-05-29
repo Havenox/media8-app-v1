@@ -22,6 +22,7 @@ import NewOrderPage from "@/pages/NewOrderPage";
 import OrderDetailPage from "@/pages/OrderDetailPage";
 import UsersPage from "@/pages/UsersPage";
 import ServicesPage from "@/pages/ServicesPage";
+import ContractsPage from "@/pages/ContractsPage";
 
 import SettingsPage from "@/pages/SettingsPage";
 import NotificationsPage from "@/pages/NotificationsPage";
@@ -61,6 +62,12 @@ const App = () => (
                 <Route path="/services" element={
                   <ProtectedRoute allowedRoles={['Admin', 'Client']}>
                     <ServicesPage />
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/contracts" element={
+                  <ProtectedRoute allowedRoles={['Admin', 'Client']}>
+                    <ContractsPage />
                   </ProtectedRoute>
                 } />
                 
