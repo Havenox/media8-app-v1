@@ -96,13 +96,18 @@ Os desenvolvimentos foram divididos em **8 Grandes Marcos de Entrega**:
   - **Formatação DRY no React**: Criado o helper de visualização `formatSequentialId` em `src/lib/formatters.ts` que concatena dinamicamente o prefixo correspondente e adiciona preenchimento de zeros à esquerda (ex: `Contrato #0001`, `Pedido #0012`, `Fatura #0005`, `Marca #0002`, `Perfil #0003`), mantendo a lógica de visualização totalmente flexível e desacoplada do servidor.
 
 ### 9. Histórico e Gerenciamento de Contratos (/contracts)
-* **Desafio**: Os clientes necessitavam de uma visualização clara, consolidada e histórica de todos os contratos adquiridos na plataforma, sem expor chaves GUID opacas e sem poluir a tela principal com contratos antigos, expirados ou cancelados. Além disso, os dados precisavam ser buscados de forma segura pelo próprio cliente, sem risco de vazamento de dados de terceiros (vulnerabilidades anti-IDOR).
+* **Desafio**: Os clientes necessitavam de uma visualização clara, consolidada e histórica de todos os contratos adquiridos na plataforma, sem expor chaves GUID opacas e sem poluir a tela principal com contratos antigos, expirados ou cancelados. Além disso, os dados precisavam ser buscados de forma segura pelo próprio cliente, sem risco de vazamento de dados de terceiros (vulnerabilidades anti-IDOR). Outro desafio crítico era a governança comercial de pagamentos em atraso (overdue) e saldo esgotado (depleted), onde faturas abertas deveriam bloquear novos checkouts e colocar contratos pendentes em destaque máximo no topo da tela, sem que a paginação escondesse esses casos urgentes em páginas posteriores.
 * **Solução**:
   - **Propriedade de Arquivamento**: Adicionado o campo `IsArchived` na entidade `ClientContract` com migração física automática aplicada no Postgres.
   - **API Segura e Isolada**: Criado o endpoint seguro `GET api/v1/ClientContracts/my` no backend, resolvendo o `ClientId` do usuário autenticado a partir do token JWT e filtrando os resultados pelo status de arquivamento (`showArchived`).
   - **Ações Contextuais**: Adicionados endpoints em `ClientContractsController` para arquivar e desarquivar contratos de forma restrita e autoritativa.
   - **Interface Responsiva Premium**: Construída a tela `ContractsPage.tsx` com tabs reativas ("Ativos" e "Arquivados"), filtros textuais instantâneos, visual acinzentado (grey-out) para contratos expirados/cancelados e dropdown Radix contendo atalhos rápidos ("Novo Pedido", "Renovar", "Arquivar/Desarquivar").
   - **Navegação Sincronizada**: Registrada a rota `/contracts` no `App.tsx` e integrados os botões com ícone `FileText` nas sidebars e barras móveis do app.
+  - **Paginação de Alta Performance (Backend & Frontend)**: Implementada paginação com parâmetros `page` e `pageSize` (padrão 10) nas queries do banco de dados, transmitindo a contagem absoluta no cabeçalho customizado `X-Total-Count` e integrando com o componente global de Scroll Infinito (`<InfiniteScroll />`) no React.
+  - **Segregação Estrita de Roles**: Condicionado o disparo das queries React Query (`enabled`) dependendo da role do usuário logado, eliminando completamente loops e erros de 403 Forbidden no console do navegador.
+  - **Controle de Bloqueio por Inadimplência**: Implementadas propriedades no DTO e frontend para identificar faturas pendentes ou vencidas (`HasPendingInvoice`), exibindo a mensagem pulsante em vermelho `"Fatura Pendente: Aguardando pagamento"`, bloqueando visualmente e desabilitando o botão de "Novo Pedido".
+  - **Pré-Seleção Inteligente de Lote**: Vinculado o ID do lote ativo (`ActiveLotId`) do contrato ao botão de "Novo Pedido" através de parâmetros de consulta (`?lotId=...`), automatizando a escolha do saldo e pulando etapas desnecessárias no formulário de checkout.
+  - **Ordenação Crítica de Inadimplência na API**: Otimizada a query LINQ do EF Core para ordenar contratos inadimplentes primeiro e por menor vencimento (`Min(DueDate)`) antes da paginação (`Skip().Take()`). Isso garante que os casos urgentes sejam sempre carregados na Página 1, evitando que fiquem ocultos em páginas subsequentes e permitindo a organização e ordenação perfeita do frontend.
 
 ---
 
@@ -112,6 +117,21 @@ Abaixo está a trilha de commits atômicos gerados, agrupados por ordem cronoló
 
 | Hash | Componente | Descrição |
 |---|---|---|
+| `b7eb862` | Documentação | docs: adiciona estudo de caso 093 sobre governanca de faturamento e bloqueio por inadimplencia |
+| `3b5920d` | Documentação | docs: adiciona estudo de caso 092 sobre paginacao infinita e segregacao de roles |
+| `1a08777` | Documentação | docs: adiciona estudo de caso 091 sobre historico de contratos e isolamento de tenant |
+| `b9939d8` | Frontend (Style) | style(contracts): exibe encerra para assinaturas e ajusta exibicao de esgotado para contratos expirados |
+| `febf59d` | Backend/Frontend | feat(sorting): prioriza contratos e servicos com faturamento em atraso e organiza contratos depleted como inativos |
+| `496a3f7` | Frontend (UI) | feat(contracts): adiciona bloqueio por inadimplencia, pre-selecao de lote e tratamento de saldo esgotado nos cards |
+| `0dc4f21` | Frontend (Style) | style(contracts): adiciona indicador de tempo restante de expiracao nos cards |
+| `f267826` | Frontend (Style) | style(contracts): alinhamento vertical pixel-perfect na linha de detalhes tecnicos |
+| `96e0199` | Frontend (Style) | style(contracts): ajustes visuais adicionais no card do contrato |
+| `a76c452` | Frontend (Fix) | fix(contracts): remove duplicidade na declaracao de warrantyDays |
+| `b08e214` | Frontend/Backend | fix(contracts): calculo de expiracao de fidelidade, rotulo expira e remocao de dados mutaveis da oferta |
+| `db82c5b` | Frontend/Backend | fix(contracts): correcao de roles, rotas administrativas e adicao de rolagem infinita com paginacao |
+| `cefdbec` | Frontend (Style) | style(contracts): unify active card styles, implement dynamic cycle labels, sort active first |
+| `608835e` | Backend (Fix) | fix(contracts): load all client contracts for Admin role and map client info |
+| `db60bb6` | Documentação | docs(preservation): atualiza relatório de preservação com commits de correção do claim e reposição do menu |
 | `b3a6a71` | Frontend (Nav) | style(web/navigation): reposiciona o menu de contratos para ficar acima do item de configurações |
 | `b3d5d79` | Backend (API) | fix(api/controller): corrige resolução do claim de identificação do usuário substituindo sub por NameIdentifier |
 | `05ae7d9` | Frontend (UI) | feat(web/ui): cria a tela de histórico e gestão de contratos com design system premium |
