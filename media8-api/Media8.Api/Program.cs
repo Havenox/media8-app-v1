@@ -91,6 +91,9 @@ builder.Services.AddApplication();
 // Add Settings Service (Singleton with In-Memory Cache)
 builder.Services.AddSingleton<Media8.Application.Interfaces.ISettingsService, Media8.Application.Services.SettingsService>();
 
+// Registrar o Worker em segundo plano para ciclo de assinaturas
+builder.Services.AddHostedService<Media8.Api.Workers.SubscriptionRenewalWorker>();
+
 var app = builder.Build();
 
 // Run Seeder and Initialize Settings Cache

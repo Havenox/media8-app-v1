@@ -10,9 +10,15 @@ public interface IServiceBalanceService
 /// </summary>
 Task<bool> ConsumeAsync(Guid userId, Guid contractId, int quantity = 1);
 
-/// <summary>
-/// Provisiona saldo de serviço baseado em contrato com snapshot
-/// Cria lote de saldo APENAS com dados numéricos e ContractId
-/// </summary>
-Task ProvisionContractBalanceAsync(ClientContract contract, Offer offer);
+    /// <summary>
+    /// Provisiona saldo de serviço baseado em contrato com snapshot
+    /// Cria lote de saldo APENAS com dados numéricos e ContractId
+    /// </summary>
+    Task ProvisionContractBalanceAsync(ClientContract contract, Offer offer);
+
+    /// <summary>
+    /// Renova o ciclo mensal de uma assinatura ativa se o lote atual tiver expirado.
+    /// Suporta renovação automática (via worker) ou confirmação manual (via admin).
+    /// </summary>
+    Task<bool> RenewSubscriptionCycleAsync(Guid contractId, bool isManualAdminAction);
 }

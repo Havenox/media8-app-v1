@@ -321,4 +321,21 @@ return CreatedAtAction(nameof(GetContractById), new { id = contract.Id }, respon
 
         return NoContent();
     }
+
+    /// <summary>
+    /// Renova manualmente o ciclo de uma assinatura ativa (apenas para administradores).
+    /// Utilizado quando a confirmação manual de pagamento está ativada.
+    /// </summary>
+    [HttpPost("{id:guid}/renew")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult> RenewContract(Guid id)
+    {
+        var success = await _serviceBalanceService.RenewSubscriptionCycleAsync(id, isManualAdminAction: true);
+        if (!success)
+        {
+            return BadRequest(new { message = "Não foi possível renovar este contrato. Verifique se ele está ativo e se o lote atual já expirou." });
+        }
+
+        return Ok(new { message = "Assinatura renovada e créditos provisionados com sucesso para o próximo ciclo." });
+    }
 }
