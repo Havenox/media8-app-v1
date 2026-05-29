@@ -83,6 +83,7 @@ Abaixo está a trilha de commits atômicos gerados, agrupados por ordem cronoló
 
 | Hash | Componente | Descrição |
 |---|---|---|
+| `968a737` | Frontend (Style) | Inverte a lógica da largura da barra de progresso para exibir o restante e decrescer conforme consumo |
 | `62479e8` | Frontend (UI) | Adiciona o input de dias de antecedência de faturamento no painel de configurações do admin |
 | `f37b746` | Backend (Services) | Implementa controle e seed de `BillingAntecipationDays`, pré-geração de faturas antecipadas e restrição de segurança de `CancellationWindowHours` para 1h |
 | `a0745ee` | Documentação | Sincroniza hashes finais de commits de documentação do caso de estudo 087 no relatório de preservação |
