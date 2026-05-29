@@ -55,13 +55,16 @@ Os desenvolvimentos foram divididos em **5 Grandes Marcos de Entrega**:
   - **BillingController**: Endpoints `/admin/billing/invoices` e `/confirm-payment` para conciliação física.
   - **PaymentsPage**: Tela administrativa estilizada com busca, tabs por status e modal para inserção do Pix e código de transação para liberação de créditos imediata.
 
-### 5. Lógica de Ciclos de Calendário (AddMonths) e Exibição de Fidelidade
+### 5. Lógica de Ciclos de Calendário, Exibição de Fidelidade e Visual de Expirados
 * **Desafio**: 
   - O cálculo de vencimento somava múltiplos de 30 dias fixos, fazendo a data de cobrança do cliente sofrer deriva (drift) ao longo dos meses de 31 dias ou fevereiro.
   - A exibição do mês de fidelidade (ex: `Mês 3/6`) nos cartões de saldo no frontend era calculada comparando a data de início com a data atual (`today`), o que fazia com que todos os lotes (mesmo os remanescentes de meses passados) exibissem incorretamente o número do mês corrente da fidelidade.
+  - Lotes expirados inativos apareciam com a mesma cor creme e vinho/amber dos lotes ativos, causando poluição visual. Além disso, a ordenação de urgência no frontend e backend colocava os expirados do mais antigo para o mais recente, contrariando a expectativa de colocar os expirados mais recentes no topo.
 * **Solução**:
   - Modificado o `ServiceBalanceService.cs` para aplicar `.AddMonths(ciclo)` na expiração de lotes e vencimento de faturas de assinaturas, mantendo o dia de aniversário calendário constante (ex: 15/03, 15/04, 15/05), enquanto pacotes e avulsos mantêm contagem por dias de validade.
   - Ajustado o frontend em `ServiceCard.tsx` para cruzar a data de compra original (`PurchaseDate`) com a expiração individual de cada lote (`ExpiresAt`) em vez da data de hoje, assinalando com precisão o mês correto de cada cartão individualmente.
+  - Aplicado visual acinzentado (`bg-[#F3F4F6]/70`, `border-l-[#9CA3AF]`, `opacity-75` e textos `text-neutral-500`) em cartões e itens de lista expirados em `ServiceCard.tsx`.
+  - Corrigido o algoritmo de ordenação por urgência no frontend (`ServiceBalanceList.tsx` e `ServicesPage.tsx`) e backend (`ServiceBalanceRepository.cs`) para classificar lotes expirados de forma descendente (mais recentes no topo).
 
 ---
 
@@ -71,6 +74,9 @@ Abaixo está a trilha de commits atômicos gerados, agrupados por ordem cronoló
 
 | Hash | Componente | Descrição |
 |---|---|---|
+| `e280133` | Documentação | Adiciona estudo de caso 086 sobre ordenação de expirados e cards cinza |
+| `c442ee0` | Frontend/Backend | Corrige ordenação por urgência colocando expirados mais recentes no topo |
+| `519e979` | Frontend (Comp) | Aplica visual acinzentado (grey-out) a cartões de saldo expirados |
 | `17c0337` | Documentação | Adiciona estudo de caso 085 sobre exibição do mês de fidelidade no dashboard |
 | `defb8fd` | Frontend (Comp) | Cruza PurchaseDate com ExpiresAt para exibir corretamente o mês da fidelidade nos cards |
 | `6d11d98` | Documentação | Adiciona estudo de caso 084 sobre ciclos mensais de calendário para assinaturas |
