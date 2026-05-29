@@ -20,6 +20,7 @@ Os desenvolvimentos foram divididos em **8 Grandes Marcos de Entrega**:
 6. **Bloqueio de Saldos por Fatura Pendente**: Provisionamento de créditos imediatos vinculados a faturas na virada do ciclo, com bloqueio rígido e autoritativo no backend (Consume e Create Order) e alertas visuais / redirecionamentos premium no frontend.
 7. **Exibição de Fim de Contrato & Opções de Renovação**: Adaptação visual dos rodapés para assinaturas no último mês de vigência ("Contrato Encerra dia X"), exclusão de gatilhos de auto-renovação de faturas e inclusão de botões e links diretos para renovação contratual (/contracts/:id/renew).
 8. **Identificadores Sequenciais Amigáveis por Cliente (SequentialId)**: Numeração amigável sequencial (ex: `Contrato #0001`, `Pedido #0012`) escopada por cliente, implementada via tabela de contadores centralizadora e transações ACID no PostgreSQL para evitar colisões concorrentes, com formatação flexível e DRY no frontend.
+9. **Histórico e Gerenciamento de Contratos (/contracts)**: Tela adaptativa e dedicada para clientes e administradores revisitarem o histórico de contratações (snapshots imutáveis), com suporte a abas de Ativos/Arquivados, busca reativa, visual grey-out para expirados e isolamento rígido de tenant (anti-IDOR) resolvido por tokens JWT no backend.
 
 ---
 
@@ -94,6 +95,15 @@ Os desenvolvimentos foram divididos em **8 Grandes Marcos de Entrega**:
   - **DTOs & Controllers**: Atualizados mapeamentos de resposta nos controladores `ClientContracts`, `BrandingProfiles`, `EditingProfiles`, `Billing` e no serviço de pedidos para trafegar a nova coluna.
   - **Formatação DRY no React**: Criado o helper de visualização `formatSequentialId` em `src/lib/formatters.ts` que concatena dinamicamente o prefixo correspondente e adiciona preenchimento de zeros à esquerda (ex: `Contrato #0001`, `Pedido #0012`, `Fatura #0005`, `Marca #0002`, `Perfil #0003`), mantendo a lógica de visualização totalmente flexível e desacoplada do servidor.
 
+### 9. Histórico e Gerenciamento de Contratos (/contracts)
+* **Desafio**: Os clientes necessitavam de uma visualização clara, consolidada e histórica de todos os contratos adquiridos na plataforma, sem expor chaves GUID opacas e sem poluir a tela principal com contratos antigos, expirados ou cancelados. Além disso, os dados precisavam ser buscados de forma segura pelo próprio cliente, sem risco de vazamento de dados de terceiros (vulnerabilidades anti-IDOR).
+* **Solução**:
+  - **Propriedade de Arquivamento**: Adicionado o campo `IsArchived` na entidade `ClientContract` com migração física automática aplicada no Postgres.
+  - **API Segura e Isolada**: Criado o endpoint seguro `GET api/v1/ClientContracts/my` no backend, resolvendo o `ClientId` do usuário autenticado a partir do token JWT e filtrando os resultados pelo status de arquivamento (`showArchived`).
+  - **Ações Contextuais**: Adicionados endpoints em `ClientContractsController` para arquivar e desarquivar contratos de forma restrita e autoritativa.
+  - **Interface Responsiva Premium**: Construída a tela `ContractsPage.tsx` com tabs reativas ("Ativos" e "Arquivados"), filtros textuais instantâneos, visual acinzentado (grey-out) para contratos expirados/cancelados e dropdown Radix contendo atalhos rápidos ("Novo Pedido", "Renovar", "Arquivar/Desarquivar").
+  - **Navegação Sincronizada**: Registrada a rota `/contracts` no `App.tsx` e integrados os botões com ícone `FileText` nas sidebars e barras móveis do app.
+
 ---
 
 ## 🛠️ Histórico Completo de Commits Realizados
@@ -102,6 +112,11 @@ Abaixo está a trilha de commits atômicos gerados, agrupados por ordem cronoló
 
 | Hash | Componente | Descrição |
 |---|---|---|
+| `05ae7d9` | Frontend (UI) | feat(web/ui): cria a tela de histórico e gestão de contratos com design system premium |
+| `5be3bbc` | Frontend (Nav) | feat(web/navigation): registra a rota /contracts e insere o item de menu nas sidebars e nav bars |
+| `2a5cfd3` | Frontend (API) | feat(web/api): integra tipos, serviços e hooks de React Query para gerenciamento e arquivamento de contratos |
+| `06b23f3` | Backend (API) | feat(api/controller): expõe IsArchived nos DTOs e cria endpoints de tenant e arquivamento seguro |
+| `401e7c1` | Backend (Domain) | feat(api/domain): adiciona campo IsArchived à entidade de contratos e gera migração física |
 | `7d0040a` | Frontend (Style) | style(web): move a badge do contrato do card de serviços para um subtexto sutil |
 | `e43b525` | Documentação | docs(preservation): atualiza relatorio de preservacao de contexto com os novos hashes e sessao do SequentialId |
 | `e1dd3ce` | Documentação | docs: adiciona estudo de caso 090 sobre identificadores sequenciais amigaveis |
