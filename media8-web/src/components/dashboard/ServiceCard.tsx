@@ -38,8 +38,16 @@ const getIcon = (name: string) => {
   return Video;
 };
 
-const renderContractTypeBadge = (contractType: string) => {
+const renderContractTypeBadge = (contractType: string, isExpired?: boolean) => {
   if (!contractType || contractType === 'Desconhecido') return null;
+  
+  if (isExpired) {
+    return (
+      <Badge variant="secondary" className="text-[9px] px-1.5 py-0.5 h-4 font-semibold border rounded-sm bg-neutral-200 text-neutral-500 border-neutral-300 hover:bg-neutral-200">
+        {contractType}
+      </Badge>
+    );
+  }
   
   const styles: Record<string, string> = {
     Assinatura: "bg-[#7B0A0A]/10 text-[#7B0A0A] border-[#7B0A0A]/20 hover:bg-[#7B0A0A]/10",
@@ -201,33 +209,55 @@ export const ServiceCard = ({
 
   const cardContent = (
     <Card className={cn(
-      "relative overflow-hidden transition-all hover:shadow-md border-l-4 p-5 flex flex-col justify-between bg-[#FFFBED] border-[#E8E0D0] w-full min-h-[220px] h-full select-none",
-      isSubscription 
-        ? "border-l-[#7B0A0A]" 
-        : expInfo.isUrgent 
-          ? "border-l-amber-600" 
-          : "border-l-[#400404]",
+      "relative overflow-hidden transition-all hover:shadow-md border-l-4 p-5 flex flex-col justify-between w-full min-h-[220px] h-full select-none",
+      expInfo.isExpired
+        ? "bg-[#F3F4F6]/70 border-[#E5E7EB] border-l-[#9CA3AF] opacity-75"
+        : cn(
+            "bg-[#FFFBED] border-[#E8E0D0]",
+            isSubscription 
+              ? "border-l-[#7B0A0A]" 
+              : expInfo.isUrgent 
+                ? "border-l-amber-600" 
+                : "border-l-[#400404]"
+          ),
       !canConsume && "cursor-pointer",
-      !canConsume && (isHovered || menuOpen) && "shadow-lg ring-1 ring-primary/20 bg-[#FFFDF6]"
+      !canConsume && !expInfo.isExpired && (isHovered || menuOpen) && "shadow-lg ring-1 ring-primary/20 bg-[#FFFDF6]"
     )}>
       {/* Top Section: Title & Credits Row */}
       <div className="flex justify-between items-start gap-2 mb-3">
         <div className="flex items-center gap-2.5">
           <div className={cn(
             "p-1.5 rounded-full text-[#FFFBED]",
-            isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
+            expInfo.isExpired
+              ? "bg-[#9CA3AF]"
+              : isSubscription 
+                ? "bg-[#7B0A0A]" 
+                : expInfo.isUrgent 
+                  ? "bg-amber-600" 
+                  : "bg-[#400404]"
           )}>
             <Icon className="h-3.5 w-3.5" />
           </div>
           <div>
             <div className="flex items-center gap-1.5 flex-wrap max-w-[170px] sm:max-w-[200px]">
-              <CardTitle className="text-base font-bold text-[#400404] line-clamp-1 leading-none" title={lot.SnapshotOfferName}>
+              <CardTitle className={cn(
+                "text-base font-bold line-clamp-1 leading-none",
+                expInfo.isExpired ? "text-neutral-500" : "text-[#400404]"
+              )} title={lot.SnapshotOfferName}>
                 {lot.SnapshotOfferName}
               </CardTitle>
               <div className="flex items-center gap-1 flex-wrap">
-                {renderContractTypeBadge(lot.ContractType)}
+                {renderContractTypeBadge(lot.ContractType, expInfo.isExpired)}
                 {fidelityInfo && (
-                  <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 h-4 border-[#7B0A0A]/20 bg-[#7B0A0A]/5 text-[#7B0A0A] font-semibold uppercase tracking-wider rounded-sm">
+                  <Badge 
+                    variant="outline" 
+                    className={cn(
+                      "text-[9px] px-1.5 py-0.5 h-4 font-semibold uppercase tracking-wider rounded-sm",
+                      expInfo.isExpired 
+                        ? "border-neutral-300 bg-neutral-100 text-neutral-500" 
+                        : "border-[#7B0A0A]/20 bg-[#7B0A0A]/5 text-[#7B0A0A]"
+                    )}
+                  >
                     Mês {fidelityInfo.currentMonth}/{fidelityInfo.totalMonths}
                   </Badge>
                 )}
@@ -241,7 +271,10 @@ export const ServiceCard = ({
 
         {/* Credits */}
         <div className="text-right shrink-0">
-          <span className="text-lg font-extrabold text-[#400404]">
+          <span className={cn(
+            "text-lg font-extrabold",
+            expInfo.isExpired ? "text-neutral-500" : "text-[#400404]"
+          )}>
             {lot.RemainingQuantity}
           </span>
           <span className="text-[11px] text-muted-foreground ml-0.5">
@@ -253,11 +286,16 @@ export const ServiceCard = ({
 
       {/* Progress Bar */}
       <div className="w-full my-2">
-        <div className="w-full h-1 bg-[#E8E0D0]/50 rounded-full overflow-hidden">
+        <div className={cn(
+          "w-full h-1 rounded-full overflow-hidden",
+          expInfo.isExpired ? "bg-neutral-200" : "bg-[#E8E0D0]/50"
+        )}>
           <div 
             className={cn(
               "h-full rounded-full transition-all duration-500",
-              isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
+              expInfo.isExpired
+                ? "bg-neutral-400"
+                : isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
             )}
             style={{ width: `${percentConsumed}%` }}
           />
@@ -292,15 +330,23 @@ export const ServiceCard = ({
           {isSubscription ? (
             <div className={cn(
               "flex items-center gap-1 min-w-0",
-              expInfo.isUrgent ? "text-orange-600 font-bold" : "text-[#7B0A0A] font-medium"
+              expInfo.isExpired
+                ? "text-neutral-500 font-medium"
+                : expInfo.isUrgent 
+                  ? "text-orange-600 font-bold" 
+                  : "text-[#7B0A0A] font-medium"
             )}>
-              <RefreshCw className={cn("h-3 w-3 shrink-0", expInfo.isUrgent && "animate-spin")} style={{ animationDuration: '4s' }} />
+              <RefreshCw className={cn("h-3 w-3 shrink-0", expInfo.isUrgent && !expInfo.isExpired && "animate-spin")} style={{ animationDuration: '4s' }} />
               <span className="truncate" title={expInfo.text}>{expInfo.text}</span>
             </div>
           ) : (
             <div className={cn(
               "flex items-center gap-1 min-w-0",
-              expInfo.isUrgent ? "text-orange-600 font-bold" : "text-amber-900/70"
+              expInfo.isExpired
+                ? "text-neutral-500 font-medium"
+                : expInfo.isUrgent 
+                  ? "text-orange-600 font-bold" 
+                  : "text-amber-900/70"
             )}>
               <Clock className="h-3 w-3 shrink-0" />
               <span className="truncate" title={expInfo.text}>{expInfo.text}</span>
@@ -410,12 +456,17 @@ export const ServiceListItem = ({
 
   return (
     <div className={cn(
-      "relative rounded-lg p-3 border transition-all hover:bg-muted/50 border-l-4",
-      isSubscription 
-        ? "bg-[#FFFBED] border-[#E8E0D0] border-l-[#7B0A0A]" 
-        : expInfo.isUrgent
-          ? "bg-[#FFFBED] border-[#E8E0D0] border-l-amber-600"
-          : "bg-[#FFFBED] border-[#E8E0D0] border-l-[#400404]"
+      "relative rounded-lg p-3 border transition-all border-l-4",
+      expInfo.isExpired
+        ? "bg-[#F3F4F6]/70 border-[#E5E7EB] border-l-[#9CA3AF] opacity-75"
+        : cn(
+            "bg-[#FFFBED] border-[#E8E0D0] hover:bg-muted/50",
+            isSubscription 
+              ? "border-l-[#7B0A0A]" 
+              : expInfo.isUrgent
+                ? "border-l-amber-600"
+                : "border-l-[#400404]"
+          )
     )}>
       {/* Main Flex Row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -423,19 +474,32 @@ export const ServiceListItem = ({
         <div className="flex items-center gap-3">
           <div className={cn(
             "p-1.5 rounded-md text-white shrink-0",
-            isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
+            expInfo.isExpired
+              ? "bg-[#9CA3AF]"
+              : isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
           )}>
             <Icon className="h-3.5 w-3.5" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h4 className="text-sm font-bold text-[#400404] leading-none">
+              <h4 className={cn(
+                "text-sm font-bold leading-none",
+                expInfo.isExpired ? "text-neutral-500" : "text-[#400404]"
+              )}>
                 {lot.SnapshotOfferName}
               </h4>
               <div className="flex items-center gap-1">
-                {renderContractTypeBadge(lot.ContractType)}
+                {renderContractTypeBadge(lot.ContractType, expInfo.isExpired)}
                 {fidelityInfo && (
-                  <Badge variant="outline" className="text-[8px] px-1 h-3.5 border-[#7B0A0A]/20 bg-[#7B0A0A]/5 text-[#7B0A0A] font-semibold">
+                  <Badge 
+                    variant="outline" 
+                    className={cn(
+                      "text-[8px] px-1 h-3.5 font-semibold",
+                      expInfo.isExpired 
+                        ? "border-neutral-300 bg-neutral-100 text-neutral-500" 
+                        : "border-[#7B0A0A]/20 bg-[#7B0A0A]/5 text-[#7B0A0A]"
+                    )}
+                  >
                     Mês {fidelityInfo.currentMonth}/{fidelityInfo.totalMonths}
                   </Badge>
                 )}
@@ -450,7 +514,10 @@ export const ServiceListItem = ({
         {/* Right Section: Credits & Usage */}
         <div className="flex items-center gap-4 shrink-0 justify-between sm:justify-end">
           <div className="text-right">
-            <span className="text-base font-extrabold text-[#400404]">
+            <span className={cn(
+              "text-base font-extrabold",
+              expInfo.isExpired ? "text-neutral-500" : "text-[#400404]"
+            )}>
               {lot.RemainingQuantity}
             </span>
             <span className="text-xs text-muted-foreground ml-1">
@@ -478,11 +545,16 @@ export const ServiceListItem = ({
 
       {/* Thin elegant Progress Bar */}
       <div className="w-full mt-2.5">
-        <div className="w-full h-1 bg-[#E8E0D0]/50 rounded-full overflow-hidden">
+        <div className={cn(
+          "w-full h-1 rounded-full overflow-hidden",
+          expInfo.isExpired ? "bg-neutral-200" : "bg-[#E8E0D0]/50"
+        )}>
           <div 
             className={cn(
               "h-full rounded-full transition-all duration-500",
-              isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
+              expInfo.isExpired
+                ? "bg-neutral-400"
+                : isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
             )}
             style={{ width: `${percentConsumed}%` }}
           />
