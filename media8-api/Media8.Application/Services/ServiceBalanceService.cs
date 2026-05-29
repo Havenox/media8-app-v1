@@ -89,9 +89,13 @@ public class ServiceBalanceService : IServiceBalanceService
             return;
         }
 
-        // Calcula data de expiração com base no ValidityDays da oferta
+        // Calcula data de expiração com base no tipo de contrato e validade
         DateTime? expiresAt = null;
-        if (offer.ValidityDays.HasValue && offer.ValidityDays > 0)
+        if (contract.SnapshotContractType == ContractType.Assinatura)
+        {
+            expiresAt = contract.ActivatedAt.AddMonths(1);
+        }
+        else if (offer.ValidityDays.HasValue && offer.ValidityDays > 0)
         {
             expiresAt = contract.ActivatedAt.AddDays(offer.ValidityDays.Value);
         }
@@ -222,10 +226,10 @@ public class ServiceBalanceService : IServiceBalanceService
             return false;
         }
 
-        // 7. Obter ou Criar a Fatura do Próximo Ciclo (Aniversário)
+        // 7. Obter ou Criar a Fatura do Próximo Ciclo (Aniversário mensal calendário)
         int nextCycleNumber = generatedCount + 1;
-        DateTime nextExpiresAt = contract.ActivatedAt.AddDays(nextCycleNumber * 30);
-        DateTime nextDueDate = contract.ActivatedAt.AddDays(generatedCount * 30);
+        DateTime nextExpiresAt = contract.ActivatedAt.AddMonths(nextCycleNumber);
+        DateTime nextDueDate = contract.ActivatedAt.AddMonths(generatedCount);
 
         // Verifica se já existe uma fatura para o próximo ciclo
         var existingInvoices = await _invoiceRepository.FindAsync(i => 

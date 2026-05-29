@@ -292,7 +292,7 @@ public class BillingController : ControllerBase
                 Quantity = planoStart.VideoQuantity,
                 RemainingQuantity = planoStart.VideoQuantity,
                 CreatedAt = now,
-                ExpiresAt = now.AddDays(30),
+                ExpiresAt = now.AddMonths(1),
                 Source = LotSource.Purchase,
                 AssignmentId = contractToday.Id,
                 UpdatedAt = now
