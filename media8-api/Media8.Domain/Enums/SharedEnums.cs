@@ -84,3 +84,11 @@ public enum NotificationType
     Warning,
     Order
 }
+
+public enum InvoiceStatus
+{
+    Pending,
+    Paid,
+    Overdue,
+    Cancelled
+}

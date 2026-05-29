@@ -27,6 +27,8 @@ dataSourceBuilder.MapEnum<TimelineActionType>();
 dataSourceBuilder.MapEnum<AssignmentStatus>();
 dataSourceBuilder.MapEnum<LotSource>();
 dataSourceBuilder.MapEnum<NotificationType>();
+dataSourceBuilder.MapEnum<ContractType>();
+dataSourceBuilder.MapEnum<InvoiceStatus>();
 
 var dataSource = dataSourceBuilder.Build();
 

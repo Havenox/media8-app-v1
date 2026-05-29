@@ -17,6 +17,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderTimeline> OrderTimelines { get; set; }
     public DbSet<Notification> Notifications { get; set; }
+    public DbSet<Invoice> Invoices { get; set; }
 
     /// <summary>
     /// Entidade VideoFormat para catálogo dinâmico de formatos de vídeo
@@ -66,6 +67,7 @@ public DbSet<BrandingProfile> BrandingProfiles => Set<BrandingProfile>();
         modelBuilder.HasPostgresEnum<LotSource>();
         modelBuilder.HasPostgresEnum<NotificationType>();
         modelBuilder.HasPostgresEnum<ContractType>();
+        modelBuilder.HasPostgresEnum<InvoiceStatus>();
 
         // ==========================================
         // PASCALCASE TABLE MAPPING (Strict Standard)
@@ -91,6 +93,7 @@ public DbSet<BrandingProfile> BrandingProfiles => Set<BrandingProfile>();
         // Other
         modelBuilder.Entity<ServiceBalanceLot>().ToTable("ServiceBalanceLots");
         modelBuilder.Entity<Notification>().ToTable("Notifications");
+        modelBuilder.Entity<Invoice>().ToTable("Invoices");
 
         // Configurations
 
@@ -325,6 +328,26 @@ modelBuilder.Entity<BrandingProfile>(entity =>
           .WithMany()
           .HasForeignKey(ep => ep.UserId)
           .OnDelete(DeleteBehavior.Cascade);
+  });
+
+  // Invoice Configuration
+  modelBuilder.Entity<Invoice>(entity =>
+  {
+      entity.ToTable("Invoices");
+      entity.HasKey(i => i.Id);
+      entity.Property(i => i.Description).IsRequired().HasMaxLength(255);
+      entity.Property(i => i.Amount).IsRequired();
+      entity.Property(i => i.Status).IsRequired().HasDefaultValue(InvoiceStatus.Pending);
+
+      entity.HasOne(i => i.Client)
+          .WithMany()
+          .HasForeignKey(i => i.ClientId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+      entity.HasOne(i => i.Contract)
+          .WithMany()
+          .HasForeignKey(i => i.ContractId)
+          .OnDelete(DeleteBehavior.SetNull);
   });
 
   // Enforce DateOnly conversion if needed
