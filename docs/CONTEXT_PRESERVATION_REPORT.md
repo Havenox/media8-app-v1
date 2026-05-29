@@ -112,6 +112,8 @@ Abaixo está a trilha de commits atômicos gerados, agrupados por ordem cronoló
 
 | Hash | Componente | Descrição |
 |---|---|---|
+| `b3a6a71` | Frontend (Nav) | style(web/navigation): reposiciona o menu de contratos para ficar acima do item de configurações |
+| `b3d5d79` | Backend (API) | fix(api/controller): corrige resolução do claim de identificação do usuário substituindo sub por NameIdentifier |
 | `05ae7d9` | Frontend (UI) | feat(web/ui): cria a tela de histórico e gestão de contratos com design system premium |
 | `5be3bbc` | Frontend (Nav) | feat(web/navigation): registra a rota /contracts e insere o item de menu nas sidebars e nav bars |
 | `2a5cfd3` | Frontend (API) | feat(web/api): integra tipos, serviços e hooks de React Query para gerenciamento e arquivamento de contratos |
