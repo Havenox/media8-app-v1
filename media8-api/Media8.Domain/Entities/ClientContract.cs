@@ -92,6 +92,11 @@ public int? SnapshotDeliveryDays { get; set; }
     /// </summary>
     public int SequentialId { get; set; }
 
+    /// <summary>
+    /// Indica se o contrato foi arquivado pelo cliente para ocultá-lo da visualização principal
+    /// </summary>
+    public bool IsArchived { get; set; } = false;
+
 // ==========================================
 // SNAPSHOT TÉCNICO (Imutável - Sem FKs)
 // ==========================================
