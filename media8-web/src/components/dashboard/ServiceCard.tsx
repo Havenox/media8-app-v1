@@ -385,7 +385,7 @@ export const ServiceCard = ({
                   e.stopPropagation();
                   navigate('/admin/payments');
                 }}
-                className="h-7 px-3 text-[11px] font-bold bg-[#7B0A0A] hover:bg-[#5C1212] text-[#FFFBED] shrink-0"
+                className="h-7 px-3 text-[11px] font-bold bg-amber-600 hover:bg-amber-700 text-white shrink-0"
               >
                 Pagar Fatura
               </Button>
@@ -414,7 +414,7 @@ export const ServiceCard = ({
               e.stopPropagation();
               navigate('/admin/payments');
             }}
-            className="h-7 px-3 text-[11px] font-bold bg-[#7B0A0A] hover:bg-[#5C1212] text-[#FFFBED] shrink-0"
+            className="h-7 px-3 text-[11px] font-bold bg-amber-600 hover:bg-amber-700 text-white shrink-0"
           >
             Pagar Fatura
           </Button>
@@ -596,7 +596,7 @@ export const ServiceListItem = ({
               {isBlocked && (
                 <Button
                   size="sm"
-                  className="h-7 px-3 text-xs font-semibold bg-[#7B0A0A] hover:bg-[#5C1212] text-[#FFFBED]"
+                  className="h-7 px-3 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white"
                   onClick={() => navigate('/admin/payments')}
                 >
                   Pagar Fatura
@@ -620,7 +620,7 @@ export const ServiceListItem = ({
             isBlocked && (
               <Button
                 size="sm"
-                className="h-7 px-3 text-xs font-semibold bg-[#7B0A0A] hover:bg-[#5C1212] text-[#FFFBED]"
+                className="h-7 px-3 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white"
                 onClick={() => navigate('/admin/payments')}
               >
                 Pagar Fatura
