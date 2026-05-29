@@ -7,6 +7,7 @@ export interface Invoice {
   ClientEmail: string;
   ContractId?: string | null;
   ContractOfferName?: string | null;
+  SequentialId?: number;
   Description: string;
   Amount: number;
   CycleNumber?: number | null;

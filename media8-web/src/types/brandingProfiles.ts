@@ -8,6 +8,7 @@
 export interface BrandingProfile {
   Id: string;
   UserId: string;
+  SequentialId?: number;
   Name: string;
   SocialHandles: string;
   BrandColors: string;
@@ -42,6 +43,7 @@ export interface UpdateBrandingProfileRequest {
 export interface EditingProfile {
   Id: string;
   UserId: string;
+  SequentialId?: number;
   Name: string;
   ReferenceUrl: string;
   CutGuidelines: string;

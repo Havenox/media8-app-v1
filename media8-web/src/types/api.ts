@@ -113,6 +113,7 @@ export interface Order {
   Client?: User;
   EditorId?: string;
   Editor?: User;
+  SequentialId?: number;
   Title: string;
   Briefing: string;
   SourceFilesUrl: string;

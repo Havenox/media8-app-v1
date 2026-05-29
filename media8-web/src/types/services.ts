@@ -34,6 +34,7 @@ export interface UnifiedServiceBalance {
   InvoiceId: string | null;
   InvoiceStatus: string | null;
   ContractId?: string;
+  ContractSequentialId?: number;
 }
 
 // Resultado do consumo de serviço
