@@ -102,6 +102,15 @@ Abaixo está a trilha de commits atômicos gerados, agrupados por ordem cronoló
 
 | Hash | Componente | Descrição |
 |---|---|---|
+| `7d0040a` | Frontend (Style) | style(web): move a badge do contrato do card de serviços para um subtexto sutil |
+| `e43b525` | Documentação | docs(preservation): atualiza relatorio de preservacao de contexto com os novos hashes e sessao do SequentialId |
+| `e1dd3ce` | Documentação | docs: adiciona estudo de caso 090 sobre identificadores sequenciais amigaveis |
+| `3e2ff90` | Frontend (UI) | feat(web/ui): renderiza badges estilizadas com os identificadores sequenciais na interface do cliente |
+| `664ad42` | Frontend (Types) | feat(web/types): estende interfaces com campo SequentialId e cria helper utilitário de formatação DRY |
+| `7eb6b77` | Backend (API) | feat(api/dto): expõe campo SequentialId nos DTOs de resposta e mapeamentos dos controladores |
+| `154c0ef` | Backend (Services) | feat(api/services): implementa serviço SequenceGeneratorService e integra controle atômico nas criações |
+| `e52da63` | Backend (Domain) | feat(api/domain): adiciona entidade ClientSequence, mapeamentos no DbContext e migrações com índices compostos únicos |
+| `17e6c48` | Documentação | docs: adicionar caso de estudo 089 e atualizar relatorio de preservacao de contexto |
 | `cdfbd82` | Frontend/Backend | feat(web/api): exibir 'Contrato Encerra' no último mês e adicionar opção de renovação de contrato |
 | `74fd82b` | Frontend (Style) | Altera texto sob a barra de progresso para exibir "X% dos créditos disponíveis" |
 | `b8065bb` | Documentação | Atualiza o relatório de preservação de contexto com o hash do commit do estudo de caso 088 |
