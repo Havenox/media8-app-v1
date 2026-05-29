@@ -107,7 +107,7 @@ MaxDurationSeconds = cc.Offer.MaxDurationSeconds
     public async Task<ActionResult<ClientContractResponse>> GetContractById(Guid id)
     {
         // Usuários normais só podem ver seus próprios contratos
-        var userIdClaim = User.FindFirst("sub")?.Value;
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         var isClient = User.IsInRole("Client");
 
 var contract = await _context.ClientContracts
@@ -362,7 +362,7 @@ return CreatedAtAction(nameof(GetContractById), new { id = contract.Id }, respon
         [FromQuery] bool showArchived = false,
         [FromQuery] AssignmentStatus? status = null)
     {
-        var userIdClaim = User.FindFirst("sub")?.Value;
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (!Guid.TryParse(userIdClaim, out var clientId))
             return Unauthorized();
 
@@ -428,7 +428,7 @@ return CreatedAtAction(nameof(GetContractById), new { id = contract.Id }, respon
     [Authorize]
     public async Task<ActionResult> ArchiveContract(Guid id)
     {
-        var userIdClaim = User.FindFirst("sub")?.Value;
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         var isClient = User.IsInRole("Client");
 
         var contract = await _context.ClientContracts.FindAsync(id);
@@ -455,7 +455,7 @@ return CreatedAtAction(nameof(GetContractById), new { id = contract.Id }, respon
     [Authorize]
     public async Task<ActionResult> UnarchiveContract(Guid id)
     {
-        var userIdClaim = User.FindFirst("sub")?.Value;
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         var isClient = User.IsInRole("Client");
 
         var contract = await _context.ClientContracts.FindAsync(id);
