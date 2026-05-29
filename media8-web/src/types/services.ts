@@ -20,6 +20,7 @@ export interface UnifiedServiceBalance {
   SnapshotOfferName: string; // e.g. "Plano Growth"
   SnapshotVideoQuantity: number; // Quantidade de vídeos no snapshot
   ContractType: string; // "Assinatura" ou "Pacote"
+  SnapshotWarrantyDays?: number; // Tempo de fidelidade em dias
   // SNAPSHOT TÉCNICO (Imutável - Sem FKs)
   SnapshotVideoFormatName: string; // e.g. "Reels Premium"
   SnapshotEditingStyleName: string; // e.g. "Corporativo"

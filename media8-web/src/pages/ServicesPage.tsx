@@ -24,7 +24,7 @@ import {
 import { InfiniteScroll } from '@/components/ui/infinite-scroll';
 import { useServiceBalances } from '@/hooks/useServiceBalances';
 import { useAuth } from '@/contexts/AuthContext';
-import { ServiceCard } from '@/components/dashboard/ServiceBalanceList';
+import { ServiceCard } from '@/components/dashboard/ServiceCard';
 import { UnifiedServiceBalance, ServiceCategory } from '@/types/services';
 
 type StatusFilter = 'all' | 'active' | 'expired' | 'zeroed';
@@ -292,7 +292,7 @@ const ServicesPage: React.FC = () => {
           next={fetchNextPage}
           hasMore={!!hasNextPage}
           isLoading={isFetchingNextPage}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch w-full"
+          className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 items-stretch w-full"
         >
           {filteredServices.map((lot, index) => (
             <motion.div key={lot.Id} variants={itemVariants} className="h-full">
