@@ -100,7 +100,7 @@ $"Pedido {orderId} não pode ser cancelado no status {order.Status}.", "ORDER_IN
 }
 
 // Valida janela de tempo dinâmica via SettingsService
-var cancellationWindowHours = await _settingsService.GetSettingAsync<int>("CancellationWindowHours", 24);
+var cancellationWindowHours = await _settingsService.GetSettingAsync<int>("CancellationWindowHours", 1);
 var timeSinceCreation = DateTime.UtcNow - order.CreatedAt;
 
 if (timeSinceCreation.TotalHours > cancellationWindowHours)

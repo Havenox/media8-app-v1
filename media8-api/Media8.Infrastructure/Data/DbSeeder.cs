@@ -78,6 +78,50 @@ public class DbSeeder
             await _context.SaveChangesAsync();
         }
 
+        // ==========================================
+        // 4. Seed SystemSettings (default rules)
+        // ==========================================
+        bool settingsChanged = false;
+        var cancellationSetting = await _context.SystemSettings.FirstOrDefaultAsync(s => s.Key == "CancellationWindowHours");
+        if (cancellationSetting == null)
+        {
+            await _context.SystemSettings.AddAsync(new SystemSetting
+            {
+                Id = Guid.NewGuid(),
+                Key = "CancellationWindowHours",
+                Value = "1",
+                Description = "Janela de cancelamento de pedidos em horas",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
+            settingsChanged = true;
+        }
+        else if (cancellationSetting.Value == "24")
+        {
+            cancellationSetting.Value = "1";
+            _context.SystemSettings.Update(cancellationSetting);
+            settingsChanged = true;
+        }
+
+        if (!await _context.SystemSettings.AnyAsync(s => s.Key == "BillingAntecipationDays"))
+        {
+            await _context.SystemSettings.AddAsync(new SystemSetting
+            {
+                Id = Guid.NewGuid(),
+                Key = "BillingAntecipationDays",
+                Value = "10",
+                Description = "Dias de antecedência para geração de faturas de renovação",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
+            settingsChanged = true;
+        }
+
+        if (settingsChanged)
+        {
+            await _context.SaveChangesAsync();
+        }
+
         // No Packages or Orders seeding - clean schema
     }
 

@@ -331,5 +331,111 @@ public class ServiceBalanceService : IServiceBalanceService
 
         return false;
     }
+
+    /// <summary>
+    /// Pré-gera faturas para assinaturas ativas cujo ciclo atual está próximo do vencimento,
+    /// com base no número de dias de antecedência configurado no sistema.
+    /// </summary>
+    public async Task PreGenerateNextCycleInvoicesAsync()
+    {
+        // 1. Obter a configuração de dias de antecedência (default: 10)
+        var anticipationDays = await _settingsService.GetSettingAsync("BillingAntecipationDays", 10);
+        
+        var now = DateTime.UtcNow;
+        var limitDate = now.AddDays(anticipationDays);
+
+        // 2. Busca todas as assinaturas ativas
+        var activeSubscriptions = await _contractRepository.Query<ClientContract>()
+            .Include(c => c.ServiceBalanceLots)
+            .Where(c => c.SnapshotContractType == ContractType.Assinatura && c.Status == AssignmentStatus.Active)
+            .ToListAsync();
+
+        _logger.LogInformation("🔍 Iniciando pré-geração de faturas. Antecedência: {Days} dias. Limite: {LimitDate}. Assinaturas ativas: {Count}", 
+            anticipationDays, limitDate.ToString("yyyy-MM-dd HH:mm:ss"), activeSubscriptions.Count);
+
+        int generatedCount = 0;
+
+        foreach (var contract in activeSubscriptions)
+        {
+            // Busca o lote mais recente baseado em data de expiração
+            var latestLot = contract.ServiceBalanceLots
+                .OrderByDescending(l => l.ExpiresAt ?? DateTime.MinValue)
+                .FirstOrDefault();
+
+            // Se o último lote existe, expira no futuro, mas expira antes de ou igual a limitDate
+            if (latestLot != null && latestLot.ExpiresAt.HasValue && latestLot.ExpiresAt.Value > now && latestLot.ExpiresAt.Value <= limitDate)
+            {
+                // Conta lotes gerados para calcular o número do próximo ciclo
+                var generatedLotsCount = contract.ServiceBalanceLots
+                    .Count(l => l.Source == LotSource.Subscription || l.Source == LotSource.Purchase);
+
+                // Validação de fidelidade antes de gerar nova fatura
+                int totalAllowedMonths = contract.SnapshotWarrantyDays.HasValue && contract.SnapshotWarrantyDays.Value > 0
+                    ? (contract.SnapshotWarrantyDays.Value / 30)
+                    : -1;
+
+                if (totalAllowedMonths > 0 && generatedLotsCount >= totalAllowedMonths)
+                {
+                    // Contrato já atingiu ou vai atingir o limite de fidelidade com o lote atual
+                    // Não gera nova fatura pois o contrato não será renovado
+                    continue;
+                }
+
+                int nextCycleNumber = generatedLotsCount + 1;
+                DateTime nextDueDate = contract.ActivatedAt.AddMonths(generatedLotsCount);
+
+                // Verifica se já existe uma fatura para o próximo ciclo
+                var existingInvoices = await _invoiceRepository.FindAsync(i => 
+                    i.ContractId == contract.Id && 
+                    i.CycleNumber == nextCycleNumber
+                );
+                var cycleInvoice = existingInvoices.FirstOrDefault();
+
+                if (cycleInvoice == null)
+                {
+                    // Cria a fatura do novo ciclo como Pendente (ou Paid se requireManualPayment for falso)
+                    var description = $"Assinatura - {contract.SnapshotOfferName} - Mês {nextCycleNumber}";
+                    var amount = contract.SnapshotPrice ?? 0;
+
+                    InvoiceStatus status = InvoiceStatus.Pending;
+                    DateTime? paidAt = null;
+                    string? paymentMethod = null;
+
+                    var requireManualPayment = await _settingsService.GetSettingAsync("RequireManualPaymentConfirmation", false);
+                    if (!requireManualPayment)
+                    {
+                        status = InvoiceStatus.Paid;
+                        paidAt = now;
+                        paymentMethod = "Automatic";
+                    }
+
+                    cycleInvoice = new Invoice
+                    {
+                        ClientId = contract.ClientId,
+                        ContractId = contract.Id,
+                        Description = description,
+                        Amount = amount,
+                        CycleNumber = nextCycleNumber,
+                        DueDate = nextDueDate,
+                        Status = status,
+                        PaidAt = paidAt,
+                        PaymentMethod = paymentMethod,
+                        GatewayInvoiceId = null,
+                        TransactionId = null,
+                        CreatedAt = now,
+                        UpdatedAt = now
+                    };
+
+                    await _invoiceRepository.AddAsync(cycleInvoice);
+                    generatedCount++;
+                    
+                    _logger.LogInformation("📝 Fatura pré-gerada antecipadamente: {InvoiceId} | Contrato {ContractId} | Ciclo {Cycle} | Status {Status} | Vencimento {DueDate}",
+                        cycleInvoice.Id, contract.Id, nextCycleNumber, status, nextDueDate.ToString("yyyy-MM-dd HH:mm:ss"));
+                }
+            }
+        }
+
+        _logger.LogInformation("✅ Faturamento antecipado concluído. Faturas pré-geradas: {Count}", generatedCount);
+    }
 }
 

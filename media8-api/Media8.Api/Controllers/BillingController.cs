@@ -178,7 +178,17 @@ public class BillingController : ControllerBase
     {
         var now = DateTime.UtcNow;
 
-        // Filtra apenas assinaturas ativas
+        try
+        {
+            // 1. Executa o faturamento antecipado
+            await _serviceBalanceService.PreGenerateNextCycleInvoicesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Falha ao executar pré-geração de faturas no trigger manual.");
+        }
+
+        // 2. Filtra apenas assinaturas ativas
         var activeSubscriptions = await _context.ClientContracts
             .Include(c => c.ServiceBalanceLots)
             .Where(c => c.SnapshotContractType == ContractType.Assinatura && c.Status == AssignmentStatus.Active)
@@ -219,7 +229,7 @@ public class BillingController : ControllerBase
 
         return Ok(new 
         { 
-            message = "Processamento manual de renovação de assinaturas finalizado com sucesso.",
+            message = "Processamento manual de faturamento e renovação de assinaturas finalizado com sucesso.",
             totalActiveContractsChecked = activeSubscriptions.Count,
             eligibleExpiredLotsFound = processedCount,
             renewedActive = renewedCount,

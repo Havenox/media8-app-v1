@@ -21,4 +21,10 @@ Task<bool> ConsumeAsync(Guid userId, Guid contractId, int quantity = 1);
     /// Suporta renovação automática (via worker) ou confirmação manual (via admin).
     /// </summary>
     Task<bool> RenewSubscriptionCycleAsync(Guid contractId, bool isManualAdminAction);
+
+    /// <summary>
+    /// Pré-gera faturas para assinaturas ativas cujo ciclo atual está próximo do vencimento,
+    /// com base no número de dias de antecedência configurado no sistema.
+    /// </summary>
+    Task PreGenerateNextCycleInvoicesAsync();
 }

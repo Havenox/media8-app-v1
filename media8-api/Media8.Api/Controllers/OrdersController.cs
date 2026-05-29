@@ -166,12 +166,12 @@ public class OrdersController : ControllerBase
     {
         try
         {
-            var hours = await _settingsService.GetSettingAsync("CancellationWindowHours", 24);
+            var hours = await _settingsService.GetSettingAsync("CancellationWindowHours", 1);
             return Ok(hours);
         }
         catch
         {
-            return Ok(24);
+            return Ok(1);
         }
     }
 }

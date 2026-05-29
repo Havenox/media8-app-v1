@@ -33,6 +33,13 @@ public class SubscriptionRenewalWorker : BackgroundService
         {
             try
             {
+                _logger.LogInformation("🔍 Executando faturamento antecipado (pré-geração de faturas)...");
+                using (var scope = _serviceProvider.CreateScope())
+                {
+                    var balanceService = scope.ServiceProvider.GetRequiredService<IServiceBalanceService>();
+                    await balanceService.PreGenerateNextCycleInvoicesAsync();
+                }
+
                 _logger.LogInformation("🔍 Buscando assinaturas expiradas elegíveis para renovação...");
                 await RenewExpiredSubscriptionsAsync(stoppingToken);
             }
