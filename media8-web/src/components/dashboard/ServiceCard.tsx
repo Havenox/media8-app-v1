@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { UnifiedServiceBalance } from '@/types/services';
+import { formatSequentialId } from '@/lib/formatters';
 
 // ==========================================
 // UTILS & MAPS
@@ -274,11 +275,16 @@ export const ServiceCard = ({
           </div>
           <div>
             <div className="flex items-center gap-1.5 flex-wrap max-w-[220px] sm:max-w-[280px] min-w-0">
-              <CardTitle className={cn(
-                "text-base font-bold flex items-center gap-1.5 flex-wrap min-w-0 w-full",
-                isGrayedOut ? "text-neutral-500" : "text-[#400404]"
-              )} title={`${lot.SnapshotOfferName}${fidelityInfo ? ` [Mês ${fidelityInfo.currentMonth}/${fidelityInfo.totalMonths}]` : ''}`}>
-                <span className="truncate max-w-[140px] sm:max-w-[190px]" title={lot.SnapshotOfferName}>{lot.SnapshotOfferName}</span>
+               <CardTitle className={cn(
+                 "text-base font-bold flex items-center gap-1.5 flex-wrap min-w-0 w-full",
+                 isGrayedOut ? "text-neutral-500" : "text-[#400404]"
+               )} title={`${lot.SnapshotOfferName}${fidelityInfo ? ` [Mês ${fidelityInfo.currentMonth}/${fidelityInfo.totalMonths}]` : ''}`}>
+                 {lot.ContractSequentialId && (
+                   <span className="text-[10px] font-mono bg-[#7B0A0A]/5 border border-[#7B0A0A]/15 text-[#7B0A0A] font-bold px-1.5 py-[0.5px] rounded shrink-0 leading-none">
+                     {formatSequentialId(lot.ContractSequentialId, 'Contrato')}
+                   </span>
+                 )}
+                 <span className="truncate max-w-[140px] sm:max-w-[190px]" title={lot.SnapshotOfferName}>{lot.SnapshotOfferName}</span>
                 {fidelityInfo && (
                   <span className={cn(
                     "inline-flex items-center rounded-[2px] text-[9px] font-bold border border-dashed relative ml-1.5 px-1.5 py-[1px] shadow-sm shrink-0 leading-tight",
@@ -613,6 +619,11 @@ export const ServiceListItem = ({
                 "text-sm font-bold leading-none flex items-center gap-1.5 flex-wrap",
                 isGrayedOut ? "text-neutral-500" : "text-[#400404]"
               )}>
+                {lot.ContractSequentialId && (
+                  <span className="text-[10px] font-mono bg-[#7B0A0A]/5 border border-[#7B0A0A]/15 text-[#7B0A0A] font-bold px-1.5 py-[0.5px] rounded shrink-0 leading-none">
+                    {formatSequentialId(lot.ContractSequentialId, 'Contrato')}
+                  </span>
+                )}
                 <span>{lot.SnapshotOfferName}</span>
                 {fidelityInfo && (
                   <span className={cn(

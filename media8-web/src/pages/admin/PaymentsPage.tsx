@@ -46,6 +46,7 @@ import { useToast } from '@/hooks/use-toast';
 
 import { useInvoices, useConfirmPayment } from '@/hooks/useBilling';
 import { Invoice, InvoiceStatus } from '@/types/billing';
+import { formatSequentialId } from '@/lib/formatters';
 
 // ==========================================
 // FORM SCHEMA & HELPER
@@ -278,7 +279,14 @@ const PaymentsPage: React.FC = () => {
                 <TableRow key={invoice.Id} className="hover:bg-muted/30 transition-colors">
                   <TableCell>
                     <div className="space-y-0.5">
-                      <p className="font-semibold text-sm text-foreground">{invoice.Description}</p>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {invoice.SequentialId && (
+                          <span className="text-[9px] font-mono bg-[#7B0A0A]/5 border border-[#7B0A0A]/15 text-[#7B0A0A] font-bold px-1.5 py-[0.5px] rounded shrink-0 leading-none">
+                            {formatSequentialId(invoice.SequentialId, 'Fatura')}
+                          </span>
+                        )}
+                        <p className="font-semibold text-sm text-foreground">{invoice.Description}</p>
+                      </div>
                       {invoice.ContractOfferName && (
                         <p className="text-xs text-muted-foreground">
                           Contrato: {invoice.ContractOfferName}

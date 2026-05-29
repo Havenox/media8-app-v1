@@ -45,6 +45,7 @@ import { useOrders, useOrdersByClient, useDeleteOrder, useCancellationWindow } f
 import { useQuery } from '@tanstack/react-query';
 import { orderKeys } from '@/hooks/useOrders';
 import { orderService } from '@/services/orderService';
+import { formatSequentialId } from '@/lib/formatters';
 
 const OrdersPage: React.FC = () => {
   const { user } = useAuth();
@@ -188,7 +189,14 @@ const OrdersPage: React.FC = () => {
                       <Video className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <CardTitle className="text-base line-clamp-1">{order.Title}</CardTitle>
+                      <CardTitle className="text-base line-clamp-1 flex items-center gap-1.5 min-w-0">
+                        {order.SequentialId && (
+                          <span className="text-[10px] font-mono bg-[#7B0A0A]/5 border border-[#7B0A0A]/15 text-[#7B0A0A] font-bold px-1.5 py-[0.5px] rounded shrink-0 leading-none">
+                            {formatSequentialId(order.SequentialId, 'Pedido')}
+                          </span>
+                        )}
+                        <span className="truncate">{order.Title}</span>
+                      </CardTitle>
                       <div className="flex items-center gap-2 mt-1">
                         <StatusBadge status={order.Status} />
                       </div>

@@ -40,6 +40,7 @@ import { useToast } from '@/hooks/use-toast';
 import { OrderStatus, OrderTimeline, TimelineActionType } from '@/types/api';
 import { useQuery } from '@tanstack/react-query';
 import { orderService } from '@/services/orderService';
+import { formatSequentialId } from '@/lib/formatters';
 
 // Timeline is stored in-memory per session (will be replaced with API later)
 const OrderDetailPage: React.FC = () => {
@@ -246,11 +247,16 @@ const handleUpdateStatus = () => {
           </Button>
           <div>
             <div className="flex items-center gap-3">
+              {order.SequentialId && (
+                <span className="text-xs font-mono bg-[#7B0A0A]/5 border border-[#7B0A0A]/15 text-[#7B0A0A] font-bold px-2 py-0.5 rounded shrink-0 leading-none">
+                  {formatSequentialId(order.SequentialId, 'Pedido')}
+                </span>
+              )}
               <h1 className="text-2xl font-bold text-foreground">{order.Title}</h1>
               <StatusBadge status={order.Status} />
             </div>
             <p className="text-muted-foreground text-sm mt-1">
-              Pedido #{order.Id} • Criado em {format(new Date(order.CreatedAt), "dd 'de' MMMM", { locale: ptBR })}
+              {order.SequentialId ? `${formatSequentialId(order.SequentialId, 'Pedido')} • ` : ''}ID Interno: {order.Id} • Criado em {format(new Date(order.CreatedAt), "dd 'de' MMMM", { locale: ptBR })}
             </p>
           </div>
         </div>

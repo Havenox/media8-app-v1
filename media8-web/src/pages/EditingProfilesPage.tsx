@@ -55,6 +55,7 @@ import {
 import { EditingProfileForm } from '@/components/profiles/EditingProfileForm';
 import { useAuth } from '@/contexts/AuthContext';
 import { EditingProfile } from '@/types/brandingProfiles';
+import { formatSequentialId } from '@/lib/formatters';
 
 const EditingProfilesPage: React.FC = () => {
   const { user } = useAuth();
@@ -141,7 +142,14 @@ const EditingProfilesPage: React.FC = () => {
 
   const renderEditingProfileRow = (profile: any) => (
     <TableRow key={profile.Id} className="group">
-      <TableCell className="font-medium">{profile.Name}</TableCell>
+      <TableCell className="font-medium flex items-center gap-1.5 min-w-0">
+        {profile.SequentialId && (
+          <span className="text-[10px] font-mono bg-[#7B0A0A]/5 border border-[#7B0A0A]/15 text-[#7B0A0A] font-bold px-1.5 py-[0.5px] rounded shrink-0 leading-none">
+            {formatSequentialId(profile.SequentialId, 'Perfil')}
+          </span>
+        )}
+        <span className="truncate">{profile.Name}</span>
+      </TableCell>
       <TableCell className="hidden md:table-cell">{profile.MusicStyle}</TableCell>
       <TableCell className="hidden lg:table-cell">{profile.ThumbnailPreference}</TableCell>
       <TableCell className="hidden lg:table-cell">

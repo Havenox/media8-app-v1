@@ -47,6 +47,7 @@ import { useAvailableBalances, useCreateOrder } from '@/hooks/useOrders';
 import { useAuth } from '@/contexts/AuthContext';
 import { CreateBrandingProfileRequest } from '@/types/brandingProfiles';
 import { CreateEditingProfileRequest } from '@/types/brandingProfiles';
+import { formatSequentialId } from '@/lib/formatters';
 
 // Schema do formulário
 const orderSchema = z.object({
@@ -275,7 +276,7 @@ const [selectedEditingId, setSelectedEditingId] = useState('');
                   const isBlocked = !!lot.InvoiceId && lot.InvoiceStatus !== 'Paid';
                   return (
                     <SelectItem key={lot.Id} value={lot.Id} disabled={isBlocked}>
-                      {lot.SnapshotOfferName || 'Contrato'} - {lot.RemainingQuantity} vídeos {isBlocked ? '(Fatura Pendente)' : ''}
+                      {lot.ContractSequentialId ? `${formatSequentialId(lot.ContractSequentialId, 'Contrato')}: ` : ''}{lot.SnapshotOfferName || 'Contrato'} - {lot.RemainingQuantity} vídeos {isBlocked ? '(Fatura Pendente)' : ''}
                     </SelectItem>
                   );
                 })
