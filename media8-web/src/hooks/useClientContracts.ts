@@ -89,3 +89,51 @@ export const useUpdateClientContract = () => {
     },
   });
 };
+
+/**
+ * Fetch the authenticated client's contracts (active or archived)
+ */
+export const useMyClientContracts = (showArchived: boolean = false) => {
+  return useQuery({
+    queryKey: [...clientContractKeys.all, 'my', { showArchived }],
+    queryFn: () => clientContractService.getMyContracts(showArchived),
+  });
+};
+
+/**
+ * Archive an existing client contract (soft delete/hide)
+ */
+export const useArchiveClientContract = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => clientContractService.archive(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: clientContractKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['service-balances'] });
+      toast.success('Contrato arquivado com sucesso!');
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error));
+    },
+  });
+};
+
+/**
+ * Restore/Unarchive an archived client contract
+ */
+export const useUnarchiveClientContract = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => clientContractService.unarchive(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: clientContractKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['service-balances'] });
+      toast.success('Contrato desarquivado com sucesso!');
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error));
+    },
+  });
+};

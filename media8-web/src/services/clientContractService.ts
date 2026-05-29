@@ -33,11 +33,24 @@ return response.data;
 };
 
 const updateAPI = async (
-id: string,
-data: UpdateClientContractRequest
+  id: string,
+  data: UpdateClientContractRequest
 ): Promise<ClientContractResponse> => {
-const response = await api.put(`/ClientContracts/${id}`, data);
-return response.data;
+  const response = await api.put(`/ClientContracts/${id}`, data);
+  return response.data;
+};
+
+const getMyContractsAPI = async (showArchived: boolean = false): Promise<ClientContractResponse[]> => {
+  const response = await api.get(`/ClientContracts/my?showArchived=${showArchived}`);
+  return response.data;
+};
+
+const archiveAPI = async (id: string): Promise<void> => {
+  await api.post(`/ClientContracts/${id}/archive`);
+};
+
+const unarchiveAPI = async (id: string): Promise<void> => {
+  await api.post(`/ClientContracts/${id}/unarchive`);
 };
 
 // ==========================================
@@ -62,6 +75,18 @@ export const clientContractService = {
     data: UpdateClientContractRequest
   ): Promise<ClientContractResponse> {
     return updateAPI(id, data);
+  },
+
+  async getMyContracts(showArchived: boolean = false): Promise<ClientContractResponse[]> {
+    return getMyContractsAPI(showArchived);
+  },
+
+  async archive(id: string): Promise<void> {
+    return archiveAPI(id);
+  },
+
+  async unarchive(id: string): Promise<void> {
+    return unarchiveAPI(id);
   },
 };
 

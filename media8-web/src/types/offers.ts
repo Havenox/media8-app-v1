@@ -49,6 +49,7 @@ export interface ClientContract {
   ClientId: string;
   AssignedBy: string;
   SequentialId?: number;
+  IsArchived?: boolean;
 
   // Snapshot Imutável (cópia dos dados da oferta no momento da contratação)
   SnapshotOfferName?: string;
