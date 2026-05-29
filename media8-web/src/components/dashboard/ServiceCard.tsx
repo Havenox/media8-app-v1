@@ -145,18 +145,26 @@ const getExpirationInfo = (lot: UnifiedServiceBalance) => {
   };
 };
 
-const getFidelityInfo = (purchaseDateStr: string, warrantyDays: number | undefined) => {
+const getFidelityInfo = (purchaseDateStr: string, expiresAtStr: string | null, warrantyDays: number | undefined) => {
   if (!warrantyDays || warrantyDays <= 0) return null;
   const totalMonths = Math.round(warrantyDays / 30);
   if (totalMonths <= 0) return null;
 
   const purchaseDate = new Date(purchaseDateStr);
-  const today = new Date();
   
-  const diffTime = today.getTime() - purchaseDate.getTime();
+  // Calcula o mês atual cruzando a data de início (PurchaseDate) com a data de expiração do lote (ExpiresAt)
+  let targetDate = new Date();
+  if (expiresAtStr) {
+    targetDate = new Date(expiresAtStr);
+  } else {
+    // Fallback: se não tiver ExpiresAt, calcula +30 dias a partir da data de compra/cadastro
+    targetDate = new Date(purchaseDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+  }
+  
+  const diffTime = targetDate.getTime() - purchaseDate.getTime();
   const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
   
-  const currentMonth = Math.min(totalMonths, Math.ceil((diffDays + 1) / 30));
+  const currentMonth = Math.min(totalMonths, Math.max(1, Math.round(diffDays / 30)));
   
   return {
     text: `Fidelidade: Mês ${currentMonth}/${totalMonths}`,
@@ -185,7 +193,7 @@ export const ServiceCard = ({
   const Icon = getIcon(lot.SnapshotVideoFormatName);
   const isSubscription = lot.ContractType === 'Assinatura';
   const expInfo = getExpirationInfo(lot);
-  const fidelityInfo = isSubscription ? getFidelityInfo(lot.PurchaseDate, lot.SnapshotWarrantyDays) : null;
+  const fidelityInfo = isSubscription ? getFidelityInfo(lot.PurchaseDate, lot.ExpiresAt, lot.SnapshotWarrantyDays) : null;
 
   const percentConsumed = lot.TotalQuantity > 0 
     ? Math.round(((lot.TotalQuantity - lot.RemainingQuantity) / lot.TotalQuantity) * 100)
@@ -394,7 +402,7 @@ export const ServiceListItem = ({
   const Icon = getIcon(lot.SnapshotVideoFormatName);
   const isSubscription = lot.ContractType === 'Assinatura';
   const expInfo = getExpirationInfo(lot);
-  const fidelityInfo = isSubscription ? getFidelityInfo(lot.PurchaseDate, lot.SnapshotWarrantyDays) : null;
+  const fidelityInfo = isSubscription ? getFidelityInfo(lot.PurchaseDate, lot.ExpiresAt, lot.SnapshotWarrantyDays) : null;
   
   const percentConsumed = lot.TotalQuantity > 0 
     ? Math.round(((lot.TotalQuantity - lot.RemainingQuantity) / lot.TotalQuantity) * 100)
