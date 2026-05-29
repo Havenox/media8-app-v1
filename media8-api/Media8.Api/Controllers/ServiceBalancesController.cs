@@ -95,7 +95,7 @@ SnapshotMaxDurationSeconds = lot.Contract?.SnapshotMaxDurationSeconds ?? 0,
 RemainingQuantity = lot.RemainingQuantity,
 TotalQuantity = lot.Contract?.SnapshotVideoQuantity ?? lot.Quantity,
 ExpiresAt = lot.ExpiresAt,
-PurchaseDate = lot.CreatedAt,
+PurchaseDate = lot.Contract?.ActivatedAt ?? lot.Contract?.CreatedAt ?? lot.CreatedAt,
 Status = lot.ExpiresAt.HasValue && lot.ExpiresAt.Value < DateTime.UtcNow ? "expired" : "active"
 };
 }
