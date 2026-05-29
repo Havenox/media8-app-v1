@@ -10,7 +10,7 @@ Ele serve como o ponto único de verdade para que futuros agentes ou desenvolved
 
 O projeto passou por uma profunda reestruturação financeira, lógica e visual. O objetivo foi resolver gargalos graves de usabilidade na criação de pedidos, implementar o padrão ouro de UX nos cartões de saldo do dashboard, ressuscitar a página de listagem de serviços, automatizar a renovação de ciclos de assinatura recorrentes com segurança e introduzir um ecossistema completo de conciliação financeira de faturas (Invoices).
 
-Os desenvolvimentos foram divididos em **6 Grandes Marcos de Entrega**:
+Os desenvolvimentos foram divididos em **7 Grandes Marcos de Entrega**:
 
 1. **Correção de Novo Pedido (`/orders/new`)**: Desbloqueio do wizard e dropdowns reativos.
 2. **Aprimoramento de UX de Saldos (`ServiceCard`)**: Nova interface visual sob a identidade da marca, barras de progresso, ordenação FIFO/Urgência, badges de fidelidade e prevenção do loop infinito.
@@ -18,6 +18,7 @@ Os desenvolvimentos foram divididos em **6 Grandes Marcos de Entrega**:
 4. **Motor de Ciclos e Faturamento (`Invoices` & `RenewalWorker`)**: Introdução de faturas físicas no banco de dados Postgres, hosted service automatizado em background, conciliação manual por administradores e switch no painel admin.
 5. **Correção de Datas por Calendário (`AddMonths`)**: Transição da matemática de dias fixos (30 dias) para meses de calendário completos, eliminando o desvio de calendário (drift) e espelhando gateways como Stripe/Asaas.
 6. **Bloqueio de Saldos por Fatura Pendente**: Provisionamento de créditos imediatos vinculados a faturas na virada do ciclo, com bloqueio rígido e autoritativo no backend (Consume e Create Order) e alertas visuais / redirecionamentos premium no frontend.
+7. **Exibição de Fim de Contrato & Opções de Renovação**: Adaptação visual dos rodapés para assinaturas no último mês de vigência ("Contrato Encerra dia X"), exclusão de gatilhos de auto-renovação de faturas e inclusão de botões e links diretos para renovação contratual (/contracts/:id/renew).
 
 ---
 
@@ -75,6 +76,13 @@ Os desenvolvimentos foram divididos em **6 Grandes Marcos de Entrega**:
   - **UX/Visual Premium**: Atualizado `ServiceCard.tsx` (modos grid e list) para pintar cartões bloqueados em tons amarelos/âmbar (`bg-[#FFFDF0] border-amber-200 border-l-amber-500`), ocultar/desabilitar botões de uso e renderizar atalhos contextualizados "Pagar Fatura" para `/admin/payments`.
   - **Validação de Formulários**: Atualizado `NewOrderPage.tsx` para desativar seleções de lotes bloqueados e alertar via toast em caso de pré-seleções inválidas por query params.
 
+### 7. Exibição de Fim de Contrato & Opções de Renovação (Último Mês)
+* **Desafio**: No último mês de fidelidade da assinatura (ex: Mês 6/6), a mensagem padrão "Renova em X dias" era enganosa, pois a vigência seria encerrada em definitivo na virada. O usuário também necessitava de atalhos explícitos e rápidos para fechar propostas de renovação contratual antes do fim da vigência ativa.
+* **Solução**:
+  - **Identificação do Fim da Fidelidade**: O helper `getExpirationInfo` no React agora cruza `currentMonth === totalMonths` para marcar o último mês ativo de fidelidade.
+  - **Nomenclatura Correta**: Rodapés dinâmicos de expiração alterados para `"Contrato Encerra dia DD/MM/YYYY"`, `"Contrato Encerra hoje!"` e `"Contrato Encerrado em DD/MM/YYYY"` no caso de expirados, preservando a identidade visual em tons de vinho da marca para indicar vigência de assinatura ativa.
+  - **Ações de Renovação Contextual**: Adicionada a opção "Renovar Contrato" no menu Radix (`DropdownMenu`) de cartões em grid e um botão físico "Renovar" contornado em linhas de lista (`ServiceListItem`), navegando o usuário diretamente a `/contracts/:id/renew` com a referência do identificador de contrato (`ContractId`) exposta do backend.
+
 ---
 
 ## 🛠️ Histórico Completo de Commits Realizados
@@ -83,6 +91,7 @@ Abaixo está a trilha de commits atômicos gerados, agrupados por ordem cronoló
 
 | Hash | Componente | Descrição |
 |---|---|---|
+| `cdfbd82` | Frontend/Backend | feat(web/api): exibir 'Contrato Encerra' no último mês e adicionar opção de renovação de contrato |
 | `74fd82b` | Frontend (Style) | Altera texto sob a barra de progresso para exibir "X% dos créditos disponíveis" |
 | `b8065bb` | Documentação | Atualiza o relatório de preservação de contexto com o hash do commit do estudo de caso 088 |
 | `aa0ac7e` | Documentação | Adiciona o estudo de caso 088 sobre faturamento antecipado |
