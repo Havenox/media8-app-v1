@@ -13,6 +13,8 @@ Os requisitos fundamentais eram:
 1. **Provisionamento Imediato**: O lote de saldo do novo ciclo deve ser gerado imediatamente na virada (para visualização do cliente), mas deve permanecer bloqueado se a respectiva fatura estiver pendente de pagamento.
 2. **Autoridade no Backend**: O backend deve ser o validador supremo. Mesmo que o cliente mantenha uma aba aberta com o formulário de pedido por meses, a submissão deve ser recusada de forma estrita no servidor se o saldo estiver bloqueado financeiramente.
 3. **Padrão Ouro de UX**: Exibir o lote bloqueado de forma visível e elegante (usando tons amarelos/âmbar para diferenciar de expirados cinzas), desativando o botão de uso ("Usar") e oferecendo um atalho direto ("Pagar Fatura") com redirecionamento de pagamento.
+4. **Ocultação de Métricas Desnecessárias**: Em lotes de saldo expirados, ocultar a barra de progresso de consumo, visto que o saldo já está indisponível para uso, e exibir apenas o registro textual do saldo final (X/X créditos) a fim de reduzir a carga cognitiva do painel.
+5. **Disparador Manual Administrativo**: Prover um mecanismo síncrono para que o administrador force a verificação e o provisionamento de novos ciclos imediatamente pelo painel administrativo, sem depender exclusivamente da cron de background executada de hora em hora.
 
 ---
 
@@ -31,6 +33,8 @@ Os requisitos fundamentais eram:
    * **Estilização de Bloqueio**: Em `ServiceCard.tsx` (modos grid e list row), caso o lote esteja bloqueado (`!!lot.InvoiceId && lot.InvoiceStatus !== 'Paid'`), aplicamos um design premium amarelado/âmbar (`bg-[#FFFDF0] border-amber-200 border-l-amber-500`), barra de progresso cinza neutra, ícone de alerta `AlertTriangle` e descrição em banner contextual.
    * **Atalho Direct-to-Checkout**: Inserimos o botão "Pagar Fatura" no card e no item da lista, redirecionando o cliente para a tela administrativa de conciliação e histórico financeiro `/admin/payments`.
    * **Bloqueio de Formulário**: Em `NewOrderPage.tsx`, desativamos itens bloqueados no dropdown de seleção e exibimos aviso via `toast.error` se o usuário tentar acessar a URL diretamente fornecendo um `lotId` bloqueado via query parameters.
+   * **Ocultação da Barra de Progresso**: Omitimos a renderização da barra de progresso nos cards de saldos expirados (`expInfo.isExpired === true`).
+   * **Disparador Manual no Painel Settings**: Inserimos um controle explícito com o botão "Disparar Verificação de Ciclos" na seção administrativa de configurações para iniciar a renovação sob demanda de contratos.
 
 ---
 
@@ -48,6 +52,8 @@ Os requisitos fundamentais eram:
   * Validação explícita no endpoint de criação de pedidos lançando `INVOICE_PENDING` se `Invoice.Status != InvoiceStatus.Paid`.
 * **`ServiceBalancesController.cs`**:
   * Eager loading do relacionamento de `Invoice` e mapeamento nos DTOs de retorno.
+* **`BillingController.cs` [Novo Endpoint]**:
+  * Adicionado endpoint `POST api/v1/admin/billing/trigger-renewal` restrito ao papel `Admin`. Ele varre todos os contratos de assinatura ativos e verifica se o lote mais recente expirou para rodar a renovação e provisionamento imediatamente.
 
 ### Frontend (React / TypeScript)
 * **`services.ts` e `api.ts`**:
@@ -58,6 +64,8 @@ Os requisitos fundamentais eram:
   * Exibição do botão e atalho de dropdown "Pagar Fatura" vinculados à navegação.
 * **`NewOrderPage.tsx`**:
   * Desativação de lotes bloqueados no dropdown do formulário e validação com `toast` no pre-select.
+* **`AdminSettingsSection.tsx`**:
+  * Adicionada interface e integração com a chamada à API `trigger-renewal` através de mutation do React Query, exibindo loader de processamento e feedback instantâneo via alert/toast.
 
 ---
 
