@@ -279,11 +279,6 @@ export const ServiceCard = ({
                  "text-base font-bold flex items-center gap-1.5 flex-wrap min-w-0 w-full",
                  isGrayedOut ? "text-neutral-500" : "text-[#400404]"
                )} title={`${lot.SnapshotOfferName}${fidelityInfo ? ` [Mês ${fidelityInfo.currentMonth}/${fidelityInfo.totalMonths}]` : ''}`}>
-                 {lot.ContractSequentialId && (
-                   <span className="text-[10px] font-mono bg-[#7B0A0A]/5 border border-[#7B0A0A]/15 text-[#7B0A0A] font-bold px-1.5 py-[0.5px] rounded shrink-0 leading-none">
-                     {formatSequentialId(lot.ContractSequentialId, 'Contrato')}
-                   </span>
-                 )}
                  <span className="truncate max-w-[140px] sm:max-w-[190px]" title={lot.SnapshotOfferName}>{lot.SnapshotOfferName}</span>
                 {fidelityInfo && (
                   <span className={cn(
@@ -303,8 +298,13 @@ export const ServiceCard = ({
                 {renderContractTypeBadge(lot.ContractType, isGrayedOut)}
               </div>
             </div>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              {lot.SnapshotVideoFormatName} {formatDuration(lot.SnapshotMaxDurationSeconds)}
+            <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1 flex-wrap">
+              <span>{lot.SnapshotVideoFormatName} {formatDuration(lot.SnapshotMaxDurationSeconds)}</span>
+              {lot.ContractSequentialId && (
+                <span className="text-[10px] text-muted-foreground/60 font-mono">
+                  • {formatSequentialId(lot.ContractSequentialId, 'Contrato')}
+                </span>
+              )}
             </p>
           </div>
         </div>
@@ -619,11 +619,6 @@ export const ServiceListItem = ({
                 "text-sm font-bold leading-none flex items-center gap-1.5 flex-wrap",
                 isGrayedOut ? "text-neutral-500" : "text-[#400404]"
               )}>
-                {lot.ContractSequentialId && (
-                  <span className="text-[10px] font-mono bg-[#7B0A0A]/5 border border-[#7B0A0A]/15 text-[#7B0A0A] font-bold px-1.5 py-[0.5px] rounded shrink-0 leading-none">
-                    {formatSequentialId(lot.ContractSequentialId, 'Contrato')}
-                  </span>
-                )}
                 <span>{lot.SnapshotOfferName}</span>
                 {fidelityInfo && (
                   <span className={cn(
@@ -643,8 +638,13 @@ export const ServiceListItem = ({
                 {renderContractTypeBadge(lot.ContractType, isGrayedOut)}
               </div>
             </div>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              {lot.SnapshotVideoFormatName} {formatDuration(lot.SnapshotMaxDurationSeconds)}
+            <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1 flex-wrap">
+              <span>{lot.SnapshotVideoFormatName} {formatDuration(lot.SnapshotMaxDurationSeconds)}</span>
+              {lot.ContractSequentialId && (
+                <span className="text-[10px] text-muted-foreground/60 font-mono">
+                  • {formatSequentialId(lot.ContractSequentialId, 'Contrato')}
+                </span>
+              )}
             </p>
           </div>
         </div>
