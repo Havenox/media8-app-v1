@@ -83,6 +83,7 @@ Abaixo está a trilha de commits atômicos gerados, agrupados por ordem cronoló
 
 | Hash | Componente | Descrição |
 |---|---|---|
+| `977ec5d` | Documentação | Atualiza estudo de caso 087 para cobrir gatilho manual e refinamentos visuais |
 | `c306ac4` | Frontend/Backend | Oculta barra de progresso em cards expirados e adiciona botão no admin settings para disparar manualmente a verificação de ciclos |
 | `67ac16b` | Frontend (Comp) | Restaura cor laranja/âmbar original do botão de pagamento nos cards por harmonia visual |
 | `a627aa3` | Frontend (Comp) | Oculta reticências (ellipsis) nos cards de saldo bloqueados para evitar sobreposição |
