@@ -103,7 +103,7 @@ const getExpirationInfo = (lot: UnifiedServiceBalance) => {
 
   if (isSubscription) {
     if (daysRemaining < 0) {
-      text = `Renovado em ${dateString}`;
+      text = `Expirado em ${dateString} (Renovado em ${dateString})`;
     } else if (daysRemaining === 0) {
       text = 'Renova hoje!';
       isUrgent = true;
@@ -128,15 +128,16 @@ const getExpirationInfo = (lot: UnifiedServiceBalance) => {
       isUrgent = true;
       warningText = 'Contrato expirado • Saldo inutilizado!';
     } else if (daysRemaining === 0) {
-      text = 'Expira hoje!';
+      text = lot.RemainingQuantity === 0 ? 'Expira hoje! (Esgotado)' : 'Expira hoje!';
       isUrgent = true;
       warningText = 'Expira hoje • Use antes que acabe!';
     } else if (daysRemaining === 1) {
-      text = 'Expira amanhã!';
+      text = lot.RemainingQuantity === 0 ? 'Expira amanhã! (Esgotado)' : 'Expira amanhã!';
       isUrgent = true;
       warningText = 'Expira amanhã • Use antes que expire!';
     } else {
-      text = `Válido até ${dateString} (restam ${daysRemaining} ${daysRemaining === 1 ? 'dia' : 'dias'})`;
+      const suffix = lot.RemainingQuantity === 0 ? '(Esgotado)' : `(restam ${daysRemaining} ${daysRemaining === 1 ? 'dia' : 'dias'})`;
+      text = `Válido até ${dateString} ${suffix}`;
       if (daysRemaining <= 7) {
         isUrgent = true;
         warningText = 'Prazo acabando • Utilize antes que expire!';
