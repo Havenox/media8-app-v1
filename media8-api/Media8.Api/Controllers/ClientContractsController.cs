@@ -61,6 +61,7 @@ OfferId = cc.OfferId,
 ClientId = cc.ClientId,
 AssignedBy = cc.AssignedBy,
 SequentialId = cc.SequentialId,
+IsArchived = cc.IsArchived,
 
 // Snapshot Comercial
 SnapshotOfferName = cc.SnapshotOfferName,
@@ -120,6 +121,7 @@ OfferId = cc.OfferId,
 ClientId = cc.ClientId,
 AssignedBy = cc.AssignedBy,
 SequentialId = cc.SequentialId,
+IsArchived = cc.IsArchived,
 
 // Snapshot Comercial
 SnapshotOfferName = cc.SnapshotOfferName,
@@ -245,6 +247,7 @@ OfferId = contract.OfferId,
 ClientId = contract.ClientId,
 AssignedBy = contract.AssignedBy,
 SequentialId = contract.SequentialId,
+IsArchived = contract.IsArchived,
 
 // Snapshot Comercial
 SnapshotOfferName = contract.SnapshotOfferName,
@@ -298,6 +301,7 @@ return CreatedAtAction(nameof(GetContractById), new { id = contract.Id }, respon
             ClientId = contract.ClientId,
             AssignedBy = contract.AssignedBy,
             SequentialId = contract.SequentialId,
+            IsArchived = contract.IsArchived,
             SnapshotOfferName = contract.SnapshotOfferName,
             SnapshotVideoQuantity = contract.SnapshotVideoQuantity,
             SnapshotPrice = contract.SnapshotPrice,
@@ -347,5 +351,127 @@ return CreatedAtAction(nameof(GetContractById), new { id = contract.Id }, respon
         }
 
         return Ok(new { message = "Assinatura renovada e créditos provisionados com sucesso para o próximo ciclo." });
+    }
+
+    /// <summary>
+    /// Lista todos os contratos do cliente logado (ativos ou arquivados)
+    /// </summary>
+    [HttpGet("my")]
+    [Authorize]
+    public async Task<ActionResult<List<ClientContractResponse>>> GetMyContracts(
+        [FromQuery] bool showArchived = false,
+        [FromQuery] AssignmentStatus? status = null)
+    {
+        var userIdClaim = User.FindFirst("sub")?.Value;
+        if (!Guid.TryParse(userIdClaim, out var clientId))
+            return Unauthorized();
+
+        var query = _context.ClientContracts
+            .Include(cc => cc.Offer)
+            .Where(cc => cc.ClientId == clientId && cc.IsArchived == showArchived)
+            .AsQueryable();
+
+        if (status.HasValue)
+            query = query.Where(cc => cc.Status == status.Value);
+
+        var contracts = await query
+            .OrderByDescending(cc => cc.AssignedAt)
+            .Select(cc => new ClientContractResponse
+            {
+                Id = cc.Id,
+                OfferId = cc.OfferId,
+                ClientId = cc.ClientId,
+                AssignedBy = cc.AssignedBy,
+                SequentialId = cc.SequentialId,
+                IsArchived = cc.IsArchived,
+
+                // Snapshot Comercial
+                SnapshotOfferName = cc.SnapshotOfferName,
+                SnapshotVideoQuantity = cc.SnapshotVideoQuantity,
+                SnapshotPrice = cc.SnapshotPrice,
+                SnapshotValidityDays = cc.SnapshotValidityDays,
+                SnapshotDeliveryDays = cc.SnapshotDeliveryDays,
+                SnapshotWarrantyDays = cc.SnapshotWarrantyDays,
+                SnapshotContractType = cc.SnapshotContractType,
+
+                // Snapshot Técnico
+                SnapshotVideoFormatName = cc.SnapshotVideoFormatName,
+                SnapshotEditingStyleName = cc.SnapshotEditingStyleName,
+                SnapshotMaxDurationSeconds = cc.SnapshotMaxDurationSeconds,
+
+                AssignedAt = cc.AssignedAt,
+                ActivatedAt = cc.ActivatedAt,
+                ExpiresAt = cc.ExpiresAt,
+                Status = cc.Status,
+                CreatedAt = cc.CreatedAt,
+                UpdatedAt = cc.UpdatedAt,
+                Offer = new OfferResponse
+                {
+                    Id = cc.Offer.Id,
+                    Name = cc.Offer.Name,
+                    Slug = cc.Offer.Slug,
+                    ContractType = cc.Offer.ContractType,
+                    Price = cc.Offer.Price,
+                    VideoQuantity = cc.Offer.VideoQuantity,
+                    MaxDurationSeconds = cc.Offer.MaxDurationSeconds
+                }
+            })
+            .ToListAsync();
+
+        return Ok(contracts);
+    }
+
+    /// <summary>
+    /// Arquiva um contrato do cliente (soft delete)
+    /// </summary>
+    [HttpPost("{id:guid}/archive")]
+    [Authorize]
+    public async Task<ActionResult> ArchiveContract(Guid id)
+    {
+        var userIdClaim = User.FindFirst("sub")?.Value;
+        var isClient = User.IsInRole("Client");
+
+        var contract = await _context.ClientContracts.FindAsync(id);
+        if (contract == null) return NotFound();
+
+        // Validação de acesso: cliente só pode arquivar seu próprio contrato
+        if (isClient)
+        {
+            if (!Guid.TryParse(userIdClaim, out var userId) || contract.ClientId != userId)
+                return Forbid();
+        }
+
+        contract.IsArchived = true;
+        contract.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Desarquiva / restaura um contrato do cliente
+    /// </summary>
+    [HttpPost("{id:guid}/unarchive")]
+    [Authorize]
+    public async Task<ActionResult> UnarchiveContract(Guid id)
+    {
+        var userIdClaim = User.FindFirst("sub")?.Value;
+        var isClient = User.IsInRole("Client");
+
+        var contract = await _context.ClientContracts.FindAsync(id);
+        if (contract == null) return NotFound();
+
+        // Validação de acesso: cliente só pode desarquivar seu próprio contrato
+        if (isClient)
+        {
+            if (!Guid.TryParse(userIdClaim, out var userId) || contract.ClientId != userId)
+                return Forbid();
+        }
+
+        contract.IsArchived = false;
+        contract.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        return NoContent();
     }
 }
