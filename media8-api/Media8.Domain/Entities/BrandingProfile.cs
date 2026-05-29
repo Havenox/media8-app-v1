@@ -13,6 +13,11 @@ public class BrandingProfile
     /// Foreign Key to the User/Client who owns this profile.
     /// </summary>
     public Guid UserId { get; set; }
+    
+    /// <summary>
+    /// Identificador sequencial amigável escopado por cliente (ex: Marca #0001)
+    /// </summary>
+    public int SequentialId { get; set; }
 
     /// <summary>
     /// Profile name for internal identification (e.g., "Brand 1: Beauty Salon", "Brand 2: Mentoring").

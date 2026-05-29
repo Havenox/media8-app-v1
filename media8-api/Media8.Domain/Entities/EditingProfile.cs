@@ -15,6 +15,11 @@ public class EditingProfile
     public Guid UserId { get; set; }
     
     /// <summary>
+    /// Identificador sequencial amigável escopado por cliente (ex: Perfil Edição #0001)
+    /// </summary>
+    public int SequentialId { get; set; }
+    
+    /// <summary>
     /// Profile name for internal identification (e.g., "Profile 1: Vlogs", "Profile 2: Authority Videos").
     /// </summary>
     public string Name { get; set; } = string.Empty;

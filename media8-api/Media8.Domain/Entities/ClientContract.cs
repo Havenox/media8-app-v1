@@ -87,6 +87,11 @@ public int? SnapshotDeliveryDays { get; set; }
     /// </summary>
     public ContractType SnapshotContractType { get; set; }
 
+    /// <summary>
+    /// Identificador sequencial amigável escopado por cliente (ex: Contrato #0001)
+    /// </summary>
+    public int SequentialId { get; set; }
+
 // ==========================================
 // SNAPSHOT TÉCNICO (Imutável - Sem FKs)
 // ==========================================

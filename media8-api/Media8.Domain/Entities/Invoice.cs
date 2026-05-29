@@ -16,6 +16,11 @@ public class Invoice
     public Guid ClientId { get; set; }
     
     /// <summary>
+    /// Identificador sequencial amigável escopado por cliente (ex: Fatura #0001)
+    /// </summary>
+    public int SequentialId { get; set; }
+    
+    /// <summary>
     /// ID do contrato relacionado (opcional, nulo para compras avulsas sem contrato persistente)
     /// </summary>
     public Guid? ContractId { get; set; }

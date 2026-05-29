@@ -18,6 +18,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<OrderTimeline> OrderTimelines { get; set; }
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<Invoice> Invoices { get; set; }
+    public DbSet<ClientSequence> ClientSequences { get; set; }
 
     /// <summary>
     /// Entidade VideoFormat para catálogo dinâmico de formatos de vídeo
@@ -94,6 +95,7 @@ public DbSet<BrandingProfile> BrandingProfiles => Set<BrandingProfile>();
         modelBuilder.Entity<ServiceBalanceLot>().ToTable("ServiceBalanceLots");
         modelBuilder.Entity<Notification>().ToTable("Notifications");
         modelBuilder.Entity<Invoice>().ToTable("Invoices");
+        modelBuilder.Entity<ClientSequence>().ToTable("ClientSequences");
 
         // Configurations
 
@@ -356,6 +358,39 @@ modelBuilder.Entity<BrandingProfile>(entity =>
           .HasForeignKey(i => i.ContractId)
           .OnDelete(DeleteBehavior.SetNull);
   });
+
+  // ClientSequence Configuration
+  modelBuilder.Entity<ClientSequence>(entity =>
+  {
+      entity.ToTable("ClientSequences");
+      entity.HasKey(cs => cs.Id);
+      entity.HasIndex(cs => new { cs.ClientId, cs.EntityType }).IsUnique();
+  });
+
+  // ClientContract Composite Unique Index
+  modelBuilder.Entity<ClientContract>()
+      .HasIndex(cc => new { cc.ClientId, cc.SequentialId })
+      .IsUnique();
+
+  // Order Composite Unique Index
+  modelBuilder.Entity<Order>()
+      .HasIndex(o => new { o.ClientId, o.SequentialId })
+      .IsUnique();
+
+  // Invoice Composite Unique Index
+  modelBuilder.Entity<Invoice>()
+      .HasIndex(i => new { i.ClientId, i.SequentialId })
+      .IsUnique();
+
+  // BrandingProfile Composite Unique Index
+  modelBuilder.Entity<BrandingProfile>()
+      .HasIndex(bp => new { bp.UserId, bp.SequentialId })
+      .IsUnique();
+
+  // EditingProfile Composite Unique Index
+  modelBuilder.Entity<EditingProfile>()
+      .HasIndex(ep => new { ep.UserId, ep.SequentialId })
+      .IsUnique();
 
   // Enforce DateOnly conversion if needed
 }
