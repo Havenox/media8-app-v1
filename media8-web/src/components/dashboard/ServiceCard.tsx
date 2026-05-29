@@ -193,7 +193,7 @@ export const ServiceCard = ({
 
   const cardContent = (
     <Card className={cn(
-      "relative overflow-hidden transition-all hover:shadow-md border-l-4 p-5 flex flex-col justify-between bg-[#FFFBED] border-[#E8E0D0] w-full min-h-[190px] select-none",
+      "relative overflow-hidden transition-all hover:shadow-md border-l-4 p-5 flex flex-col justify-between bg-[#FFFBED] border-[#E8E0D0] w-full min-h-[220px] h-full select-none",
       isSubscription 
         ? "border-l-[#7B0A0A]" 
         : expInfo.isUrgent 
