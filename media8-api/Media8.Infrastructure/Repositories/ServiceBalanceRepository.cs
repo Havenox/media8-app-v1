@@ -67,10 +67,20 @@ public class ServiceBalanceRepository : Repository<ServiceBalanceLot>, IServiceB
         }
         else
         {
-            // Ordenação padrão para outras telas
-            sortedItems = allItems.OrderBy(x => x.ExpiresAt.HasValue)
-                .ThenBy(x => x.ExpiresAt)
-                .ThenByDescending(x => x.CreatedAt);
+            // Ordenação padrão para outras telas:
+            // 1. Ativos com prazo (ExpiresAt futuro) -> Menor prazo à frente (Ascendente)
+            // 2. Ativos sem validade (ExpiresAt nulo) -> Criados mais recentemente primeiro (Descendente)
+            // 3. Expirados (ExpiresAt passado) -> Expirados mais recentemente primeiro (Descendente)
+            sortedItems = allItems.OrderBy(x => {
+                if (x.ExpiresAt.HasValue && x.ExpiresAt.Value > now) return 1;
+                if (!x.ExpiresAt.HasValue) return 2;
+                return 3;
+            })
+            .ThenBy(x => {
+                if (x.ExpiresAt.HasValue && x.ExpiresAt.Value > now) return x.ExpiresAt.Value.Ticks;
+                if (!x.ExpiresAt.HasValue) return -x.CreatedAt.Ticks;
+                return -x.ExpiresAt.Value.Ticks;
+            });
         }
 
         var total = sortedItems.Count();

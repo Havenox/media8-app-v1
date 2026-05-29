@@ -133,9 +133,21 @@ const ServicesPage: React.FC = () => {
           const isExpiredA = daysA < 0;
           const isExpiredB = daysB < 0;
           
+          // 1. Ativos antes de expirados
           if (isExpiredA && !isExpiredB) return 1;
           if (!isExpiredA && isExpiredB) return -1;
           
+          // 2. Se ambos forem expirados (dias negativos)
+          // Expirados mais recentemente primeiro (Descendente)
+          if (isExpiredA && isExpiredB) {
+            return daysB - daysA;
+          }
+          
+          // 3. Se ambos forem ativos (dias positivos ou Infinity)
+          // Menor prazo primeiro (Ascendente)
+          if (daysA === Infinity && daysB !== Infinity) return 1;
+          if (daysA !== Infinity && daysB === Infinity) return -1;
+          if (daysA === Infinity && daysB === Infinity) return 0;
           return daysA - daysB;
         });
         break;

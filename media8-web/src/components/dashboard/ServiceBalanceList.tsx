@@ -100,10 +100,22 @@ export const ServiceBalanceList: React.FC<ServiceBalanceListProps> = ({
     const isExpiredA = daysA < 0;
     const isExpiredB = daysB < 0;
     
-    if (isExpiredA && !isExpiredB) return 1; // a expirou, b não. b vem antes
-    if (!isExpiredA && isExpiredB) return -1; // b expirou, a não. a vem antes
+    // 1. Ativos antes de expirados
+    if (isExpiredA && !isExpiredB) return 1;
+    if (!isExpiredA && isExpiredB) return -1;
     
-    return daysA - daysB; // menor quantidade de dias (mais próximo do vencimento) vem primeiro
+    // 2. Se ambos forem expirados (dias negativos)
+    // Expirados mais recentemente primeiro (Descendente)
+    if (isExpiredA && isExpiredB) {
+      return daysB - daysA;
+    }
+    
+    // 3. Se ambos forem ativos (dias positivos ou Infinity)
+    // Menor prazo primeiro (Ascendente)
+    if (daysA === Infinity && daysB !== Infinity) return 1;
+    if (daysA !== Infinity && daysB === Infinity) return -1;
+    if (daysA === Infinity && daysB === Infinity) return 0;
+    return daysA - daysB;
   });
 
   const containerClasses = variant === 'list' 
