@@ -7,6 +7,7 @@ import { api } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -164,6 +165,27 @@ const AdminSettingsSection: React.FC = () => {
             className="max-w-xs"
             placeholder="Carregando..."
           />
+        </div>
+
+        <Separator />
+
+        {/* RequireManualPaymentConfirmation */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label htmlFor="RequireManualPaymentConfirmation" className="text-base font-semibold">
+                Confirmação de Pagamento Manual
+              </Label>
+              <p className="text-xs text-muted-foreground max-w-lg">
+                Se ativado, as assinaturas que vencerem o ciclo mensal precisarão ser renovadas manualmente pelo administrador mediante confirmação de pagamento. Se desativado, a renovação e provimento de créditos ocorre de forma 100% automatizada.
+              </p>
+            </div>
+            <Switch
+              id="RequireManualPaymentConfirmation"
+              checked={localSettings['RequireManualPaymentConfirmation'] === 'true'}
+              onCheckedChange={(checked) => handleSettingChange('RequireManualPaymentConfirmation', checked ? 'true' : 'false')}
+            />
+          </div>
         </div>
 
           <Separator />
