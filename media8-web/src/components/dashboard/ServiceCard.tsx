@@ -211,10 +211,13 @@ export const ServiceCard = ({
     ? Math.round(((lot.TotalQuantity - lot.RemainingQuantity) / lot.TotalQuantity) * 100)
     : 0;
 
+  const isSpent = lot.RemainingQuantity === 0;
+  const isGrayedOut = expInfo.isExpired || isSpent;
+
   const cardContent = (
     <Card className={cn(
       "relative overflow-hidden transition-all hover:shadow-md border-l-4 p-5 flex flex-col justify-between w-full min-h-[220px] h-full select-none",
-      expInfo.isExpired
+      isGrayedOut
         ? "bg-[#F3F4F6]/70 border-[#E5E7EB] border-l-[#9CA3AF] opacity-75"
         : isBlocked
           ? "bg-[#FFFDF0] border-amber-200 border-l-amber-500"
@@ -227,7 +230,7 @@ export const ServiceCard = ({
                   : "border-l-[#400404]"
             ),
       !canConsume && "cursor-pointer",
-      !canConsume && !expInfo.isExpired && (isHovered || menuOpen) && (
+      !canConsume && !isGrayedOut && (isHovered || menuOpen) && (
         isBlocked
           ? "shadow-lg ring-1 ring-amber-500/20 bg-[#FFFDF5]"
           : "shadow-lg ring-1 ring-primary/20 bg-[#FFFDF6]"
@@ -238,7 +241,7 @@ export const ServiceCard = ({
         <div className="flex items-center gap-2.5">
           <div className={cn(
             "p-1.5 rounded-full text-[#FFFBED]",
-            expInfo.isExpired
+            isGrayedOut
               ? "bg-[#9CA3AF]"
               : isBlocked
                 ? "bg-amber-500"
@@ -254,18 +257,18 @@ export const ServiceCard = ({
             <div className="flex items-center gap-1.5 flex-wrap max-w-[170px] sm:max-w-[200px]">
               <CardTitle className={cn(
                 "text-base font-bold line-clamp-1 leading-none",
-                expInfo.isExpired ? "text-neutral-500" : "text-[#400404]"
+                isGrayedOut ? "text-neutral-500" : "text-[#400404]"
               )} title={lot.SnapshotOfferName}>
                 {lot.SnapshotOfferName}
               </CardTitle>
               <div className="flex items-center gap-1 flex-wrap">
-                {renderContractTypeBadge(lot.ContractType, expInfo.isExpired)}
+                {renderContractTypeBadge(lot.ContractType, isGrayedOut)}
                 {fidelityInfo && (
                   <Badge 
                     variant="outline" 
                     className={cn(
                       "text-[9px] px-1.5 py-0.5 h-4 font-semibold uppercase tracking-wider rounded-sm",
-                      expInfo.isExpired 
+                      isGrayedOut 
                         ? "border-neutral-300 bg-neutral-100 text-neutral-500" 
                         : "border-[#7B0A0A]/20 bg-[#7B0A0A]/5 text-[#7B0A0A]"
                     )}
@@ -285,7 +288,7 @@ export const ServiceCard = ({
         <div className="text-right shrink-0">
           <span className={cn(
             "text-lg font-extrabold",
-            expInfo.isExpired ? "text-neutral-500" : "text-[#400404]"
+            isGrayedOut ? "text-neutral-500" : "text-[#400404]"
           )}>
             {lot.RemainingQuantity}
           </span>
@@ -297,16 +300,16 @@ export const ServiceCard = ({
       </div>
 
       {/* Progress Bar */}
-      {!expInfo.isExpired && (
+      {!isGrayedOut && (
         <div className="w-full my-2">
           <div className={cn(
             "w-full h-1 rounded-full overflow-hidden",
-            isBlocked || expInfo.isExpired ? "bg-neutral-200" : "bg-[#E8E0D0]/50"
+            isBlocked || isGrayedOut ? "bg-neutral-200" : "bg-[#E8E0D0]/50"
           )}>
             <div 
               className={cn(
                 "h-full rounded-full transition-all duration-500",
-                isBlocked || expInfo.isExpired
+                isBlocked || isGrayedOut
                   ? "bg-neutral-400"
                   : isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
               )}
@@ -322,28 +325,51 @@ export const ServiceCard = ({
 
       {/* UX Warning Banner (Prazo acabando, rollover, etc.) */}
       {(() => {
-        const warningText = isBlocked 
-          ? (isOverdue 
-              ? 'Fatura Atrasada • Saldo bloqueado aguardando pagamento' 
-              : 'Fatura Pendente • Saldo bloqueado aguardando pagamento')
-          : expInfo.warningText;
-        return warningText ? (
-          <div className={cn(
-            "flex items-center gap-1.5 text-[10px] font-semibold py-1 px-2 rounded-md my-2 w-full border",
-            isBlocked
-              ? "bg-amber-500/10 text-amber-800 border-amber-500/20"
-              : expInfo.isExpired
-                ? "bg-red-500/10 text-red-700 border-red-500/20"
-                : "bg-amber-500/10 text-amber-800 border-amber-500/20"
-          )}>
-            {isBlocked || !expInfo.isExpired ? (
+        if (isBlocked) {
+          return (
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold py-1 px-2 rounded-md my-2 w-full border bg-amber-500/10 text-amber-800 border-amber-500/20">
               <AlertTriangle className="h-3 w-3 shrink-0" />
-            ) : (
+              <span className="truncate">
+                {isOverdue 
+                  ? 'Fatura Atrasada • Saldo bloqueado aguardando pagamento' 
+                  : 'Fatura Pendente • Saldo bloqueado aguardando pagamento'}
+              </span>
+            </div>
+          );
+        }
+
+        const banners: React.ReactNode[] = [];
+        
+        if (isSpent) {
+          banners.push(
+            <div key="spent" className="flex items-center gap-1.5 text-[10px] font-semibold py-1 px-2 rounded-md my-1 w-full border bg-neutral-200/60 text-neutral-600 border-neutral-300/80">
               <AlertCircle className="h-3 w-3 shrink-0" />
-            )}
-            <span className="truncate">{warningText}</span>
-          </div>
-        ) : null;
+              <span className="truncate">Esgotado</span>
+            </div>
+          );
+        }
+        
+        if (expInfo.isExpired) {
+          banners.push(
+            <div key="expired" className="flex items-center gap-1.5 text-[10px] font-semibold py-1 px-2 rounded-md my-1 w-full border bg-red-500/10 text-red-700 border-red-500/20">
+              <AlertCircle className="h-3 w-3 shrink-0" />
+              <span className="truncate">Expirado</span>
+            </div>
+          );
+        }
+
+        if (!isSpent && !expInfo.isExpired && expInfo.warningText) {
+          banners.push(
+            <div key="warning" className="flex items-center gap-1.5 text-[10px] font-semibold py-1 px-2 rounded-md my-2 w-full border bg-amber-500/10 text-amber-800 border-amber-500/20">
+              <AlertTriangle className="h-3 w-3 shrink-0" />
+              <span className="truncate">{expInfo.warningText}</span>
+            </div>
+          );
+        }
+
+        if (banners.length === 0) return null;
+
+        return <div className="flex flex-col gap-1 w-full my-2">{banners}</div>;
       })()}
 
       {/* Footer & Action Row */}
@@ -353,19 +379,19 @@ export const ServiceCard = ({
           {isSubscription ? (
             <div className={cn(
               "flex items-center gap-1 min-w-0",
-              expInfo.isExpired
+              isGrayedOut
                 ? "text-neutral-500 font-medium"
                 : expInfo.isUrgent 
                   ? "text-orange-600 font-bold" 
                   : "text-[#7B0A0A] font-medium"
             )}>
-              <RefreshCw className={cn("h-3 w-3 shrink-0", expInfo.isUrgent && !expInfo.isExpired && "animate-spin")} style={{ animationDuration: '4s' }} />
+              <RefreshCw className={cn("h-3 w-3 shrink-0", expInfo.isUrgent && !isGrayedOut && "animate-spin")} style={{ animationDuration: '4s' }} />
               <span className="truncate" title={expInfo.text}>{expInfo.text}</span>
             </div>
           ) : (
             <div className={cn(
               "flex items-center gap-1 min-w-0",
-              expInfo.isExpired
+              isGrayedOut
                 ? "text-neutral-500 font-medium"
                 : expInfo.isUrgent 
                   ? "text-orange-600 font-bold" 
@@ -469,10 +495,10 @@ export const ServiceCard = ({
           ) : (
             <DropdownMenuItem 
               onClick={() => navigate(`/orders/new?lotId=${lot.Id}`)}
-              disabled={expInfo.isExpired}
+              disabled={isGrayedOut}
               className={cn(
                 "flex items-center gap-2 cursor-pointer text-[#400404] hover:bg-[#E8E0D0]/30 focus:bg-[#E8E0D0]/30 font-medium",
-                expInfo.isExpired && "opacity-50 cursor-not-allowed"
+                isGrayedOut && "opacity-50 cursor-not-allowed"
               )}
             >
               <Plus className="h-4 w-4" />
@@ -518,10 +544,13 @@ export const ServiceListItem = ({
     ? Math.round(((lot.TotalQuantity - lot.RemainingQuantity) / lot.TotalQuantity) * 100)
     : 0;
 
+  const isSpent = lot.RemainingQuantity === 0;
+  const isGrayedOut = expInfo.isExpired || isSpent;
+
   return (
     <div className={cn(
       "relative rounded-lg p-3 border transition-all border-l-4",
-      expInfo.isExpired
+      isGrayedOut
         ? "bg-[#F3F4F6]/70 border-[#E5E7EB] border-l-[#9CA3AF] opacity-75"
         : isBlocked
           ? "bg-[#FFFDF0] border-amber-200 border-l-amber-500"
@@ -540,7 +569,7 @@ export const ServiceListItem = ({
         <div className="flex items-center gap-3">
           <div className={cn(
             "p-1.5 rounded-md text-white shrink-0",
-            expInfo.isExpired
+            isGrayedOut
               ? "bg-[#9CA3AF]"
               : isBlocked
                 ? "bg-amber-500"
@@ -552,18 +581,18 @@ export const ServiceListItem = ({
             <div className="flex items-center gap-2 flex-wrap">
               <h4 className={cn(
                 "text-sm font-bold leading-none",
-                expInfo.isExpired ? "text-neutral-500" : "text-[#400404]"
+                isGrayedOut ? "text-neutral-500" : "text-[#400404]"
               )}>
                 {lot.SnapshotOfferName}
               </h4>
               <div className="flex items-center gap-1">
-                {renderContractTypeBadge(lot.ContractType, expInfo.isExpired)}
+                {renderContractTypeBadge(lot.ContractType, isGrayedOut)}
                 {fidelityInfo && (
                   <Badge 
                     variant="outline" 
                     className={cn(
                       "text-[8px] px-1 h-3.5 font-semibold",
-                      expInfo.isExpired 
+                      isGrayedOut 
                         ? "border-neutral-300 bg-neutral-100 text-neutral-500" 
                         : "border-[#7B0A0A]/20 bg-[#7B0A0A]/5 text-[#7B0A0A]"
                     )}
@@ -584,7 +613,7 @@ export const ServiceListItem = ({
           <div className="text-right">
             <span className={cn(
               "text-base font-extrabold",
-              expInfo.isExpired ? "text-neutral-500" : "text-[#400404]"
+              isGrayedOut ? "text-neutral-500" : "text-[#400404]"
             )}>
               {lot.RemainingQuantity}
             </span>
@@ -633,16 +662,16 @@ export const ServiceListItem = ({
       </div>
 
       {/* Thin elegant Progress Bar */}
-      {!expInfo.isExpired && (
+      {!isGrayedOut && (
         <div className="w-full mt-2.5">
           <div className={cn(
             "w-full h-1 rounded-full overflow-hidden",
-            isBlocked || expInfo.isExpired ? "bg-neutral-200" : "bg-[#E8E0D0]/50"
+            isBlocked || isGrayedOut ? "bg-neutral-200" : "bg-[#E8E0D0]/50"
           )}>
             <div 
               className={cn(
                 "h-full rounded-full transition-all duration-500",
-                isBlocked || expInfo.isExpired
+                isBlocked || isGrayedOut
                   ? "bg-neutral-400"
                   : isSubscription ? "bg-[#7B0A0A]" : expInfo.isUrgent ? "bg-amber-600" : "bg-[#400404]"
               )}
@@ -654,28 +683,51 @@ export const ServiceListItem = ({
 
       {/* Warning message */}
       {(() => {
-        const warningText = isBlocked 
-          ? (isOverdue 
-              ? 'Fatura Atrasada • Saldo bloqueado aguardando pagamento' 
-              : 'Fatura Pendente • Saldo bloqueado aguardando pagamento')
-          : expInfo.warningText;
-        return warningText ? (
-          <div className={cn(
-            "flex items-center gap-1.5 text-[9px] font-semibold py-0.5 px-1.5 rounded mt-2 border w-fit",
-            isBlocked
-              ? "bg-amber-500/10 text-amber-800 border-amber-500/10"
-              : expInfo.isExpired
-                ? "bg-red-500/10 text-red-700 border-red-500/10"
-                : "bg-amber-500/10 text-amber-800 border-amber-500/10"
-          )}>
-            {isBlocked || !expInfo.isExpired ? (
+        if (isBlocked) {
+          return (
+            <div className="flex items-center gap-1.5 text-[9px] font-semibold py-0.5 px-1.5 rounded mt-2 border w-fit bg-amber-500/10 text-amber-800 border-amber-500/10">
               <AlertTriangle className="h-3 w-3" />
-            ) : (
+              <span>
+                {isOverdue 
+                  ? 'Fatura Atrasada • Saldo bloqueado aguardando pagamento' 
+                  : 'Fatura Pendente • Saldo bloqueado aguardando pagamento'}
+              </span>
+            </div>
+          );
+        }
+
+        const listBanners: React.ReactNode[] = [];
+        
+        if (isSpent) {
+          listBanners.push(
+            <div key="spent" className="flex items-center gap-1.5 text-[9px] font-semibold py-0.5 px-1.5 rounded border bg-neutral-200/60 text-neutral-600 border-neutral-300/80">
               <AlertCircle className="h-3 w-3" />
-            )}
-            <span>{warningText}</span>
-          </div>
-        ) : null;
+              <span>Esgotado</span>
+            </div>
+          );
+        }
+        
+        if (expInfo.isExpired) {
+          listBanners.push(
+            <div key="expired" className="flex items-center gap-1.5 text-[9px] font-semibold py-0.5 px-1.5 rounded border bg-red-500/10 text-red-700 border-red-500/10">
+              <AlertCircle className="h-3 w-3" />
+              <span>Expirado</span>
+            </div>
+          );
+        }
+
+        if (!isSpent && !expInfo.isExpired && expInfo.warningText) {
+          listBanners.push(
+            <div key="warning" className="flex items-center gap-1.5 text-[9px] font-semibold py-0.5 px-1.5 rounded border bg-amber-500/10 text-amber-800 border-amber-500/10">
+              <AlertTriangle className="h-3 w-3" />
+              <span>{expInfo.warningText}</span>
+            </div>
+          );
+        }
+
+        if (listBanners.length === 0) return null;
+
+        return <div className="flex flex-wrap gap-2 mt-2">{listBanners}</div>;
       })()}
 
       {/* Footer Info */}
@@ -689,16 +741,24 @@ export const ServiceListItem = ({
           {isSubscription ? (
             <div className={cn(
               "flex items-center gap-1",
-              expInfo.isUrgent ? "text-orange-600 font-bold" : "text-[#7B0A0A]"
+              isGrayedOut
+                ? "text-neutral-500"
+                : expInfo.isUrgent 
+                  ? "text-orange-600 font-bold" 
+                  : "text-[#7B0A0A]"
             )}>
-              <RefreshCw className={cn("h-3 w-3 shrink-0", expInfo.isUrgent && "animate-spin")} style={{ animationDuration: '3s' }} />
+              <RefreshCw className={cn("h-3 w-3 shrink-0", expInfo.isUrgent && !isGrayedOut && "animate-spin")} style={{ animationDuration: '3s' }} />
               <span>{expInfo.text}</span>
               <span className="text-[9px] font-normal opacity-85 ml-1 hidden sm:inline">(não-acumulativo)</span>
             </div>
           ) : (
             <div className={cn(
               "flex items-center gap-1",
-              expInfo.isUrgent ? "text-orange-700 font-bold" : "text-amber-900/70"
+              isGrayedOut
+                ? "text-neutral-500"
+                : expInfo.isUrgent 
+                  ? "text-orange-700 font-bold" 
+                  : "text-amber-900/70"
             )}>
               <Clock className="h-3 w-3 shrink-0" />
               <span>{expInfo.text}</span>

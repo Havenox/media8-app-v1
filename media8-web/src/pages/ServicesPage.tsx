@@ -133,22 +133,29 @@ const ServicesPage: React.FC = () => {
           const isExpiredA = daysA < 0;
           const isExpiredB = daysB < 0;
           
-          // 1. Ativos antes de expirados
-          if (isExpiredA && !isExpiredB) return 1;
-          if (!isExpiredA && isExpiredB) return -1;
+          const isActiveA = a.RemainingQuantity > 0 && !isExpiredA;
+          const isActiveB = b.RemainingQuantity > 0 && !isExpiredB;
           
-          // 2. Se ambos forem expirados (dias negativos)
-          // Expirados mais recentemente primeiro (Descendente)
-          if (isExpiredA && isExpiredB) {
-            return daysB - daysA;
+          // 1. Ativos antes de inativos (esgotados ou expirados)
+          if (isActiveA && !isActiveB) return -1;
+          if (!isActiveA && isActiveB) return 1;
+          
+          // 2. Se ambos forem ativos (dias positivos ou Infinity)
+          // Menor prazo primeiro (Ascendente)
+          if (isActiveA && isActiveB) {
+            if (daysA === Infinity && daysB !== Infinity) return 1;
+            if (daysA !== Infinity && daysB === Infinity) return -1;
+            if (daysA === Infinity && daysB === Infinity) {
+              return new Date(b.PurchaseDate).getTime() - new Date(a.PurchaseDate).getTime();
+            }
+            return daysA - daysB;
           }
           
-          // 3. Se ambos forem ativos (dias positivos ou Infinity)
-          // Menor prazo primeiro (Ascendente)
-          if (daysA === Infinity && daysB !== Infinity) return 1;
-          if (daysA !== Infinity && daysB === Infinity) return -1;
-          if (daysA === Infinity && daysB === Infinity) return 0;
-          return daysA - daysB;
+          // 3. Se ambos forem inativos (esgotados ou expirados)
+          // Mais recentemente contratados primeiro (Descendente)
+          const timeA = a.PurchaseDate ? new Date(a.PurchaseDate).getTime() : 0;
+          const timeB = b.PurchaseDate ? new Date(b.PurchaseDate).getTime() : 0;
+          return timeB - timeA;
         });
         break;
       case 'recent':
