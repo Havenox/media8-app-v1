@@ -39,6 +39,15 @@ const getIcon = (name: string) => {
   return Video;
 };
 
+const formatDuration = (seconds: number) => {
+  if (!seconds) return '';
+  if (seconds <= 90) {
+    return `(até ${seconds}s)`;
+  }
+  const mins = Math.round(seconds / 60);
+  return `(até ${mins} min${mins > 1 ? 's' : ''})`;
+};
+
 const renderContractTypeBadge = (contractType: string, isExpired?: boolean) => {
   if (!contractType || contractType === 'Desconhecido') return null;
   
@@ -257,30 +266,25 @@ export const ServiceCard = ({
           <div>
             <div className="flex items-center gap-1.5 flex-wrap max-w-[170px] sm:max-w-[200px]">
               <CardTitle className={cn(
-                "text-base font-bold line-clamp-1 leading-none",
+                "text-base font-bold line-clamp-1 leading-none flex items-center gap-1 flex-wrap",
                 isGrayedOut ? "text-neutral-500" : "text-[#400404]"
-              )} title={lot.SnapshotOfferName}>
-                {lot.SnapshotOfferName}
+              )} title={`${lot.SnapshotOfferName}${fidelityInfo ? ` [Mês ${fidelityInfo.currentMonth}/${fidelityInfo.totalMonths}]` : ''}`}>
+                <span>{lot.SnapshotOfferName}</span>
+                {fidelityInfo && (
+                  <span className={cn(
+                    "text-sm font-semibold whitespace-nowrap shrink-0",
+                    isGrayedOut ? "text-neutral-400" : "text-[#7B0A0A]"
+                  )}>
+                    [Mês {fidelityInfo.currentMonth}/{fidelityInfo.totalMonths}]
+                  </span>
+                )}
               </CardTitle>
               <div className="flex items-center gap-1 flex-wrap">
                 {renderContractTypeBadge(lot.ContractType, isGrayedOut)}
-                {fidelityInfo && (
-                  <Badge 
-                    variant="outline" 
-                    className={cn(
-                      "text-[9px] px-1.5 py-0.5 h-4 font-semibold uppercase tracking-wider rounded-sm",
-                      isGrayedOut 
-                        ? "border-neutral-300 bg-neutral-100 text-neutral-500" 
-                        : "border-[#7B0A0A]/20 bg-[#7B0A0A]/5 text-[#7B0A0A]"
-                    )}
-                  >
-                    Mês {fidelityInfo.currentMonth}/{fidelityInfo.totalMonths}
-                  </Badge>
-                )}
               </div>
             </div>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              {lot.SnapshotVideoFormatName} ({lot.SnapshotMaxDurationSeconds}s)
+              {lot.SnapshotVideoFormatName} {formatDuration(lot.SnapshotMaxDurationSeconds)}
             </p>
           </div>
         </div>
@@ -581,30 +585,25 @@ export const ServiceListItem = ({
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h4 className={cn(
-                "text-sm font-bold leading-none",
+                "text-sm font-bold leading-none flex items-center gap-1 flex-wrap",
                 isGrayedOut ? "text-neutral-500" : "text-[#400404]"
               )}>
-                {lot.SnapshotOfferName}
+                <span>{lot.SnapshotOfferName}</span>
+                {fidelityInfo && (
+                  <span className={cn(
+                    "text-xs font-semibold whitespace-nowrap shrink-0",
+                    isGrayedOut ? "text-neutral-400" : "text-[#7B0A0A]"
+                  )}>
+                    [Mês {fidelityInfo.currentMonth}/{fidelityInfo.totalMonths}]
+                  </span>
+                )}
               </h4>
               <div className="flex items-center gap-1">
                 {renderContractTypeBadge(lot.ContractType, isGrayedOut)}
-                {fidelityInfo && (
-                  <Badge 
-                    variant="outline" 
-                    className={cn(
-                      "text-[8px] px-1 h-3.5 font-semibold",
-                      isGrayedOut 
-                        ? "border-neutral-300 bg-neutral-100 text-neutral-500" 
-                        : "border-[#7B0A0A]/20 bg-[#7B0A0A]/5 text-[#7B0A0A]"
-                    )}
-                  >
-                    Mês {fidelityInfo.currentMonth}/{fidelityInfo.totalMonths}
-                  </Badge>
-                )}
               </div>
             </div>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              {lot.SnapshotVideoFormatName} ({lot.SnapshotMaxDurationSeconds}s)
+              {lot.SnapshotVideoFormatName} {formatDuration(lot.SnapshotMaxDurationSeconds)}
             </p>
           </div>
         </div>
