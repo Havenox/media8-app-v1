@@ -10,7 +10,7 @@ Ele serve como o ponto único de verdade para que futuros agentes ou desenvolved
 
 O projeto passou por uma profunda reestruturação financeira, lógica e visual. O objetivo foi resolver gargalos graves de usabilidade na criação de pedidos, implementar o padrão ouro de UX nos cartões de saldo do dashboard, ressuscitar a página de listagem de serviços, automatizar a renovação de ciclos de assinatura recorrentes com segurança e introduzir um ecossistema completo de conciliação financeira de faturas (Invoices).
 
-Os desenvolvimentos foram divididos em **7 Grandes Marcos de Entrega**:
+Os desenvolvimentos foram divididos em **8 Grandes Marcos de Entrega**:
 
 1. **Correção de Novo Pedido (`/orders/new`)**: Desbloqueio do wizard e dropdowns reativos.
 2. **Aprimoramento de UX de Saldos (`ServiceCard`)**: Nova interface visual sob a identidade da marca, barras de progresso, ordenação FIFO/Urgência, badges de fidelidade e prevenção do loop infinito.
@@ -19,6 +19,7 @@ Os desenvolvimentos foram divididos em **7 Grandes Marcos de Entrega**:
 5. **Correção de Datas por Calendário (`AddMonths`)**: Transição da matemática de dias fixos (30 dias) para meses de calendário completos, eliminando o desvio de calendário (drift) e espelhando gateways como Stripe/Asaas.
 6. **Bloqueio de Saldos por Fatura Pendente**: Provisionamento de créditos imediatos vinculados a faturas na virada do ciclo, com bloqueio rígido e autoritativo no backend (Consume e Create Order) e alertas visuais / redirecionamentos premium no frontend.
 7. **Exibição de Fim de Contrato & Opções de Renovação**: Adaptação visual dos rodapés para assinaturas no último mês de vigência ("Contrato Encerra dia X"), exclusão de gatilhos de auto-renovação de faturas e inclusão de botões e links diretos para renovação contratual (/contracts/:id/renew).
+8. **Identificadores Sequenciais Amigáveis por Cliente (SequentialId)**: Numeração amigável sequencial (ex: `Contrato #0001`, `Pedido #0012`) escopada por cliente, implementada via tabela de contadores centralizadora e transações ACID no PostgreSQL para evitar colisões concorrentes, com formatação flexível e DRY no frontend.
 
 ---
 
@@ -82,6 +83,16 @@ Os desenvolvimentos foram divididos em **7 Grandes Marcos de Entrega**:
   - **Identificação do Fim da Fidelidade**: O helper `getExpirationInfo` no React agora cruza `currentMonth === totalMonths` para marcar o último mês ativo de fidelidade.
   - **Nomenclatura Correta**: Rodapés dinâmicos de expiração alterados para `"Contrato Encerra dia DD/MM/YYYY"`, `"Contrato Encerra hoje!"` e `"Contrato Encerrado em DD/MM/YYYY"` no caso de expirados, preservando a identidade visual em tons de vinho da marca para indicar vigência de assinatura ativa.
   - **Ações de Renovação Contextual**: Adicionada a opção "Renovar Contrato" no menu Radix (`DropdownMenu`) de cartões em grid e um botão físico "Renovar" contornado em linhas de lista (`ServiceListItem`), navegando o usuário diretamente a `/contracts/:id/renew` com a referência do identificador de contrato (`ContractId`) exposta do backend.
+
+### 8. Identificadores Sequenciais Amigáveis por Cliente (SequentialId)
+* **Desafio**: Expor GUIDs longos e opacos (`e3d7a8d5...`) como chaves de busca primárias na interface degradava gravemente a usabilidade comercial. No entanto, introduzir IDs auto-incrementados simples escopados por cliente pode desencadear severas colisões em ambientes com concorrência distribuída. Adicionalmente, introduzir novas colunas `NOT NULL` inteiras em tabelas com dados pré-existentes requer uma abordagem de backfill físico estruturado para evitar falhas imediatas de unicidade.
+* **Solução**:
+  - **Tabela de Contadores Concorrentes (`ClientSequences`)**: Criada tabela no banco centralizando contadores `LastValue` para cada combinação de `ClientId` e `EntityType`.
+  - **Controle de Concorrência ACID**: Desenvolvido `SequenceGeneratorService` no backend. A busca, incremento e atualização ocorrem de forma atômica sob transações exclusivas de banco de dados, protegendo o sistema contra condições de corrida.
+  - **Índices Físicos de Unicidade**: Configuradas chaves compostas únicas em nível de banco de dados (`ClientId`, `SequentialId`) para blindar as entidades `ClientContract`, `Order`, `Invoice`, `BrandingProfile` e `EditingProfile`.
+  - **Script de Migração com Backfill Histórico**: Escrevemos a migração EF utilizando comandos analíticos `row_number() OVER (PARTITION BY ...)` para sequenciar retroativamente todo o histórico existente por cliente e preencher os contadores correspondentes antes de aplicar os índices físicos de unicidade, garantindo integridade absoluta dos dados históricos.
+  - **DTOs & Controllers**: Atualizados mapeamentos de resposta nos controladores `ClientContracts`, `BrandingProfiles`, `EditingProfiles`, `Billing` e no serviço de pedidos para trafegar a nova coluna.
+  - **Formatação DRY no React**: Criado o helper de visualização `formatSequentialId` em `src/lib/formatters.ts` que concatena dinamicamente o prefixo correspondente e adiciona preenchimento de zeros à esquerda (ex: `Contrato #0001`, `Pedido #0012`, `Fatura #0005`, `Marca #0002`, `Perfil #0003`), mantendo a lógica de visualização totalmente flexível e desacoplada do servidor.
 
 ---
 
@@ -164,9 +175,9 @@ Abaixo está a trilha de commits atômicos gerados, agrupados por ordem cronoló
 
 ## 🎯 Status Atual do Sistema e Verificação
 
-* **Compilação do Backend (`dotnet build`)**: 100% de êxito no .NET 10.0 (sem erros de sintaxe ou referências nulas).
-* **Compilação do Frontend (`npx tsc --noEmit`)**: 100% de êxito no TypeScript/Vite.
-* **Integridade de Banco**: Tabela `Invoices` persistindo e mapeada corretamente com migrações EF e backfill de dados aplicados no banco Postgres.
+* **Compilação do Backend (`dotnet build`)**: 100% de êxito no .NET 10.0 (sem erros de sintaxe ou referências nulas) após adicionar `SequentialId` e mapeá-lo nos DTOs de Contrato, Pedido, Marca, Perfil de Edição e Faturas.
+* **Compilação do Frontend (`npx tsc --noEmit`)**: 100% de êxito no TypeScript/Vite após estender as interfaces e integrar as badges visuais de numeração.
+* **Integridade de Banco**: Tabela `ClientSequences` mapeada e migrada. Índices físicos de unicidade estrita aplicados com sucesso. Backfill retroativo executado de forma limpa.
 * **API Ativa**: O servidor backend está ativamente rodando localmente na porta `5261` (`http://localhost:5261`) como processo de segundo plano do sistema, rodando o worker de fidelidade em background e ouvindo requisições HTTP normalmente.
 * **Seeding de Dados**: Executado com total sucesso, limpando históricos de teste do cliente `cliente@cliente.com` e reinserindo os dados de teste alinhados por calendário.
 
@@ -176,5 +187,6 @@ Abaixo está a trilha de commits atômicos gerados, agrupados por ordem cronoló
 
 1. **Uso de Casing nos DTOs**: Sempre respeite o PascalCase do backend ao consumir as propriedades no frontend (ex: usar `.Id`, `.Name`, `.Status`, `.ExpiresAt`, `.PurchaseDate` em objetos do tipo `UnifiedServiceBalance`).
 2. **Uso do Switch de Conciliação**: Para testar a aprovação manual de pagamentos de assinaturas, certifique-se de que a configuração `RequireManualPaymentConfirmation` esteja ativa (`true`) no banco ou no painel administrativo antes de simular o vencimento de contratos.
-3. **Preservação de Snapshots**: Contratos criam snapshots imutáveis das ofertas. Qualquer adição de campos comerciais na entidade `Offer` deve ser espelhada como snapshot em `ClientContract` para garantir que alterações de preço/quantidade futuras não afetem contratos ativos antigos.
+3. **Preservação de Snapshots**: Contratos criam snapshots imutáveis das ofertas. Qualquer adição de campos comerciais na entidade `Offer` deve ser espelhada como snapshot in `ClientContract` para garantir que alterações de preço/quantidade futuras não afetem contratos ativos antigos.
 4. **Respeito às Categorias e Prazos**: Nunca altere a matemática de expiração por `AddMonths` em pacotes e avulsos, pois estes continuam governados de forma estrita pelo prazo comercial de validade em dias corridos (`AddDays`).
+5. **Uso de Identificadores Sequenciais Amigáveis**: Ao exibir qualquer contrato, pedido, fatura, perfil de branding ou perfil de edição, sempre prefira renderizar o `SequentialId` formatado via helper utilitário `formatSequentialId(id, prefix)` ao invés de expor chaves GUID primárias diretamente. GUIDs são estritamente para consumo interno de APIs e chaves de rotas, e sequenciais são para interação visual amigável do cliente.
