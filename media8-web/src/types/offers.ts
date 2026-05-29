@@ -65,8 +65,22 @@ export interface ClientContract {
   CreatedAt: string;
   UpdatedAt: string;
 
-  // Navegação (opcional)
-  Offer?: Offer;
+  // Info do cliente (visão do admin)
+  ClientName?: string;
+  ClientEmail?: string;
+
+  // Snapshot Técnico Adicional
+  SnapshotVideoFormatName?: string;
+  SnapshotEditingStyleName?: string;
+  SnapshotMaxDurationSeconds?: number;
+  SnapshotDeliveryDays?: number;
+  SnapshotWarrantyDays?: number;
+
+  // Informações de Lote e Faturamento
+  ActiveLotId?: string;
+  ActiveLotRemainingQuantity?: number;
+  HasPendingInvoice?: boolean;
+  OldestUnpaidInvoiceDueDate?: string;
 }
 
 // ==========================================

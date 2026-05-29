@@ -92,8 +92,8 @@ export const ServiceBalanceList: React.FC<ServiceBalanceListProps> = ({
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
-  // Ordenação: Ativos (com créditos e não expirados) com menor prazo à frente, seguidos de inativos (esgotados ou expirados) ordenados por data de contratação decrescente
-  const sortedLots = [...lots].sort((a, b) => {
+  // Ordenação base: Ativos (com créditos e não expirados) com menor prazo à frente, seguidos de inativos (esgotados ou expirados) ordenados por data de contratação decrescente
+  const baseSortedLots = [...lots].sort((a, b) => {
     const daysA = getDaysRemainingForSort(a);
     const daysB = getDaysRemainingForSort(b);
     
@@ -124,6 +124,16 @@ export const ServiceBalanceList: React.FC<ServiceBalanceListProps> = ({
     const timeB = b.PurchaseDate ? new Date(b.PurchaseDate).getTime() : 0;
     return timeB - timeA;
   });
+
+  // Pós-processamento: Coloca itens com fatura pendente/em atraso (OldestUnpaidInvoiceDueDate) no topo da lista (mais antigo/atrasado primeiro)
+  const overdueLots = baseSortedLots.filter(lot => !!lot.OldestUnpaidInvoiceDueDate);
+  const nonOverdueLots = baseSortedLots.filter(lot => !lot.OldestUnpaidInvoiceDueDate);
+
+  overdueLots.sort((a, b) => {
+    return new Date(a.OldestUnpaidInvoiceDueDate!).getTime() - new Date(b.OldestUnpaidInvoiceDueDate!).getTime();
+  });
+
+  const sortedLots = [...overdueLots, ...nonOverdueLots];
 
   const containerClasses = variant === 'list' 
     ? cn("flex flex-col gap-3", className)

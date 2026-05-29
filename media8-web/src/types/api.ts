@@ -105,6 +105,7 @@ export interface ServiceBalanceLot {
   VideoFormat?: VideoFormat;
   InvoiceId?: string | null;
   InvoiceStatus?: string | null;
+  OldestUnpaidInvoiceDueDate?: string;
 }
 
 export interface Order {

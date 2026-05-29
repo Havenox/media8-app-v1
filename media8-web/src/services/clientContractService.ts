@@ -10,38 +10,46 @@ import { api } from '@/lib/api';
 // API FUNCTIONS
 // ==========================================
 
-// PascalCase: Backend usa /ClientContracts
-const getAllAPI = async (clientId?: string): Promise<ClientContractResponse[]> => {
-const query = new URLSearchParams();
+// PascalCase: Backend usa /ClientContracts e /admin/ClientContracts
+const getAllAPI = async (page = 1, pageSize = 10, clientId?: string): Promise<ClientContractResponse[]> => {
+  const query = new URLSearchParams({
+    page: page.toString(),
+    pageSize: pageSize.toString(),
+  });
 
-if (clientId) {
-query.append('clientId', clientId);
-}
+  if (clientId) {
+    query.append('clientId', clientId);
+  }
 
-const response = await api.get(`/ClientContracts?${query.toString()}`);
-return response.data;
+  const response = await api.get(`/admin/ClientContracts?${query.toString()}`);
+  return response.data;
 };
 
 const getByIdAPI = async (id: string): Promise<ClientContractResponse | null> => {
-const response = await api.get(`/ClientContracts/${id}`);
-return response.data;
+  const response = await api.get(`/ClientContracts/${id}`);
+  return response.data;
 };
 
 const createAPI = async (data: CreateClientContractRequest): Promise<ClientContractResponse> => {
-const response = await api.post('/ClientContracts', data);
-return response.data;
+  const response = await api.post('/admin/ClientContracts', data);
+  return response.data;
 };
 
 const updateAPI = async (
   id: string,
   data: UpdateClientContractRequest
 ): Promise<ClientContractResponse> => {
-  const response = await api.put(`/ClientContracts/${id}`, data);
+  const response = await api.put(`/admin/ClientContracts/${id}`, data);
   return response.data;
 };
 
-const getMyContractsAPI = async (showArchived: boolean = false): Promise<ClientContractResponse[]> => {
-  const response = await api.get(`/ClientContracts/my?showArchived=${showArchived}`);
+const getMyContractsAPI = async (page = 1, pageSize = 10, showArchived: boolean = false): Promise<ClientContractResponse[]> => {
+  const query = new URLSearchParams({
+    page: page.toString(),
+    pageSize: pageSize.toString(),
+    showArchived: showArchived.toString(),
+  });
+  const response = await api.get(`/ClientContracts/my?${query.toString()}`);
   return response.data;
 };
 
@@ -58,8 +66,8 @@ const unarchiveAPI = async (id: string): Promise<void> => {
 // ==========================================
 
 export const clientContractService = {
-  async getAll(clientId?: string): Promise<ClientContractResponse[]> {
-    return getAllAPI(clientId);
+  async getAll(page = 1, pageSize = 10, clientId?: string): Promise<ClientContractResponse[]> {
+    return getAllAPI(page, pageSize, clientId);
   },
 
   async getById(id: string): Promise<ClientContractResponse | null> {
@@ -77,8 +85,8 @@ export const clientContractService = {
     return updateAPI(id, data);
   },
 
-  async getMyContracts(showArchived: boolean = false): Promise<ClientContractResponse[]> {
-    return getMyContractsAPI(showArchived);
+  async getMyContracts(page = 1, pageSize = 10, showArchived: boolean = false): Promise<ClientContractResponse[]> {
+    return getMyContractsAPI(page, pageSize, showArchived);
   },
 
   async archive(id: string): Promise<void> {

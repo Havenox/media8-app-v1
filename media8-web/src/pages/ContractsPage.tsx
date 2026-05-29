@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -16,10 +16,12 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-  useMyClientContracts,
+  useInfiniteClientContracts,
+  useInfiniteMyClientContracts,
   useArchiveClientContract,
   useUnarchiveClientContract
 } from '@/hooks/useClientContracts';
+import { InfiniteScroll } from '@/components/ui/infinite-scroll';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -32,7 +34,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
-import { formatSequentialId } from '@/lib/formatters';
+import { formatSequentialId, formatMaxDuration } from '@/lib/formatters';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -42,8 +44,22 @@ const ContractsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
   const [searchQuery, setSearchQuery] = useState('');
 
+  const isAdmin = user?.Role === 'Admin';
+
   // Fetch contracts using React Query hooks
-  const { data: contracts = [], isLoading, refetch } = useMyClientContracts(activeTab === 'archived');
+  const clientQuery = useInfiniteMyClientContracts(activeTab === 'archived', 10, !isAdmin);
+  const adminQuery = useInfiniteClientContracts(undefined, 10, isAdmin);
+
+  const contracts = useMemo(() => {
+    const queryData = isAdmin ? adminQuery.data : clientQuery.data;
+    return queryData?.pages.flatMap((page) => page) ?? [];
+  }, [isAdmin, adminQuery.data, clientQuery.data]);
+
+  const isLoading = isAdmin ? adminQuery.isLoading : clientQuery.isLoading;
+  const hasNextPage = isAdmin ? adminQuery.hasNextPage : clientQuery.hasNextPage;
+  const fetchNextPage = isAdmin ? adminQuery.fetchNextPage : clientQuery.fetchNextPage;
+  const isFetchingNextPage = isAdmin ? adminQuery.isFetchingNextPage : clientQuery.isFetchingNextPage;
+  const refetch = isAdmin ? adminQuery.refetch : clientQuery.refetch;
   
   const archiveMutation = useArchiveClientContract();
   const unarchiveMutation = useUnarchiveClientContract();
@@ -60,18 +76,69 @@ const ContractsPage: React.FC = () => {
     });
   };
 
-  // Filter based on search query
+  // Filter based on search query and archive status
   const filteredContracts = contracts.filter((contract) => {
-    const offerName = contract.SnapshotOfferName || contract.Offer?.Name || '';
+    // Admin needs to filter by IsArchived on the client side since API doesn't filter
+    if (isAdmin) {
+      const wantArchived = activeTab === 'archived';
+      const isArchived = !!contract.IsArchived;
+      if (isArchived !== wantArchived) return false;
+    }
+
+    const offerName = contract.SnapshotOfferName || '';
     const sequentialIdStr = contract.SequentialId ? `Contrato #${String(contract.SequentialId).padStart(4, '0')}` : '';
     const query = searchQuery.toLowerCase();
+    
+    const clientName = contract.ClientName || '';
+    const clientEmail = contract.ClientEmail || '';
     
     return (
       offerName.toLowerCase().includes(query) ||
       sequentialIdStr.toLowerCase().includes(query) ||
       (contract.SnapshotVideoFormatName && contract.SnapshotVideoFormatName.toLowerCase().includes(query)) ||
-      (contract.SnapshotEditingStyleName && contract.SnapshotEditingStyleName.toLowerCase().includes(query))
+      (contract.SnapshotEditingStyleName && contract.SnapshotEditingStyleName.toLowerCase().includes(query)) ||
+      clientName.toLowerCase().includes(query) ||
+      clientEmail.toLowerCase().includes(query)
     );
+  });
+
+  // Helper to check if contract is inactive (expired, cancelled, or depleted)
+  const checkIsInactive = (c: any) => {
+    const isSubscription = c.SnapshotContractType === 'Assinatura';
+    const warrantyDays = c.SnapshotWarrantyDays || 0;
+    
+    let expDate = c.ExpiresAt ? new Date(c.ExpiresAt) : null;
+    if (isSubscription && !expDate && warrantyDays > 0) {
+      const assignedDate = new Date(c.AssignedAt);
+      expDate = new Date(assignedDate.getTime() + warrantyDays * 24 * 60 * 60 * 1000);
+    }
+
+    const isDateExpired = expDate ? expDate < new Date() : false;
+    const isDepleted = c.ActiveLotRemainingQuantity !== undefined && c.ActiveLotRemainingQuantity <= 0;
+    return c.Status === 'Expired' || c.Status === 'Cancelled' || isDateExpired || isDepleted;
+  };
+
+  // Sort: Overdue first (oldest first), Active/Valid next (newer to older), Inactive/Expired/Depleted last (newer to older)
+  const sortedContracts = [...filteredContracts].sort((a, b) => {
+    const aOverdue = a.OldestUnpaidInvoiceDueDate ? new Date(a.OldestUnpaidInvoiceDueDate).getTime() : null;
+    const bOverdue = b.OldestUnpaidInvoiceDueDate ? new Date(b.OldestUnpaidInvoiceDueDate).getTime() : null;
+
+    if (aOverdue !== null || bOverdue !== null) {
+      if (aOverdue !== null && bOverdue !== null) {
+        return aOverdue - bOverdue; // Mais antigo/atrasado primeiro
+      }
+      return aOverdue !== null ? -1 : 1; // Overdue vai pro topo da lista
+    }
+
+    const aInactive = checkIsInactive(a);
+    const bInactive = checkIsInactive(b);
+    
+    if (aInactive !== bInactive) {
+      return aInactive ? 1 : -1; // Active (false) before Inactive (true)
+    }
+    
+    // Same status: sort by AssignedAt descending (newer first)
+    return new Date(b.AssignedAt).getTime() - new Date(a.AssignedAt).getTime();
   });
 
   const getContractTypeBadge = (contractType: string | undefined, isInactive: boolean) => {
@@ -191,7 +258,7 @@ const ContractsPage: React.FC = () => {
           renderSkeletonList()
         ) : (
           <TabsContent value={activeTab} className="mt-0 focus-visible:outline-none">
-            {filteredContracts.length === 0 ? (
+            {sortedContracts.length === 0 ? (
               <Card className="border-[#E8E0D0] bg-[#FFFBED] border-dashed p-12 text-center max-w-xl mx-auto mt-8 shadow-sm">
                 <CardHeader className="p-0">
                   <div className="mx-auto w-12 h-12 rounded-full bg-[#E8E0D0]/20 flex items-center justify-center text-[#400404]/60 mb-4">
@@ -216,29 +283,71 @@ const ContractsPage: React.FC = () => {
                 )}
               </Card>
             ) : (
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              <InfiniteScroll
+                next={fetchNextPage}
+                hasMore={!!hasNextPage}
+                isLoading={isFetchingNextPage}
+                endMessage={
+                  sortedContracts.length > 0 && (
+                    <div className="text-center py-4 text-xs text-muted-foreground w-full">
+                      Todos os contratos carregados.
+                    </div>
+                  )
+                }
               >
-                <AnimatePresence>
-                  {filteredContracts.map((contract) => {
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                >
+                  <AnimatePresence>
+                  {sortedContracts.map((contract) => {
                     const isSubscription = contract.SnapshotContractType === 'Assinatura';
-                    const expDate = contract.ExpiresAt ? new Date(contract.ExpiresAt) : null;
+                    const warrantyDays = contract.SnapshotWarrantyDays || 0;
+
+                    let expDate = contract.ExpiresAt ? new Date(contract.ExpiresAt) : null;
+                    if (isSubscription && !expDate && warrantyDays > 0) {
+                      const assignedDate = new Date(contract.AssignedAt);
+                      expDate = new Date(assignedDate.getTime() + warrantyDays * 24 * 60 * 60 * 1000);
+                    }
+
                     const isDateExpired = expDate ? expDate < new Date() : false;
                     const isContractExpired = contract.Status === 'Expired' || isDateExpired;
                     const isCancelled = contract.Status === 'Cancelled';
+                    const isDepleted = contract.ActiveLotRemainingQuantity !== undefined && contract.ActiveLotRemainingQuantity <= 0;
                     
-                    const isInactive = isContractExpired || isCancelled;
+                    const isInactive = isContractExpired || isCancelled || isDepleted;
+
+                    let expSuffix = '';
+                    if (isDepleted && !isContractExpired && !isCancelled) {
+                      expSuffix = ' (Esgotado)';
+                    } else if (expDate && !isContractExpired && !isCancelled) {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      const target = new Date(expDate);
+                      target.setHours(0, 0, 0, 0);
+                      const diffTime = target.getTime() - today.getTime();
+                      const daysRemaining = Math.round(diffTime / (1000 * 60 * 60 * 24));
+                      
+                      if (daysRemaining > 0) {
+                        if (daysRemaining > 60) {
+                          const monthsRemaining = Math.round(daysRemaining / 30);
+                          expSuffix = ` (restam ${monthsRemaining} ${monthsRemaining === 1 ? 'mês' : 'meses'})`;
+                        } else {
+                          expSuffix = ` (restam ${daysRemaining} ${daysRemaining === 1 ? 'dia' : 'dias'})`;
+                        }
+                      } else if (daysRemaining === 0) {
+                        expSuffix = ' (expira hoje)';
+                      }
+                    }
 
                     // Commercial snapshot details
-                    const offerName = contract.SnapshotOfferName || contract.Offer?.Name || 'Contrato Comercial';
+                    const offerName = contract.SnapshotOfferName || 'Contrato Comercial';
                     const videoQty = contract.SnapshotVideoQuantity || 0;
                     const price = contract.SnapshotPrice || 0;
                     const deliveryDays = contract.SnapshotDeliveryDays || 0;
                     const validityDays = contract.SnapshotValidityDays || 0;
-                    const warrantyDays = contract.SnapshotWarrantyDays || 0;
                     const fidelityMonths = warrantyDays > 0 ? Math.round(warrantyDays / 30) : 0;
 
                     // Technical snapshot details
@@ -260,12 +369,7 @@ const ContractsPage: React.FC = () => {
                             "relative overflow-hidden transition-all duration-300 border-l-4 p-5 flex flex-col justify-between w-full h-full select-none group shadow-sm hover:shadow-md",
                             isInactive
                               ? "bg-[#F3F4F6]/70 border-[#E5E7EB] border-l-[#9CA3AF] opacity-75"
-                              : cn(
-                                  "bg-[#FFFBED] border-[#E8E0D0]",
-                                  isSubscription 
-                                    ? "border-l-[#7B0A0A] hover:ring-1 hover:ring-[#7B0A0A]/20" 
-                                    : "border-l-[#400404] hover:ring-1 hover:ring-[#400404]/20"
-                                )
+                              : "bg-[#FFFBED] border-[#E8E0D0] border-l-[#7B0A0A] hover:ring-1 hover:ring-[#7B0A0A]/20"
                           )}
                         >
                           <div>
@@ -284,6 +388,12 @@ const ContractsPage: React.FC = () => {
                                 )} title={offerName}>
                                   {offerName}
                                 </h3>
+                                {isAdmin && (
+                                  <div className="mt-1 text-[11px] text-muted-foreground font-medium leading-tight">
+                                    Cliente: <span className={cn("font-bold block", isInactive ? "text-neutral-500" : "text-[#7B0A0A]")}>{contract.ClientName}</span>
+                                    <span className="block font-mono text-[9px] text-muted-foreground/80">{contract.ClientEmail}</span>
+                                  </div>
+                                )}
                               </div>
 
                               <div className="flex items-center gap-1">
@@ -338,26 +448,26 @@ const ContractsPage: React.FC = () => {
                               </div>
                             </div>
 
-                            {/* Details Snapshot Content */}
+                             {/* Details Snapshot Content */}
                             <div className="space-y-2 mt-4 text-[12px] text-muted-foreground">
                               {/* Tech Details Row */}
-                              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-muted-foreground">
                                 <span className={cn(
-                                  "font-semibold flex items-center gap-1 shrink-0",
+                                  "font-semibold flex items-center gap-1 shrink-0 leading-none",
                                   isInactive ? "text-neutral-400" : "text-neutral-700"
                                 )}>
-                                  <Film className="h-3 w-3" /> {formatName}
+                                  <Film className="h-3.5 w-3.5 shrink-0" /> {formatName}
                                 </span>
-                                <span className="opacity-40">•</span>
-                                <span className="shrink-0">{editStyle}</span>
-                                <span className="opacity-40">•</span>
-                                <span className="shrink-0 font-mono text-[11px]">{duration}s</span>
+                                <span className="opacity-40 flex items-center justify-center leading-none text-[10px] select-none">•</span>
+                                <span className="shrink-0 flex items-center leading-none">Edição {editStyle}</span>
+                                <span className="opacity-40 flex items-center justify-center leading-none text-[10px] select-none">•</span>
+                                <span className="shrink-0 font-mono text-[11px] flex items-center leading-none">{formatMaxDuration(duration)}</span>
                               </div>
 
                               {/* Technical details list */}
                               <div className="grid grid-cols-2 gap-2 pt-3 border-t border-dashed border-[#E8E0D0]/80">
                                 <div>
-                                  <span className="text-[10px] text-muted-foreground/70 uppercase font-bold block leading-none">Vídeos inclusos</span>
+                                  <span className="text-[10px] text-muted-foreground/70 uppercase font-bold block leading-none">Edições Inclusas</span>
                                   <span className={cn("text-sm font-extrabold mt-0.5 block", isInactive ? "text-neutral-500" : "text-[#400404]")}>
                                     {videoQty} créditos
                                   </span>
@@ -366,18 +476,21 @@ const ContractsPage: React.FC = () => {
                                   <span className="text-[10px] text-muted-foreground/70 uppercase font-bold block leading-none">Prazo de Entrega</span>
                                   <span className={cn("text-sm font-extrabold mt-0.5 block", isInactive ? "text-neutral-500" : "text-[#400404]")}>
                                     {deliveryDays} {deliveryDays === 1 ? 'dia' : 'dias'} úteis
+                                    <span className="text-[10px] font-normal text-muted-foreground/80 ml-1">por vídeo</span>
                                   </span>
                                 </div>
                                 <div>
-                                  <span className="text-[10px] text-muted-foreground/70 uppercase font-bold block leading-none">Valor Snapshot</span>
+                                  <span className="text-[10px] text-muted-foreground/70 uppercase font-bold block leading-none">Valor do contrato</span>
                                   <span className={cn("text-sm font-extrabold mt-0.5 block", isInactive ? "text-neutral-500" : "text-[#400404]")}>
                                     {price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                                   </span>
                                 </div>
                                 <div>
-                                  <span className="text-[10px] text-muted-foreground/70 uppercase font-bold block leading-none">Vigência Ciclo</span>
+                                  <span className="text-[10px] text-muted-foreground/70 uppercase font-bold block leading-none">
+                                    {isSubscription ? 'Ciclo' : 'Validade'}
+                                  </span>
                                   <span className={cn("text-sm font-extrabold mt-0.5 block", isInactive ? "text-neutral-500" : "text-[#400404]")}>
-                                    {validityDays > 0 ? `${validityDays} dias` : 'Sem expiração'}
+                                    {isSubscription ? 'Mensal' : (validityDays > 0 ? `${validityDays} dias` : 'Sem expiração')}
                                   </span>
                                 </div>
                               </div>
@@ -394,17 +507,22 @@ const ContractsPage: React.FC = () => {
                                 <div className="flex items-center gap-1 text-neutral-500 font-medium min-w-0">
                                   <Clock className="h-3.5 w-3.5 shrink-0" />
                                   <span className="truncate">
-                                    Expirou em: {expDate ? format(expDate, 'dd/MM/yyyy') : '-'}
+                                    {isSubscription ? 'Encerrou' : 'Expirou'} em: {expDate ? format(expDate, 'dd/MM/yyyy') : '-'}
                                   </span>
                                 </div>
                               ) : (
                                 <div className="space-y-0.5">
                                   <div className="flex items-center gap-1 text-muted-foreground/80 font-medium min-w-0">
                                     <Calendar className="h-3.5 w-3.5 shrink-0 text-[#7B0A0A]/70" />
-                                    <span className="truncate">
-                                      Vence: {expDate ? format(expDate, 'dd/MM/yyyy') : 'Sem prazo'}
+                                    <span className="truncate" title={expDate ? `${isSubscription ? 'Encerra' : 'Expira'}: ${format(expDate, 'dd/MM/yyyy')}${expSuffix}` : 'Sem prazo'}>
+                                      {isSubscription ? 'Encerra' : 'Expira'}: {expDate ? `${format(expDate, 'dd/MM/yyyy')}${expSuffix}` : 'Sem prazo'}
                                     </span>
                                   </div>
+                                  {contract.HasPendingInvoice && (
+                                    <span className="text-[10px] font-extrabold text-red-600 block animate-pulse">
+                                      Fatura Pendente: Aguardando pagamento
+                                    </span>
+                                  )}
                                   {isSubscription && fidelityMonths > 0 && (
                                     <span className="text-[10px] font-bold text-[#7B0A0A] block">
                                       Período de Fidelidade: {fidelityMonths} meses
@@ -418,10 +536,13 @@ const ContractsPage: React.FC = () => {
                             {user?.Role === 'Client' && !isInactive && (
                               <Button
                                 size="sm"
-                                onClick={() => navigate('/orders/new')}
+                                disabled={contract.HasPendingInvoice}
+                                onClick={() => navigate(`/orders/new?lotId=${contract.ActiveLotId || ''}`)}
                                 className={cn(
-                                  "h-7 px-3 text-[11px] font-bold text-white shrink-0 shadow-sm",
-                                  isSubscription ? "bg-[#7B0A0A] hover:bg-[#5C1212]" : "bg-[#400404] hover:bg-[#5C1212]"
+                                  "h-7 px-3 text-[11px] font-bold shrink-0 shadow-sm",
+                                  contract.HasPendingInvoice
+                                    ? "bg-neutral-200 text-neutral-400 border border-neutral-300 cursor-not-allowed hover:bg-neutral-200"
+                                    : "text-white bg-[#7B0A0A] hover:bg-[#5C1212]"
                                 )}
                               >
                                 Novo Pedido
@@ -432,7 +553,7 @@ const ContractsPage: React.FC = () => {
                               <Button
                                 size="sm"
                                 onClick={() => navigate('/')}
-                                className="h-7 px-3 text-[11px] font-bold bg-[#400404] hover:bg-[#5C1212] text-white shrink-0 shadow-sm"
+                                className="h-7 px-3 text-[11px] font-bold bg-[#7B0A0A] hover:bg-[#5C1212] text-white shrink-0 shadow-sm"
                               >
                                 Renovar
                               </Button>
@@ -449,6 +570,7 @@ const ContractsPage: React.FC = () => {
                   })}
                 </AnimatePresence>
               </motion.div>
+            </InfiniteScroll>
             )}
           </TabsContent>
         )}

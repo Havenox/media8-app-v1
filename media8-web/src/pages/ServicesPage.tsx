@@ -166,7 +166,15 @@ const ServicesPage: React.FC = () => {
         break;
     }
 
-    return result;
+    // Pós-processamento: Coloca itens com fatura pendente/em atraso (OldestUnpaidInvoiceDueDate) no topo da lista (mais antigo/atrasado primeiro)
+    const overdue = result.filter(s => !!s.OldestUnpaidInvoiceDueDate);
+    const nonOverdue = result.filter(s => !s.OldestUnpaidInvoiceDueDate);
+
+    overdue.sort((a, b) => {
+      return new Date(a.OldestUnpaidInvoiceDueDate!).getTime() - new Date(b.OldestUnpaidInvoiceDueDate!).getTime();
+    });
+
+    return [...overdue, ...nonOverdue];
   }, [services, searchQuery, statusFilter, categoryFilter, sortOption]);
 
   const containerVariants = {
