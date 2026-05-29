@@ -83,17 +83,25 @@ Abaixo está a trilha de commits atômicos gerados, agrupados por ordem cronoló
 
 | Hash | Componente | Descrição |
 |---|---|---|
-| `977ec5d` | Documentação | Atualiza estudo de caso 087 para cobrir gatilho manual e refinamentos visuais |
-| `c306ac4` | Frontend/Backend | Oculta barra de progresso em cards expirados e adiciona botão no admin settings para disparar manualmente a verificação de ciclos |
-| `67ac16b` | Frontend (Comp) | Restaura cor laranja/âmbar original do botão de pagamento nos cards por harmonia visual |
-| `a627aa3` | Frontend (Comp) | Oculta reticências (ellipsis) nos cards de saldo bloqueados para evitar sobreposição |
-| `6ecf710` | Documentação | Cria estudo de caso 087 sobre bloqueio autoritativo e atualiza relatório de contexto |
-| `bf91fd1` | Frontend/Backend | Implementa bloqueio autoritativo de saldos por faturas pendentes e visual âmbar |
-| `e280133` | Documentação | Adiciona estudo de caso 086 sobre ordenação de expirados e cards cinza |
-| `c442ee0` | Frontend/Backend | Corrige ordenação por urgência colocando expirados mais recentes no topo |
-| `519e979` | Frontend (Comp) | Aplica visual acinzentado (grey-out) a cartões de saldo expirados |
-| `17c0337` | Documentação | Adiciona estudo de caso 085 sobre exibição do mês de fidelidade no dashboard |
-| `defb8fd` | Frontend (Comp) | Cruza PurchaseDate com ExpiresAt para exibir corretamente o mês da fidelidade nos cards |
+| `62479e8` | Frontend (UI) | Adiciona o input de dias de antecedência de faturamento no painel de configurações do admin |
+| `f37b746` | Backend (Services) | Implementa controle e seed de `BillingAntecipationDays`, pré-geração de faturas antecipadas e restrição de segurança de `CancellationWindowHours` para 1h |
+| `a0745ee` | Documentação | Sincroniza hashes finais de commits de documentação do caso de estudo 087 no relatório de preservação |
+| `88ea3c8` | Documentação | Atualiza caso de estudo 087 para cobrir gatilho manual e refinamento da barra de progresso |
+| `4072082` | Documentação | Adiciona commits do disparador manual e de barras de progresso ocultadas no relatório |
+| `84053c6` | Frontend/Backend | Oculta barra de progresso em cards expirados e adiciona botão no admin settings para disparar manualmente a verificação de ciclos |
+| `c9452fd` | Documentação | Atualização da tabela de commits com as últimas alterações visuais de cartões bloqueados |
+| `c617b45` | Frontend (Comp) | Restaura cor laranja/âmbar original do botão de pagamento nos cards por harmonia visual |
+| `b285414` | Frontend (Comp) | Oculta reticências (ellipsis) nos cards de saldo bloqueados para evitar sobreposição |
+| `b5e37a5` | Documentação | Atualiza hash de commit no relatório de preservação de contexto após correções de integridade |
+| `97b381f` | Documentação | Documenta bloqueio de saldos no caso de estudo 087 |
+| `ba84ad4` | Frontend/Backend | Implementa bloqueio autoritativo de saldos por faturas pendentes e visual âmbar |
+| `4ea2c54` | Documentação | Atualização do relatório de preservação com os hashes de commits de estilo e ordenação de expirados |
+| `e496c45` | Documentação | Adiciona estudo de caso 086 sobre ordenação de expirados e cards cinza |
+| `1993e75` | Frontend/Backend | Corrige ordenação por urgência colocando expirados mais recentes no topo |
+| `e8376c3` | Frontend (Comp) | Aplica visual acinzentado (grey-out) a cartões de saldo expirados |
+| `ac9f281` | Documentação | Adiciona log do commit correspondente ao ajuste de cálculo de fidelidade ao relatório |
+| `f9f5589` | Documentação | Adiciona estudo de caso 085 sobre exibição do mês de fidelidade no dashboard |
+| `c04b859` | Frontend (Comp) | Cruza PurchaseDate com ExpiresAt para exibir corretamente o mês da fidelidade nos cards |
 | `6d11d98` | Documentação | Adiciona estudo de caso 084 sobre ciclos mensais de calendário para assinaturas |
 | `0ba9fab` | Backend (Services) | Implementa ciclos mensais por calendário para assinaturas usando AddMonths |
 | `5decc65` | Frontend (Comp) | Uniformiza altura dos cards para `min-h-[220px]` e `h-full` para evitar desalinhamento visual |
