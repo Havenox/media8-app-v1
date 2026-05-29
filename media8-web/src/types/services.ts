@@ -33,6 +33,7 @@ export interface UnifiedServiceBalance {
   Status: string; // "active", "expired", "depleted"
   InvoiceId: string | null;
   InvoiceStatus: string | null;
+  ContractId?: string;
 }
 
 // Resultado do consumo de serviço

@@ -50,4 +50,5 @@ public DateTime PurchaseDate { get; set; } // Data de compra
     public string Status { get; set; } = "active"; // active, expired, depleted
     public Guid? InvoiceId { get; set; }
     public string? InvoiceStatus { get; set; }
+    public Guid? ContractId { get; set; }
 }

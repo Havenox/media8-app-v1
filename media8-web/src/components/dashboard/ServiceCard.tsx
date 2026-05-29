@@ -92,7 +92,8 @@ const getExpirationInfo = (lot: UnifiedServiceBalance) => {
       isUrgent: false,
       isExpired: false,
       dateString: null,
-      warningText: null
+      warningText: null,
+      isLastMonth: false
     };
   }
 
@@ -105,6 +106,9 @@ const getExpirationInfo = (lot: UnifiedServiceBalance) => {
   const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   const dateString = format(expirationDate, 'dd/MM/yyyy');
 
+  const fidelityInfo = isSubscription ? getFidelityInfo(lot.PurchaseDate, lot.ExpiresAt, lot.SnapshotWarrantyDays) : null;
+  const isLastMonth = !!(fidelityInfo && fidelityInfo.currentMonth === fidelityInfo.totalMonths);
+
   let text = '';
   let isUrgent = false;
   let isExpired = daysRemaining < 0;
@@ -112,15 +116,19 @@ const getExpirationInfo = (lot: UnifiedServiceBalance) => {
 
   if (isSubscription) {
     if (daysRemaining < 0) {
-      text = `Expirado em ${dateString} (Renovado em ${dateString})`;
+      text = isLastMonth 
+        ? `Contrato Encerrado em ${dateString}` 
+        : `Expirado em ${dateString} (Renovado em ${dateString})`;
     } else if (daysRemaining === 0) {
-      text = 'Renova hoje!';
+      text = isLastMonth ? `Contrato Encerra hoje! (${dateString})` : 'Renova hoje!';
       isUrgent = true;
     } else if (daysRemaining === 1) {
-      text = 'Renova amanhã!';
+      text = isLastMonth ? `Contrato Encerra amanhã! (${dateString})` : 'Renova amanhã!';
       isUrgent = true;
     } else {
-      text = `Renova em ${daysRemaining} ${daysRemaining === 1 ? 'dia' : 'dias'} (${dateString})`;
+      text = isLastMonth 
+        ? `Contrato Encerra dia ${dateString}` 
+        : `Renova em ${daysRemaining} ${daysRemaining === 1 ? 'dia' : 'dias'} (${dateString})`;
       if (daysRemaining <= 5) {
         isUrgent = true;
       }
@@ -160,7 +168,8 @@ const getExpirationInfo = (lot: UnifiedServiceBalance) => {
     isUrgent,
     isExpired,
     dateString,
-    warningText
+    warningText,
+    isLastMonth
   };
 };
 
@@ -386,7 +395,7 @@ export const ServiceCard = ({
       <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-dashed border-[#E8E0D0] text-[11px]">
         {/* Renewal / Expiry */}
         <div className="flex-1 min-w-0">
-          {isSubscription ? (
+          {isSubscription && !expInfo.isLastMonth ? (
             <div className={cn(
               "flex items-center gap-1 min-w-0",
               isGrayedOut
@@ -405,7 +414,9 @@ export const ServiceCard = ({
                 ? "text-neutral-500 font-medium"
                 : expInfo.isUrgent 
                   ? "text-orange-600 font-bold" 
-                  : "text-amber-900/70"
+                  : isSubscription
+                    ? "text-[#7B0A0A] font-medium"
+                    : "text-amber-900/70"
             )}>
               <Clock className="h-3 w-3 shrink-0" />
               <span className="truncate" title={expInfo.text}>{expInfo.text}</span>
@@ -513,6 +524,15 @@ export const ServiceCard = ({
             >
               <Plus className="h-4 w-4" />
               <span>Novo Pedido</span>
+            </DropdownMenuItem>
+          )}
+          {isSubscription && expInfo.isLastMonth && (
+            <DropdownMenuItem 
+              onClick={() => navigate(`/contracts/${lot.ContractId || 'renew'}/renew`)}
+              className="flex items-center gap-2 cursor-pointer text-[#7B0A0A] hover:bg-[#7B0A0A]/5 focus:bg-[#7B0A0A]/5 font-semibold"
+            >
+              <RefreshCw className="h-4 w-4" />
+              <span>Renovar Contrato</span>
             </DropdownMenuItem>
           )}
           <DropdownMenuItem 
@@ -632,17 +652,35 @@ export const ServiceListItem = ({
             </span>
           </div>
 
-          {canConsume ? (
-            <div className="flex items-center gap-2">
-              {isBlocked && (
-                <Button
-                  size="sm"
-                  className="h-7 px-3 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white"
-                  onClick={() => navigate('/admin/payments')}
-                >
-                  Pagar Fatura
-                </Button>
-              )}
+          <div className="flex items-center gap-2">
+            {isBlocked && (
+              <Button
+                size="sm"
+                className="h-7 px-3 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate('/admin/payments');
+                }}
+              >
+                Pagar Fatura
+              </Button>
+            )}
+
+            {isSubscription && expInfo.isLastMonth && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 px-3 text-xs font-bold border-[#7B0A0A]/30 text-[#7B0A0A] hover:bg-[#7B0A0A]/5 shrink-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/contracts/${lot.ContractId || 'renew'}/renew`);
+                }}
+              >
+                Renovar
+              </Button>
+            )}
+
+            {canConsume && (
               <Button
                 size="sm"
                 className={cn(
@@ -656,18 +694,8 @@ export const ServiceListItem = ({
               >
                 Usar
               </Button>
-            </div>
-          ) : (
-            isBlocked && (
-              <Button
-                size="sm"
-                className="h-7 px-3 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white"
-                onClick={() => navigate('/admin/payments')}
-              >
-                Pagar Fatura
-              </Button>
-            )
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -748,7 +776,7 @@ export const ServiceListItem = ({
         </div>
 
         <div className="font-medium">
-          {isSubscription ? (
+          {isSubscription && !expInfo.isLastMonth ? (
             <div className={cn(
               "flex items-center gap-1",
               isGrayedOut
@@ -768,7 +796,9 @@ export const ServiceListItem = ({
                 ? "text-neutral-500"
                 : expInfo.isUrgent 
                   ? "text-orange-700 font-bold" 
-                  : "text-amber-900/70"
+                  : isSubscription
+                    ? "text-[#7B0A0A]"
+                    : "text-amber-900/70"
             )}>
               <Clock className="h-3 w-3 shrink-0" />
               <span>{expInfo.text}</span>

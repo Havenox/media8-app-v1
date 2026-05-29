@@ -98,7 +98,8 @@ public class ServiceBalancesController : ControllerBase
             PurchaseDate = lot.Contract?.ActivatedAt ?? lot.Contract?.CreatedAt ?? lot.CreatedAt,
             Status = lot.ExpiresAt.HasValue && lot.ExpiresAt.Value < DateTime.UtcNow ? "expired" : "active",
             InvoiceId = lot.InvoiceId,
-            InvoiceStatus = lot.Invoice?.Status.ToString()
+            InvoiceStatus = lot.Invoice?.Status.ToString(),
+            ContractId = lot.ContractId
         };
     }
 }
