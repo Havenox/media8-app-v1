@@ -12,11 +12,16 @@ public class EditingProfileService : IEditingProfileService
 {
     private readonly IRepository<EditingProfile> _repository;
     private readonly IRepository<Order> _orderRepository;
+    private readonly ISequenceGeneratorService _sequenceGeneratorService;
 
-    public EditingProfileService(IRepository<EditingProfile> repository, IRepository<Order> orderRepository)
+    public EditingProfileService(
+        IRepository<EditingProfile> repository, 
+        IRepository<Order> orderRepository,
+        ISequenceGeneratorService sequenceGeneratorService)
     {
         _repository = repository;
         _orderRepository = orderRepository;
+        _sequenceGeneratorService = sequenceGeneratorService;
     }
 
     public async Task<EditingProfile?> GetByIdAsync(Guid id)
@@ -44,6 +49,7 @@ public class EditingProfileService : IEditingProfileService
         var profile = new EditingProfile
         {
             UserId = userId,
+            SequentialId = await _sequenceGeneratorService.GetNextSequenceAsync(userId, "EditingProfile"),
             Name = request.Name,
             ReferenceUrl = request.ReferenceUrl,
             CutGuidelines = request.CutGuidelines,

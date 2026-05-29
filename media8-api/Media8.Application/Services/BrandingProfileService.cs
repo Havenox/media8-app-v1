@@ -12,11 +12,16 @@ public class BrandingProfileService : IBrandingProfileService
 {
     private readonly IRepository<BrandingProfile> _repository;
     private readonly IRepository<Order> _orderRepository;
+    private readonly ISequenceGeneratorService _sequenceGeneratorService;
 
-    public BrandingProfileService(IRepository<BrandingProfile> repository, IRepository<Order> orderRepository)
+    public BrandingProfileService(
+        IRepository<BrandingProfile> repository, 
+        IRepository<Order> orderRepository,
+        ISequenceGeneratorService sequenceGeneratorService)
     {
         _repository = repository;
         _orderRepository = orderRepository;
+        _sequenceGeneratorService = sequenceGeneratorService;
     }
 
     public async Task<BrandingProfile?> GetByIdAsync(Guid id)
@@ -44,6 +49,7 @@ public class BrandingProfileService : IBrandingProfileService
         var profile = new BrandingProfile
         {
             UserId = userId,
+            SequentialId = await _sequenceGeneratorService.GetNextSequenceAsync(userId, "BrandingProfile"),
             Name = request.Name,
             SocialHandles = request.SocialHandles,
             BrandColors = request.BrandColors,

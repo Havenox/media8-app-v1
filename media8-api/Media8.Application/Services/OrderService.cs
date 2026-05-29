@@ -13,12 +13,14 @@ IRepository<Order> orderRepository,
 IRepository<User> userRepository,
 IRepository<ServiceBalanceLot> balanceRepository,
 ISettingsService settingsService,
+ISequenceGeneratorService sequenceGeneratorService,
 ILogger<OrderService> logger) : IOrderService
 {
 private readonly IRepository<Order> _orderRepository = orderRepository;
 private readonly IRepository<User> _userRepository = userRepository;
 private readonly IRepository<ServiceBalanceLot> _balanceRepository = balanceRepository;
 private readonly ISettingsService _settingsService = settingsService;
+private readonly ISequenceGeneratorService _sequenceGeneratorService = sequenceGeneratorService;
 private readonly ILogger<OrderService> _logger = logger;
 
 public async Task<OrderResponse> CreateAsync(CreateOrderRequest request, Guid userId, Guid serviceBalanceLotId)
@@ -52,6 +54,7 @@ balanceLot.RemainingQuantity);
 var order = new Order
 {
   ClientId = userId,
+  SequentialId = await _sequenceGeneratorService.GetNextSequenceAsync(userId, "Order"),
   Title = request.Title,
   Briefing = request.Briefing,
   SourceFilesUrl = request.SourceFilesUrl,
@@ -199,6 +202,7 @@ return new OrderResponse
 Id = order.Id,
 ClientId = order.ClientId,
 EditorId = order.EditorId,
+SequentialId = order.SequentialId,
 Title = order.Title,
 Briefing = order.Briefing,
 SourceFilesUrl = order.SourceFilesUrl,

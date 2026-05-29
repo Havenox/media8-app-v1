@@ -12,6 +12,7 @@ public class ServiceBalanceService : IServiceBalanceService
     private readonly IRepository<ClientContract> _contractRepository;
     private readonly IRepository<Invoice> _invoiceRepository;
     private readonly ISettingsService _settingsService;
+    private readonly ISequenceGeneratorService _sequenceGeneratorService;
     private readonly ILogger<ServiceBalanceService> _logger;
 
     public ServiceBalanceService(
@@ -19,12 +20,14 @@ public class ServiceBalanceService : IServiceBalanceService
         IRepository<ClientContract> contractRepository,
         IRepository<Invoice> invoiceRepository,
         ISettingsService settingsService,
+        ISequenceGeneratorService sequenceGeneratorService,
         ILogger<ServiceBalanceService> logger)
     {
         _balanceRepository = balanceRepository;
         _contractRepository = contractRepository;
         _invoiceRepository = invoiceRepository;
         _settingsService = settingsService;
+        _sequenceGeneratorService = sequenceGeneratorService;
         _logger = logger;
     }
 
@@ -113,6 +116,7 @@ public class ServiceBalanceService : IServiceBalanceService
         var invoice = new Invoice
         {
             ClientId = contract.ClientId,
+            SequentialId = await _sequenceGeneratorService.GetNextSequenceAsync(contract.ClientId, "Invoice"),
             ContractId = contract.Id,
             Description = description,
             Amount = contract.SnapshotPrice ?? offer.Price,
@@ -265,6 +269,7 @@ public class ServiceBalanceService : IServiceBalanceService
             cycleInvoice = new Invoice
             {
                 ClientId = contract.ClientId,
+                SequentialId = await _sequenceGeneratorService.GetNextSequenceAsync(contract.ClientId, "Invoice"),
                 ContractId = contract.Id,
                 Description = description,
                 Amount = amount,
@@ -412,6 +417,7 @@ public class ServiceBalanceService : IServiceBalanceService
                     cycleInvoice = new Invoice
                     {
                         ClientId = contract.ClientId,
+                        SequentialId = await _sequenceGeneratorService.GetNextSequenceAsync(contract.ClientId, "Invoice"),
                         ContractId = contract.Id,
                         Description = description,
                         Amount = amount,

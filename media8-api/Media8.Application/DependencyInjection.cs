@@ -11,6 +11,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IServiceBalanceService, ServiceBalanceService>();
+        services.AddScoped<ISequenceGeneratorService, SequenceGeneratorService>();
         
 // Briefing Profiles
 services.AddScoped<IBrandingProfileService, BrandingProfileService>();
