@@ -31,6 +31,7 @@ import EditingProfilesPage from "@/pages/EditingProfilesPage";
 import OffersPage from "@/pages/admin/OffersPage";
 import VideoFormatsPage from "@/pages/admin/VideoFormatsPage";
 import EditingStylesPage from "@/pages/admin/EditingStylesPage";
+import PaymentsPage from "@/pages/admin/PaymentsPage";
 import AccessDeniedPage from "@/pages/AccessDeniedPage";
 import NotFound from "@/pages/NotFound";
 
@@ -106,6 +107,11 @@ const App = () => (
 <Route path="/admin/editing-styles" element={
   <ProtectedRoute allowedRoles={['Admin']}>
     <EditingStylesPage />
+  </ProtectedRoute>
+} />
+<Route path="/admin/payments" element={
+  <ProtectedRoute allowedRoles={['Admin']}>
+    <PaymentsPage />
   </ProtectedRoute>
 } />
 

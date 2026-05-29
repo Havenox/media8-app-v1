@@ -15,6 +15,7 @@ import {
   ShoppingBag,
   Film,
   Palette,
+  CreditCard,
 } from 'lucide-react';
 
 import { useAuth } from '@/contexts/AuthContext';
@@ -46,6 +47,7 @@ const navItems: NavItem[] = [
   { icon: Package, label: 'Ofertas', path: '/admin/offers', roles: ['Admin'] },
 { icon: Film, label: 'Formatos', path: '/admin/video-formats', roles: ['Admin'] },
 { icon: Palette, label: 'Estilos', path: '/admin/editing-styles', roles: ['Admin'] },
+{ icon: CreditCard, label: 'Pagamentos', path: '/admin/payments', roles: ['Admin'] },
 { icon: Settings, label: 'Configurações', path: '/settings' },
   { icon: ExternalLink, label: 'Contratar Mais', path: '/', external: true, roles: ['Client'] },
 ];

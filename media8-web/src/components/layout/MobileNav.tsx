@@ -6,6 +6,7 @@ import {
   FolderKanban,
   Users,
   Settings,
+  CreditCard,
 } from 'lucide-react';
 
 import { useAuth } from '@/contexts/AuthContext';
@@ -30,6 +31,7 @@ const navItems: NavItem[] = [
   { icon: Scissors, label: 'Edições', path: '/edits', roles: ['Admin', 'Editor'] },
   { icon: Users, label: 'Usuários', path: '/users', roles: ['Admin'] },
   { icon: Package, label: 'Ofertas', path: '/admin/offers', roles: ['Admin'] },
+  { icon: CreditCard, label: 'Pagamentos', path: '/admin/payments', roles: ['Admin'] },
   { icon: Settings, label: 'Configurações', path: '/settings' },
   { icon: ExternalLink, label: 'Contratar Mais', path: '/', external: true, roles: ['Client'] },
 ];
